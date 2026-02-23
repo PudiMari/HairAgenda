@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "./backend"
+    ],
+    "python.defaultInterpreterPath": "backend/venv/Scripts/python.exe",
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "git.ignoreLimitWarning": true
+}
