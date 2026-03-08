@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Scissors, Clock, CheckCircle } from 'lucide-react';
+import { Scissors, Clock } from 'lucide-react';
 
 interface Service {
   id: number;
@@ -38,8 +38,8 @@ function App() {
               key={service.id}
               onClick={() => setSelectedService(service)}
               className={`p-4 border rounded-2xl cursor-pointer transition-all ${selectedService?.id === service.id
-                  ? 'border-beauty-gold bg-white shadow-lg'
-                  : 'bg-white border-gray-100'
+                ? 'border-beauty-gold bg-white shadow-lg'
+                : 'bg-white border-gray-100'
                 }`}
             >
               <div className="flex justify-between items-center">
