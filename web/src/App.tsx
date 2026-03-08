@@ -15,7 +15,7 @@ function App() {
 
   useEffect(() => {
     // Busca os serviços do seu Backend Django
-    axios.get('http://127.0.0.1:8000/api/services/')
+    axios.get('https://hairagenda-api.onrender.com/api/services/')
       .then(response => setServices(response.data))
       .catch(error => console.error("Erro ao carregar serviços:", error));
   }, []);
