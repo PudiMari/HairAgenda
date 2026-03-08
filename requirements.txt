@@ -9,4 +9,4 @@ sentry-sdk==2.53.0
 sqlparse==0.5.5
 tzdata==2025.3
 urllib3==2.6.3
-whitenoise
+whitenoise==6.12.0
