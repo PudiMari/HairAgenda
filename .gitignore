@@ -1,6 +1,5 @@
 venv/
 node_modules/
-db.sqlite3
 # Adicione isso ao seu .gitignore se ainda não tiver:
 **/__pycache__/
 *.pyc
