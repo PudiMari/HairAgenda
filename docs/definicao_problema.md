@@ -1,14 +1,10 @@
+# Declaração de Problema
 
-# Definição do Problema
+## 1. Problema
+A gestão manual da agenda por meio de aplicativos de mensagens (como WhatsApp) gera ineficiência, atrito no agendamento e perda de faturamento. As profissionais precisam interromper os atendimentos técnicos para negociar horários e preços, enquanto os clientes aguardam a disponibilidade para confirmar um horário. Além disso, o controle em agendas de papel ou mental não emite lembretes, resultando em uma alta taxa de *no-shows* (faltas). Como resultado, há limitação no crescimento financeiro da profissional, elevado estresse diário gerenciando mensagens e perda de clientes para a concorrência que já oferece agendamento online.
 
-## Contexto
-No mercado de beleza e estética, profissionais autônomos (como cabeleireiras e manicures) gerenciam suas próprias agendas. O canal de comunicação padrão é o WhatsApp, que exige negociação manual de horários e preços para cada cliente.
+## 2. Público-Alvo/Persona
+Profissionais autônomos do mercado de beleza e estética (como cabeleireiras, manicures, maquiadoras, etc.) que gerenciam suas próprias agendas de forma manual, além de seus clientes que buscam praticidade para marcar os serviços.
 
-## O Problema
-A gestão manual da agenda gera três dores principais:
-1. **Perda de Produtividade:** A profissional precisa interromper o atendimento técnico (ex: cortar cabelo, aplicar química) para responder mensagens.
-2. **Atrito para o Cliente:** O cliente precisa esperar a disponibilidade da profissional para saber preços e confirmar um horário.
-3. **No-shows e Furos:** Agendas de papel ou controle mental não emitem lembretes, aumentando a chance de o cliente esquecer o horário.
-
-## Impacto
-Limitação no crescimento financeiro da profissional, estresse diário com gerenciamento de mensagens e perda de clientes para a concorrência que oferece agendamento online.
+## 3. Objetivo
+Criar uma solução automatizada de agendamento online que centralize a gestão de horários, permitindo que os clientes façam o autoagendamento 24/7 de forma intuitiva, visualizem preços e recebam lembretes automáticos. O objetivo central é eliminar a negociação manual de horários para liberar o tempo comercial da profissional, reduzir a inadimplência/no-shows e impulsionar o seu crescimento financeiro.

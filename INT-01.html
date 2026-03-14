@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8e936d", // Muted Olive Green
+                        "accent": "#c58c73",  // Warm Terracotta
+                        "neutral-cream": "#f9f6f1",
+                        "background-light": "#fcfaf7",
+                        "background-dark": "#2c2b28",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.75rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col items-center">
+<!-- Main Content Container (Mobile Centered) -->
+<div class="w-full max-w-[600px] flex flex-col min-h-screen bg-white dark:bg-slate-900/50 shadow-sm">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-3xl text-primary">content_cut</span>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">HairAgenda</h2>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors hover:bg-primary/20">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors hover:bg-primary/20">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+</header>
+<!-- Profile Showcase Section -->
+<div class="flex flex-col items-center px-6 py-10 gap-6">
+<div class="relative">
+<div class="size-32 rounded-full border-4 border-primary/20 p-1">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover rounded-full shadow-lg" data-alt="Professional hair stylist Ana Rocha portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA1vdQ1zdLn0tgsRqzvuQqn9B_Bp0Eh1IQXeWhOBe5lZgO1xJOx7oZ6JDKjpNzH0t5Jjr161dzPYCuxL6SXgxAdEY8M7STZ7GuqiIK9WbPHRG1De1OKbyr-S2tp0FpY2JRZdRBCJ7PSC8BvfQNtyaTZ-exzi8QpeqVnS2J2nntyUSBs-mZtTBV1tJ8Lau_IBngNUZ9UkN5A3WdxSRIdCAVYDpnaeQHq6G0JlqqjOrGDyQqC0YR0YvQhUSp8mFzqOTJZ0wJQmFl_Luw");'>
+</div>
+</div>
+<div class="absolute bottom-1 right-1 bg-green-500 size-5 rounded-full border-2 border-white dark:border-slate-900"></div>
+</div>
+<div class="flex flex-col items-center text-center gap-2">
+<h1 class="text-slate-900 dark:text-white text-2xl font-bold tracking-tight">Ana Rocha - Colorista &amp; Hair</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed max-w-sm">
+                            Especialista em loiros e mechas há 10 anos. Localizada no Jardins.
+                        </p>
+<div class="flex items-center gap-1 mt-1 text-primary">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span class="text-xs font-medium uppercase tracking-wider">São Paulo, SP</span>
+</div>
+</div>
+<!-- Action Area -->
+<div class="flex flex-col w-full gap-3 mt-4">
+<button class="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-accent text-white text-lg font-bold shadow-lg shadow-accent/20 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined mr-2">calendar_month</span>
+                            Agendar Horário
+                        </button>
+<div class="flex gap-3 w-full">
+<button class="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-primary/30 bg-transparent text-primary text-sm font-bold hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined mr-2 text-lg">list_alt</span>
+                                Ver Serviços
+                            </button>
+<button class="flex flex-1 items-center justify-center rounded-xl h-12 px-4 border-2 border-slate-200 dark:border-slate-700 bg-transparent text-slate-700 dark:text-slate-300 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined mr-2 text-lg">chat</span>
+                                WhatsApp
+                            </button>
+</div>
+</div>
+</div>
+<!-- Recent Works Grid -->
+<div class="px-6 pb-12">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold">Trabalhos Recentes</h3>
+<a class="text-primary text-sm font-medium" href="#">Ver todos</a>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="aspect-square rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform hover:scale-110 duration-500" data-alt="Blonde hair highlights showcase" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuANa6GD-xF-gmkQbQD-nJ9cYj2J74255IuqhDb-a83SB7MlY9UFq9RlgpyYZFHo-Qmc07RXzqWSmHsQyoGmVrkq5-ko9IO5QmfJY6KyAydae1Qxe9SGBNQu-8tH4JYEz2O1lSixAK-apvFmX0YwetcEEiCZWNXY7Ij4jROh6gytiyOBtxxwAV6gOTBf4WKrqbdK21iKiO_0JVsQU_1hP7ylbkOs0H7AX3qhYwNlJgezA7PBwGf4XaIFNBR7PLpU2qNHvhzlw23HU6Y");'></div>
+</div>
+<div class="aspect-square rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform hover:scale-110 duration-500" data-alt="Hair coloring procedure detail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAnO_7XSBZdghoKowzhxYnF0UEiIVZ4Q51Kp-tUJUWn3wtGP3OvImm9km9QYayFvO8X_7VN4Tp0Tgc8zLxHJC4D-B-SX_uRYX8_hzZ723h1MJpw0DT0z3jxP0oq03UVL3SG2z8tO_fya5ap-NO_qFqhyqMSq4vTWlWdnVKSHri8KHbugKntyN1RKUe7IwIl1S-0LJpe_aW_dh6TrHV8MsiptjQT70NTODOUcT0S3YbAhWQuhChzLTqxOvFSiRG2FOMw9HLgsjQv5dQ");'></div>
+</div>
+<div class="aspect-square rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform hover:scale-110 duration-500" data-alt="Finished hairstyle photography" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDF9WeEjVTgh54x4cMAjE8hP75asQ43laZjTtAKUY6LuKMM6czlnr9XebmuHKYdVvXDvlQQsfBRSbFDYqtyucRSNiaZQvHzq90zQdNrXVv1s0f6bnDYO87CJL_1x_URhg4JOBTag_HxEaws9zoJBxocQq9bXplbxYi7mZYsfVgQfnBLTcJokTcmmTpzi49h_cjMGbxIeXTIkxXDhB2yyvREhYETX_g0SGmok9GuKG1pY9PGRiuyLLhm50Fp9Fuka3PAxw9-eerwux0");'></div>
+</div>
+</div>
+</div>
+<!-- Footer / Nav Hint -->
+<nav class="mt-auto border-t border-slate-100 dark:border-slate-800 px-6 py-6 flex justify-around items-center">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase">Perfil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-bold uppercase">Histórico</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase">Ajustes</span>
+</div>
+</nav>
+</div>
+</div>
+</div>
+</body></html>

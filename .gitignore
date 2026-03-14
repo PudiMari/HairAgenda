@@ -3,3 +3,32 @@ node_modules/
 # Adicione isso ao seu .gitignore se ainda não tiver:
 **/__pycache__/
 *.pyc
+.env.local
+.env
+
+# Databases
+*.sqlite3
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.vercel/
+
+# Logs and temporary files
+*.log
+*_logs.txt
+build_output*.txt
+error.html
+temp_404.html
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Configuração de Agenda - HairAgenda Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8e936d", // Muted Olive Green
+                        "accent": "#c58c73",  // Warm Terracotta
+                        "neutral-cream": "#f9f6f1",
+                        "background-light": "#fcfaf7",
+                        "background-dark": "#2c2b28",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.75rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .time-picker-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d4af35'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.25em;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 font-display transition-colors duration-500 antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 w-full border-b border-primary/10 bg-background-light/80 backdrop-blur-md dark:bg-background-dark/80 px-4 md:px-10 lg:px-40 py-4">
+<div class="flex items-center justify-between max-w-5xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">content_cut</span>
+</div>
+<div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">Configuração de Agenda</h2>
+<p class="text-xs text-slate-500 dark:text-slate-400">HairAgenda Pro</p>
+</div>
+</div>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-2xl h-10 px-6 bg-primary text-white text-sm font-bold transition-all hover:opacity-90 active:scale-95 shadow-lg shadow-primary/20">
+                Salvar
+            </button>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center px-4 py-8 md:px-10 lg:px-40">
+<div class="w-full max-w-5xl space-y-8">
+<!-- Intro Section -->
+<div class="flex flex-col gap-2">
+<h1 class="text-3xl font-extrabold tracking-tight">Horários de Atendimento</h1>
+<p class="text-slate-600 dark:text-slate-400 max-w-2xl">Defina os períodos em que você estará disponível para agendamentos e seus intervalos de descanso obrigatórios.</p>
+</div>
+<!-- Schedule List -->
+<div class="grid gap-6">
+<!-- Week Day Template (Active) -->
+<div class="bg-white dark:bg-slate-800/50 rounded-xl border border-primary/10 p-5 shadow-sm transition-all hover:border-primary/30">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<div>
+<h3 class="text-lg font-bold">Segunda-feira</h3>
+<p class="text-sm text-green-600 dark:text-green-400 font-medium">Aberto para agendamentos</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Expediente -->
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">schedule</span> Expediente
+                            </label>
+<div class="flex items-center gap-2">
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary"></select>
+<span class="absolute -top-2 left-2 bg-white dark:bg-slate-800 px-1 text-[10px] font-medium text-slate-400">Início</span>
+</div>
+<span class="text-slate-400">às</span>
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary">
+<option>18:00</option>
+<option>19:00</option>
+</select>
+<span class="absolute -top-2 left-2 bg-white dark:bg-slate-800 px-1 text-[10px] font-medium text-slate-400">Fim</span>
+</div>
+</div>
+</div>
+<!-- Almoço -->
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">restaurant</span> Intervalo de Almoço
+                            </label>
+<div class="flex items-center gap-2">
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary">
+<option>12:00</option>
+<option>12:30</option>
+</select>
+<span class="absolute -top-2 left-2 bg-white dark:bg-slate-800 px-1 text-[10px] font-medium text-slate-400">Início</span>
+</div>
+<span class="text-slate-400">às</span>
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary">
+<option>13:00</option>
+<option>14:00</option>
+</select>
+<span class="absolute -top-2 left-2 bg-white dark:bg-slate-800 px-1 text-[10px] font-medium text-slate-400">Fim</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Week Day Template (Active) -->
+<div class="bg-white dark:bg-slate-800/50 rounded-xl border border-primary/10 p-5 shadow-sm transition-all hover:border-primary/30">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<div>
+<h3 class="text-lg font-bold">Terça-feira</h3>
+<p class="text-sm text-green-600 dark:text-green-400 font-medium">Aberto para agendamentos</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">schedule</span> Expediente
+                            </label>
+<div class="flex items-center gap-2">
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary">
+<option>08:00</option>
+<option>09:00</option>
+</select>
+</div>
+<span class="text-slate-400">às</span>
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary">
+<option>18:00</option>
+<option>19:00</option>
+</select>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">restaurant</span> Intervalo de Almoço
+                            </label>
+<div class="flex items-center gap-2">
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary">
+<option>12:00</option>
+</select>
+</div>
+<span class="text-slate-400">às</span>
+<div class="relative flex-1">
+<select class="time-picker-select w-full rounded-2xl border-primary/20 bg-white dark:bg-slate-900/50 py-2.5 pl-3 pr-10 text-sm focus:border-primary focus:ring-primary">
+<option>13:00</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Week Day Template (Inactive) -->
+<div class="bg-slate-100 dark:bg-slate-800/20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-5 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4 opacity-50">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500">
+<span class="material-symbols-outlined">event_busy</span>
+</div>
+<div>
+<h3 class="text-lg font-bold">Domingo</h3>
+<p class="text-sm font-medium">Fechado para agendamentos</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<!-- Repeat Days Summary Section -->
+<div class="mt-4 flex flex-wrap gap-2 px-2">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest w-full mb-1">Dias restantes</span>
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-primary/10 hover:border-primary transition-colors">Quarta-feira</button>
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-primary/10 hover:border-primary transition-colors">Quinta-feira</button>
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-primary/10 hover:border-primary transition-colors">Sexta-feira</button>
+<button class="px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium hover:bg-primary/10 hover:border-primary transition-colors">Sábado</button>
+</div>
+</div>
+<!-- Global Settings / Actions -->
+<div class="pt-8 border-t border-primary/10 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3 text-slate-500 text-sm">
+<span class="material-symbols-outlined text-primary">info</span>
+<span>As alterações afetarão a disponibilidade a partir de amanhã.</span>
+</div>
+<div class="flex gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-initial px-6 py-2.5 rounded-2xl border border-primary text-primary font-bold text-sm hover:bg-primary/5 transition-colors">
+                        Descartar
+                    </button>
+<button class="flex-1 md:flex-initial px-8 py-2.5 rounded-2xl bg-accent text-white font-bold text-sm shadow-lg shadow-accent/20 hover:opacity-90 active:scale-95 transition-all">
+                        Salvar Alterações
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Decoration -->
+<footer class="mt-auto py-10 text-center text-slate-400 text-xs flex flex-col items-center gap-4">
+<div class="w-10 h-1 bg-primary/20 rounded-full"></div>
+<p>© 2024 HairAgenda Pro - Gestão Profissional de Salões</p>
+</footer>
+</div>
+</body></html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#8e936d", // Muted Olive Green
+                        "accent": "#c58c73",  // Warm Terracotta/Burnt Orange
+                        "neutral-cream": "#f9f6f1",
+                        "background-light": "#fcfaf7",
+                        "background-dark": "#2c2b28",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.75rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }</script>
+<title>Confirmação de Agendamento - HairAgenda</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 transition-colors duration-500">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="flex flex-1 justify-center py-5 px-4 md:px-10 lg:px-40">
+<div class="layout-content-container flex flex-col max-w-[520px] flex-1">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-4 py-4 mb-6">
+<div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+<div class="size-6 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">content_cut</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">HairAgenda</h2>
+</div>
+<button class="flex items-center justify-center rounded-full h-10 w-10 transition-colors hover:bg-primary/20 bg-accent/10 text-accent">
+<span class="material-symbols-outlined">close</span>
+</button>
+</header>
+<!-- Success Indicator / Headline -->
+<div class="flex flex-col items-center text-center px-4 mb-8">
+<div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full text-primary bg-primary/15">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1">check_circle</span>
+</div>
+<h1 class="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight tracking-[-0.015em]">Quase lá!</h1>
+<p class="text-slate-600 dark:text-slate-400 text-sm mt-2">Confirme os detalhes do seu agendamento abaixo.</p>
+</div>
+<!-- Summary Box: Selected service details -->
+<div class="px-4 mb-8">
+<div class="flex flex-col gap-4 rounded-xl dark:bg-slate-800/50 p-5 shadow-sm border border-primary/10 bg-neutral-cream/30">
+<div class="flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<p class="text-primary text-xs font-bold uppercase tracking-wider">Serviço Selecionado</p>
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">Corte Masculino Premium</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">R$ 85,00 • 45 min</p>
+</div>
+<div class="size-16 bg-center bg-no-repeat bg-cover rounded-lg shrink-0 border border-slate-100 dark:border-slate-700" data-alt="Close up of a professional haircut service in a barbershop" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBMJENtrCj3uxHs2EnPiLXz7wSaakEAQtYyGyuh4jvish5qpF0100ZsME833zxDaOrjwvffgIdg8fgMdzD2dxtxm95aGx4yTUGc9VZqfLoJ-TIrN0CtKab1dNk6Ve_9kssZrAICipQkKJ615oclQC4tmYRCRBPwcfv0Vzv2soIcZbCepN-XyjO5XaLWFB1GOtoJygUcc7F3rLMtkmTLWo-kR6MjkgFVlCkCZXhOoFTApg9R9NMjPPNfuWK0kIiwkULO4uPudtE8Np0");'>
+</div>
+</div>
+<div class="h-px bg-primary/10 w-full"></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex items-center gap-3">
+<div class="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-xl">calendar_today</span>
+</div>
+<div class="flex flex-col">
+<p class="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase">Data</p>
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">24 Out, 2023</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-xl">schedule</span>
+</div>
+<div class="flex flex-col">
+<p class="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase">Horário</p>
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">14:30</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Ultra-simple Form -->
+<div class="px-4 flex flex-col gap-5">
+<div class="flex flex-col gap-1.5">
+<label class="text-slate-700 dark:text-slate-300 text-sm font-semibold px-1" for="name">Nome Completo</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">person</span>
+<input class="flex w-full rounded-xl text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 h-14 pl-12 pr-4 focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-400 outline-none" id="name" placeholder="Como quer ser chamado?" type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-slate-700 dark:text-slate-300 text-sm font-semibold px-1" for="phone">Celular (WhatsApp)</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">phone_iphone</span>
+<input class="flex w-full rounded-xl text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 h-14 pl-12 pr-4 focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-400 outline-none" id="phone" placeholder="(00) 00000-0000" type="tel"/>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-[11px] px-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">info</span>
+                                Enviaremos o lembrete por WhatsApp.
+                            </p>
+</div>
+</div>
+<!-- Final CTA -->
+<div class="px-4 mt-10 pb-10">
+<button class="w-full font-bold h-14 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] bg-accent text-white shadow-accent/20 hover:bg-accent/90">
+<span>Confirmar Agendamento</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<div class="mt-6 flex flex-col items-center gap-4">
+<div class="flex items-center gap-2 text-slate-400">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span class="text-[11px] font-medium uppercase tracking-tight">Ambiente Seguro &amp; Privado</span>
+</div>
+<p class="text-slate-400 text-[10px] text-center max-w-[300px]">
+                                Ao confirmar, você concorda com nossos termos de serviço e política de cancelamento.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>
