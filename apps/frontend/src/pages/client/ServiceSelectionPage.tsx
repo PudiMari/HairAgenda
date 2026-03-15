@@ -100,11 +100,32 @@ export function ServiceSelectionPage() {
     
     return !appointments.some(app => {
       const appDate = new Date(app.date_time);
-      return appDate.getFullYear() === dateObj.year &&
-             appDate.getMonth() === monthNames.indexOf(dateObj.month) &&
-             appDate.getDate() === parseInt(dateObj.day, 10) &&
-             appDate.getHours() === hours &&
-             appDate.getMinutes() === minutes;
+      
+      // Use Intl.DateTimeFormat to get components in Sao Paulo time
+      const formatter = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      
+      const parts = formatter.formatToParts(appDate);
+      const appYear = parseInt(parts.find(p => p.type === 'year')!.value, 10);
+      const appMonth = parseInt(parts.find(p => p.type === 'month')!.value, 10) - 1; // 0-indexed
+      const appDay = parseInt(parts.find(p => p.type === 'day')!.value, 10);
+      const appHour = parseInt(parts.find(p => p.type === 'hour')!.value, 10);
+      const appMinute = parseInt(parts.find(p => p.type === 'minute')!.value, 10);
+      
+      const dateMatch = appYear === dateObj.year &&
+                        appMonth === monthNames.indexOf(dateObj.month) &&
+                        appDay === parseInt(dateObj.day, 10);
+                        
+      const timeMatch = appHour === hours && appMinute === minutes;
+      
+      return dateMatch && timeMatch;
     });
   };
 
@@ -274,7 +295,7 @@ export function ServiceSelectionPage() {
       {/* Navigation Buttons */}
       <div className="flex items-center gap-4 mt-8">
         <Link 
-          to="/"
+          to="/profile"
           className="flex-1 flex items-center justify-center gap-2 h-14 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all"
         >
           <ArrowLeft size={20} />

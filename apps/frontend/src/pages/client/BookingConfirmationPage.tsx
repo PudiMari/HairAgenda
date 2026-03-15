@@ -47,7 +47,7 @@ export function BookingConfirmationPage() {
       });
 
       alert("Agendamento confirmado com sucesso!");
-      navigate("/");
+      navigate("/profile");
     } catch (err: any) {
       setError(err.message || "Ocorreu um erro ao salvar o agendamento.");
     } finally {
@@ -62,7 +62,7 @@ export function BookingConfirmationPage() {
       <header className="flex items-center justify-between mb-8">
         <h2 className="text-xl font-bold text-brand-dark">HairAgenda</h2>
         <button 
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/profile")}
           className="flex items-center justify-center rounded-full h-10 w-10 transition-colors hover:bg-brand-gold/20 bg-brand-gold/10 text-brand-gold"
         >
           <X size={20} />

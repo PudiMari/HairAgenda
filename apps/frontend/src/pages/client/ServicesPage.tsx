@@ -50,7 +50,7 @@ export function ServicesPage() {
       {/* Header */}
       <div className="pt-8 pb-6 border-b border-primary/10 mb-8">
         <div className="flex items-center gap-4 mb-2">
-          <Link to="/" className="text-brand-gold hover:opacity-80 transition-opacity">
+          <Link to="/profile" className="text-brand-gold hover:opacity-80 transition-opacity">
             <ArrowLeft size={24} />
           </Link>
           <h1 className="text-2xl font-black text-brand-dark tracking-tight">Nossos Serviços</h1>
