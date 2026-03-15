@@ -16,10 +16,10 @@ class Service(models.Model):
 
 class Appointment(models.Model):
     cliente = models.ForeignKey(
-        'auth_module.Cliente', 
-        on_delete=models.CASCADE, 
+        'auth_module.Cliente',
+        on_delete=models.CASCADE,
         verbose_name="Cliente",
-        null=True, 
+        null=True,
         blank=True
     )
     client_name = models.CharField("Nome da Cliente", max_length=100)

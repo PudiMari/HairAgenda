@@ -1,6 +1,6 @@
 from django.utils.deprecation import MiddlewareMixin
-from django.http import JsonResponse
 from .services import ClerkService
+
 
 class ClerkAuthenticationMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
@@ -14,7 +14,7 @@ class ClerkAuthenticationMiddleware(MiddlewareMixin):
             '/api/v1/auth/login/',
             '/api/v1/auth/register/',
         ]
-        
+
         if any(request.path.startswith(path) for path in public_paths):
             return self.get_response(request)
 
@@ -32,7 +32,7 @@ class ClerkAuthenticationMiddleware(MiddlewareMixin):
 
         token = auth_parts[1]
         cliente = self.clerk_service.authenticate_token(token)
-        
+
         request.cliente = cliente
-        
+
         return self.get_response(request)

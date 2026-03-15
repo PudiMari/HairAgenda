@@ -4,7 +4,9 @@ from django.conf import settings
 from clerk_backend_api import Clerk
 from .models import Cliente
 
+
 logger = logging.getLogger(__name__)
+
 
 class ClerkService:
     def __init__(self):
@@ -42,7 +44,7 @@ class ClerkService:
             first_name = getattr(user, 'first_name', '') or ''
             last_name = getattr(user, 'last_name', '') or ''
             name = f"{first_name} {last_name}".strip() or "Usuário Clerk"
-            
+
             cliente, created = Cliente.objects.update_or_create(
                 email=email,
                 defaults={
@@ -51,12 +53,12 @@ class ClerkService:
                     'is_active': True
                 }
             )
-            
+
             if created:
                 logger.info(f"Created new Cliente for email {email}")
             else:
                 logger.info(f"Updated Cliente for email {email}")
-                
+
             return cliente
         except Exception as e:
             logger.error(f"Error syncing user {clerk_user_id}: {e}")
@@ -66,25 +68,25 @@ class ClerkService:
         """
         Verifies the Clerk JWT token.
         In production, use the Clerk public key to verify the JWT.
-        For simplicity and given the 'backend logic' constraint, 
+        For simplicity and given the 'backend logic' constraint,
         we can also use the Clerk API to validate the session if necessary,
         but JWT verification is more efficient.
         """
         try:
-            # For now, we'll use a simplified verification or 
+            # For now, we'll use a simplified verification or
             # assume the token is valid if we can fetch the user.
             # Real JWT verification would use jose/jwt with Clerk's public key.
             # Clerk's JWKS URL: https://<your-domain>/.well-known/jwks.json
-            
+
             # Decoded token usually has 'sub' as the Clerk User ID.
             # We use unverified decode just to get the 'sub' for syncing,
             # but in a REAL app, we MUST verify the signature.
             decoded = jwt.decode(token, options={"verify_signature": False})
             clerk_user_id = decoded.get("sub")
-            
+
             if not clerk_user_id:
                 return None
-            
+
             return self.sync_user(clerk_user_id)
         except Exception as e:
             logger.error(f"Error authenticating token: {e}")
