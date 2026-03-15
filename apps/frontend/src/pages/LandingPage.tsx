@@ -7,7 +7,7 @@ export function LandingPage() {
 
   const handleLogin = async () => {
     try {
-      const redirectUrl = '/profile';
+      const redirectUrl = window.location.origin + '/profile';
       const apiUrl = getApiUrl(`/api/v1/auth/login-url/?redirect_url=${encodeURIComponent(redirectUrl)}`);
       
       const response = await fetch(apiUrl);
