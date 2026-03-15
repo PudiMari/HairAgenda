@@ -5,10 +5,14 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR.parent.parent, '.env'))
+# Only read .env if it exists
+env_path = os.path.join(BASE_DIR.parent.parent, '.env')
+if os.path.exists(env_path):
+    environ.Env.read_env(env_path)
 
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-fallback-key')
 DEBUG = env.bool('DEBUG', default=False)
+
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
