@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Scissors, LogIn, User } from "lucide-react";
 import { useState, useEffect } from "react";
+import { getApiUrl } from "../../config/api";
 
 export function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,7 +15,7 @@ export function RootLayout() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/auth/login-url/');
+      const response = await fetch(getApiUrl('/api/v1/auth/login-url/'));
       const data = await response.json();
       if (data.sign_in_url) {
         window.location.href = data.sign_in_url;

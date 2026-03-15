@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Scissors, LogIn, Calendar, Sparkles } from "lucide-react";
+import { getApiUrl } from "../config/api";
 
 export function LandingPage() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/v1/auth/login-url/');
+      const response = await fetch(getApiUrl('/api/v1/auth/login-url/'));
       const data = await response.json();
       if (data.sign_in_url) {
         window.location.href = data.sign_in_url;
