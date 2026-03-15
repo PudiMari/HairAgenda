@@ -15,7 +15,7 @@ export function RootLayout() {
 
   const handleLogin = async () => {
     try {
-      const redirectUrl = window.location.origin + '/profile';
+      const redirectUrl = '/profile';
       const apiUrl = getApiUrl(`/api/v1/auth/login-url/?redirect_url=${encodeURIComponent(redirectUrl)}`);
       
       const response = await fetch(apiUrl);
