@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Clock, Info, CheckCircle2, Loader2 } from "lucide-react";
-import { Service } from "../../lib/api";
+import { fetchServices, Service } from "../../lib/api";
 
 export function ServicesPage() {
   const navigate = useNavigate();
@@ -9,35 +9,20 @@ export function ServicesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    function loadServices() {
+    async function load() {
       try {
-        const saved = localStorage.getItem("hairagenda_services");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          // Map stored data to the format expected by the template
-          // In ServicesConfigPage, it stores: { id, name, price, duration }
-          // Here we expect { id, name, price, duration_minutes }
-          const mapped = parsed.map((s: any) => ({
-            id: s.id,
-            name: s.name,
-            price: s.price.replace("R$ ", ""), // Page template adds R$
-            duration_minutes: parseInt(s.duration.split(" ")[0]) || 45,
-            description: s.description || "Procedimento realizado com os melhores produtos do mercado, garantindo um resultado impecável e duradouro."
-          }));
-          setServices(mapped);
-        } else {
-          // Fallback if nothing is in localStorage
-          setServices([
-            { id: 1, name: "Corte Feminino", price: "120,00", duration_minutes: 45, description: "Procedimento realizado com os melhores produtos do mercado, garantindo um resultado impecável e duradouro." }
-          ]);
-        }
+        const data = await fetchServices();
+        setServices(data.map(s => ({
+          ...s,
+          price: s.price.replace(".", ",") // UI template adds R$
+        })));
       } catch (err) {
-        console.error("Erro ao carregar serviços do localStorage:", err);
+        console.error("Erro ao carregar catálogo:", err);
       } finally {
         setLoading(false);
       }
     }
-    loadServices();
+    load();
   }, []);
 
   const handleBookService = (service: Service) => {

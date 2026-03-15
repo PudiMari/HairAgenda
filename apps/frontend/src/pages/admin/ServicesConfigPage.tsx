@@ -1,35 +1,42 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search, X } from "lucide-react";
+import { fetchServices, createService, updateService, deleteService, Service as APIService } from "../../lib/api";
 
+// Map our local UI Service to the API Service
 interface Service {
   id: number;
   name: string;
   price: string;
   duration: string;
+  description?: string;
 }
 
 export function ServicesConfigPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Initial services
-  const defaultServices: Service[] = [
-    { id: 1, name: "Corte Feminino", price: "R$ 120,00", duration: "45 min" },
-    { id: 2, name: "Coloração", price: "R$ 200,00", duration: "90 min" },
-    { id: 3, name: "Escova", price: "R$ 80,00", duration: "30 min" },
-  ];
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // States for services - initialized from localStorage if available
-  const [services, setServices] = useState<Service[]>(() => {
-    const saved = localStorage.getItem("hairagenda_services");
-    return saved ? JSON.parse(saved) : defaultServices;
-  });
-
-  // Persist services to localStorage
+  // Load services from API
   useEffect(() => {
-    localStorage.setItem("hairagenda_services", JSON.stringify(services));
-  }, [services]);
+    async function load() {
+      try {
+        const data = await fetchServices();
+        setServices(data.map(s => ({
+          id: s.id,
+          name: s.name,
+          price: `R$ ${s.price.replace(".", ",")}`,
+          duration: `${s.duration_minutes} min`,
+          description: s.description
+        })));
+      } catch (err) {
+        console.error("Erro ao carregar serviços:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
-  // States for new service form
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState("45");
@@ -48,45 +55,54 @@ export function ServicesConfigPage() {
   const handleEditClick = (service: Service) => {
     setEditingService(service);
     setName(service.name);
-    // Remove R$ for easier editing if user wants to just type numbers
     setPrice(service.price.replace("R$ ", ""));
-    // Extract number from "45 min"
     setDuration(service.duration.split(" ")[0]);
+    setDescription(service.description || "");
     setIsModalOpen(true);
   };
 
-  const handleSaveService = (e: React.FormEvent) => {
+  const handleSaveService = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!name || !price) return;
 
-    // Basic formatting for price if user didn't type R$
-    const formattedPrice = price.startsWith("R$") ? price : `R$ ${price}`;
-    
-    if (editingService) {
-      // Update existing service
-      setServices(services.map((s: Service) => 
-        s.id === editingService.id 
-          ? { ...s, name, price: formattedPrice, duration: `${duration} min` }
-          : s
-      ));
-    } else {
-      // Add new service
-      const newService: Service = {
-        id: Math.max(0, ...services.map((s: Service) => s.id)) + 1,
+    try {
+      const numericPrice = price.replace(",", ".").replace("R$ ", "").trim();
+      const payload = {
         name,
-        price: formattedPrice,
-        duration: `${duration} min`
+        price: numericPrice,
+        duration_minutes: parseInt(duration),
+        description
       };
-      setServices([...services, newService]);
+
+      if (editingService) {
+        await updateService(editingService.id, payload);
+      } else {
+        await createService(payload);
+      }
+
+      // Reload list
+      const data = await fetchServices();
+      setServices(data.map(s => ({
+        id: s.id,
+        name: s.name,
+        price: `R$ ${s.price.replace(".", ",")}`,
+        duration: `${s.duration_minutes} min`,
+        description: s.description
+      })));
+      resetForm();
+    } catch (err) {
+      alert("Erro ao salvar serviço. Verifique se o backend está rodando.");
     }
-    
-    resetForm();
   };
 
-  const handleDeleteService = (id: number) => {
+  const handleDeleteService = async (id: number) => {
     if (confirm("Tem certeza que deseja excluir este serviço?")) {
-      setServices(services.filter((s: Service) => s.id !== id));
+      try {
+        await deleteService(id);
+        setServices(services.filter((s: Service) => s.id !== id));
+      } catch (err) {
+        alert("Erro ao excluir serviço.");
+      }
     }
   };
 

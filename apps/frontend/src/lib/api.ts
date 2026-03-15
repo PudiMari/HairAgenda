@@ -48,3 +48,29 @@ export const createAppointment = async (payload: AppointmentPayload) => {
 
   return response.json();
 };
+export const createService = async (service: Omit<Service, 'id'>) => {
+  const response = await fetch(`${API_URL}/api/services/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(service),
+  });
+  if (!response.ok) throw new Error('Erro ao criar serviço.');
+  return response.json();
+};
+
+export const updateService = async (id: number, service: Partial<Service>) => {
+  const response = await fetch(`${API_URL}/api/services/${id}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(service),
+  });
+  if (!response.ok) throw new Error('Erro ao atualizar serviço.');
+  return response.json();
+};
+
+export const deleteService = async (id: number) => {
+  const response = await fetch(`${API_URL}/api/services/${id}/`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Erro ao excluir serviço.');
+};
