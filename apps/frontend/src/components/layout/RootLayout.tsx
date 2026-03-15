@@ -15,7 +15,10 @@ export function RootLayout() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/v1/auth/login-url/'));
+      const redirectUrl = window.location.origin + '/profile';
+      const apiUrl = getApiUrl(`/api/v1/auth/login-url/?redirect_url=${encodeURIComponent(redirectUrl)}`);
+      
+      const response = await fetch(apiUrl);
       const data = await response.json();
       if (data.sign_in_url) {
         window.location.href = data.sign_in_url;
