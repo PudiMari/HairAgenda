@@ -10,5 +10,6 @@ def root_view(request):
 urlpatterns = [
     path('', root_view, name='root'),
     path('api/health/', health_check, name='health_check'),
+    path('api/v1/auth/', include('src.modules.auth.urls')),
     path('api/', include('src.modules.booking.urls')),
 ]

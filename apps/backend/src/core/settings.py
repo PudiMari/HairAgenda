@@ -23,12 +23,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'src.modules.health',
     'src.modules.booking',
+    'src.modules.auth.apps.AuthConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'src.modules.auth.middleware.ClerkAuthenticationMiddleware',
 ]
 
 ROOT_URLCONF = 'src.core.urls'
@@ -57,3 +59,7 @@ LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
+
+# Clerk Configuration
+CLERK_SECRET_KEY = env('CLERK_SECRET_KEY', default='')
+CLERK_PUBLISHABLE_KEY = env('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', default='')
