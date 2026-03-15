@@ -97,12 +97,21 @@ jobs:
         working-directory: apps/frontend
         env:
           VERCEL_PROJECT_ID: ${{ secrets.FRONTEND_VERCEL_PROJECT_ID }}
+          VITE_API_URL: https://hair-agenda-backend.vercel.app
 
       - name: Deploy Project Artifacts to Vercel (Frontend)
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: apps/frontend
         env:
           VERCEL_PROJECT_ID: ${{ secrets.FRONTEND_VERCEL_PROJECT_ID }}
+
+      # Run Database Migrations
+      - name: Run Backend Migrations
+        run: python manage.py migrate
+        working-directory: apps/backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
 
       - name: Notify Success
         if: success()

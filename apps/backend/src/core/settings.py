@@ -31,8 +31,13 @@ ROOT_URLCONF = 'src.core.urls'
 CORS_ALLOW_ALL_ORIGINS = True
 
 DATABASES = {
-    'default': env.db(default='sqlite:///db.sqlite3')
+    'default': env.db('DATABASE_URL', default='sqlite:///db.sqlite3')
 }
+
+# Fix for Supabase/Postgres if DATABASE_URL doesn't include the engine
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3' and env('DATABASE_URL', default='').startswith('postgres'):
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'

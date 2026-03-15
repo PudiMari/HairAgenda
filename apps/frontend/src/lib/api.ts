@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "https://hair-agenda-backend.vercel.app";
 
 export const fetchHealthStatus = async () => {
   const response = await fetch(`${API_URL}/api/health/`);
