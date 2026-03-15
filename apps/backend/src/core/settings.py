@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import environ
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env()
@@ -30,7 +31,6 @@ ROOT_URLCONF = 'src.core.urls'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-import dj_database_url
 
 DATABASE_URL = env('DATABASE_URL', default='sqlite:///db.sqlite3')
 
