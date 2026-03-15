@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search, X } from "lucide-react";
-import { fetchServices, createService, updateService, deleteService, Service as APIService } from "../../lib/api";
+import { fetchServices, createService, updateService, deleteService } from "../../lib/api";
 
 // Map our local UI Service to the API Service
 interface Service {
@@ -135,47 +135,62 @@ export function ServicesConfigPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Nome do Serviço</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Preço (R$)</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Tempo (min)</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {services.map((service) => (
-                <tr key={service.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-5 font-bold text-brand-dark">{service.name}</td>
-                  <td className="px-6 py-5 text-slate-600 font-medium">{service.price}</td>
-                  <td className="px-6 py-5 text-slate-600 font-medium">{service.duration}</td>
-                  <td className="px-6 py-5 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => handleEditClick(service)}
-                        className="p-2 text-slate-400 hover:text-brand-gold hover:bg-brand-gold/10 rounded-xl transition-all" 
-                        title="Editar"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteService(service.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" 
-                        title="Excluir"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-200 shadow-sm mb-8">
+          <div className="w-12 h-12 border-4 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin mb-4"></div>
+          <p className="text-slate-500 font-medium animate-pulse">Carregando catálogo de serviços...</p>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Nome do Serviço</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Preço (R$)</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Tempo (min)</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {services.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-10 text-center text-slate-500 italic">
+                      Nenhum serviço cadastrada. Clique em "Novo Serviço" para começar.
+                    </td>
+                  </tr>
+                ) : (
+                  services.map((service) => (
+                    <tr key={service.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-5 font-bold text-brand-dark">{service.name}</td>
+                      <td className="px-6 py-5 text-slate-600 font-medium">{service.price}</td>
+                      <td className="px-6 py-5 text-slate-600 font-medium">{service.duration}</td>
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => handleEditClick(service)}
+                            className="p-2 text-slate-400 hover:text-brand-gold hover:bg-brand-gold/10 rounded-xl transition-all" 
+                            title="Editar"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteService(service.id)}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" 
+                            title="Excluir"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Modal Overlay */}
       {isModalOpen && (
