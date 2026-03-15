@@ -1,4 +1,6 @@
+from django.http import JsonResponse
 from django.db import connections
+
 from django.db.utils import OperationalError
 
 
