@@ -1,0 +1,115 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  quality-check:
+    name: Quality (Lint & Test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Frontend Setup
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm install
+        working-directory: apps/frontend
+
+      - name: Frontend Lint
+        run: npm run lint
+        working-directory: apps/frontend
+
+      - name: Frontend Test
+        run: npm test
+        working-directory: apps/frontend
+
+      # Backend Setup
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Backend Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        working-directory: apps/backend
+
+      - name: Backend Lint
+        run: flake8 .
+        working-directory: apps/backend
+
+      - name: Backend Test
+        run: python manage.py test
+        working-directory: apps/backend
+
+  deploy:
+    name: Production Deploy
+    needs: quality-check
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      # Backend Deploy
+      - name: Pull Vercel Environment Information (Backend)
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/backend
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.BACKEND_VERCEL_PROJECT_ID }}
+
+      - name: Build Project Artifacts (Backend)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/backend
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.BACKEND_VERCEL_PROJECT_ID }}
+
+      - name: Deploy Project Artifacts to Vercel (Backend)
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/backend
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.BACKEND_VERCEL_PROJECT_ID }}
+
+      # Frontend Deploy
+      - name: Pull Vercel Environment Information (Frontend)
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/frontend
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.FRONTEND_VERCEL_PROJECT_ID }}
+
+      - name: Build Project Artifacts (Frontend)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/frontend
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.FRONTEND_VERCEL_PROJECT_ID }}
+
+      - name: Deploy Project Artifacts to Vercel (Frontend)
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/frontend
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.FRONTEND_VERCEL_PROJECT_ID }}
+
+      - name: Notify Success
+        if: success()
+        run: echo "Deployment completed successfully! 🚀"
