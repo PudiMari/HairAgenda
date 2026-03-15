@@ -8,4 +8,4 @@ router.register(r'appointments', AppointmentViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-]
+]
