@@ -56,6 +56,9 @@ jobs:
       - name: Backend Test
         run: python manage.py test
         working-directory: apps/backend
+        env:
+          DATABASE_URL: sqlite:///db.sqlite3
+          DJANGO_SECRET_KEY: ci-test-key
 
   deploy:
     name: Production Deploy

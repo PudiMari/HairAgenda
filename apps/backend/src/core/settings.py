@@ -31,7 +31,7 @@ ROOT_URLCONF = 'src.core.urls'
 CORS_ALLOW_ALL_ORIGINS = True
 
 DATABASES = {
-    'default': env.db()
+    'default': env.db(default='sqlite:///db.sqlite3')
 }
 
 LANGUAGE_CODE = 'pt-br'
