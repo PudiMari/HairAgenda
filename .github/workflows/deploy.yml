@@ -105,6 +105,19 @@ jobs:
         env:
           VERCEL_PROJECT_ID: ${{ secrets.FRONTEND_VERCEL_PROJECT_ID }}
 
+      # Setup Python for Migrations
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Backend Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        working-directory: apps/backend
+
       # Run Database Migrations
       - name: Run Backend Migrations
         run: python manage.py migrate
