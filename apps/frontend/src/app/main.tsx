@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { RootLayout } from '../components/layout/RootLayout';
 import '../index.css';
 
-import { ProfilePage } from '../pages/client/ProfilePage';
 import { ServicesPage } from '../pages/client/ServicesPage';
 import { ServiceSelectionPage } from '../pages/client/ServiceSelectionPage';
 import { BookingConfirmationPage } from '../pages/client/BookingConfirmationPage';
@@ -14,13 +13,19 @@ import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { ServicesConfigPage } from '../pages/admin/ServicesConfigPage';
 import { ScheduleConfigPage } from '../pages/admin/ScheduleConfigPage';
 
+import { LandingPage } from '../pages/LandingPage';
+import { ProfilePage } from '../pages/client/ProfilePage';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
+        {/* Tela Inicial / Login */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Fluxo do Cliente (usando RootLayout) */}
         <Route element={<RootLayout />}>
-          <Route path="/" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/book/services" element={<ServiceSelectionPage />} />
           <Route path="/book/confirm" element={<BookingConfirmationPage />} />
