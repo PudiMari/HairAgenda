@@ -1,59 +1,62 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Scissors, LogIn, User } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getApiUrl } from "../../config/api";
+import { Scissors, LogIn } from "lucide-react";
+import { UserButton, useClerk, useUser } from "@clerk/react";
 
 export function RootLayout() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const { openSignIn } = useClerk();
+  const { user, isLoaded } = useUser();
 
-  useEffect(() => {
-    // Check if there is a token or some indication of auth
-    const token = localStorage.getItem('clerk_token');
-    if (token) setIsAuthenticated(true);
-  }, []);
-
-  const handleLogin = async () => {
-    try {
-      const redirectUrl = window.location.origin + '/profile';
-      const apiUrl = getApiUrl(`/api/v1/auth/login-url/?redirect_url=${encodeURIComponent(redirectUrl)}`);
-      
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-      if (data.sign_in_url) {
-        window.location.href = data.sign_in_url;
-      }
-    } catch (error) {
-      console.error("Error fetching login URL:", error);
-    }
+  const handleLogin = () => {
+    openSignIn({
+      forceRedirectUrl: window.location.origin + '/profile'
+    });
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-brand-dark text-brand-gold p-4 shadow-md sticky top-0 z-50">
+    <div className="min-h-screen flex flex-col bg-slate-50/50">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 sticky top-0 z-50">
         <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <Scissors size={24} />
-            <h1 className="text-xl font-bold tracking-wider uppercase">HairAgenda</h1>
+          <div 
+            className="flex items-center gap-3 cursor-pointer group" 
+            onClick={() => navigate('/')}
+          >
+            <div className="bg-brand-dark p-2 rounded-xl text-brand-gold transition-transform group-hover:scale-110">
+              <Scissors size={20} />
+            </div>
+            <h1 className="text-xl font-black tracking-tighter text-brand-dark uppercase italic">
+              HairAgenda
+            </h1>
           </div>
           
           <div className="flex items-center gap-4">
-            {isAuthenticated ? (
-              <button 
-                onClick={() => navigate('/portfolio')}
-                className="flex items-center gap-2 bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold px-4 py-2 rounded-full transition-all border border-brand-gold/30"
-              >
-                <User size={18} />
-                <span>Perfil</span>
-              </button>
-            ) : (
+            {isLoaded && user ? (
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => navigate('/portfolio')}
+                  className="hidden sm:block text-sm font-bold text-slate-600 hover:text-brand-dark transition-colors"
+                >
+                  Meus Agendamentos
+                </button>
+                <div className="h-8 w-px bg-slate-200 hidden sm:block" />
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "h-10 w-10 border-2 border-brand-gold/20 hover:border-brand-gold/50 transition-colors"
+                    }
+                  }}
+                />
+              </div>
+            ) : isLoaded ? (
               <button 
                 onClick={handleLogin}
-                className="flex items-center gap-2 bg-brand-gold hover:bg-brand-gold/90 text-brand-dark px-4 py-2 rounded-full font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 bg-brand-gold hover:bg-brand-gold/90 text-white px-6 py-2.5 rounded-2xl font-bold transition-all shadow-lg shadow-brand-gold/10 hover:scale-[1.02] active:scale-95 text-sm uppercase tracking-wider"
               >
                 <LogIn size={18} />
                 <span>Entrar</span>
               </button>
+            ) : (
+              <div className="h-10 w-24 bg-slate-100 animate-pulse rounded-2xl" />
             )}
           </div>
         </div>

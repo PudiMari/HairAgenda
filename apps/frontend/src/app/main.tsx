@@ -15,11 +15,23 @@ import { ScheduleConfigPage } from '../pages/admin/ScheduleConfigPage';
 
 import { LandingPage } from '../pages/LandingPage';
 import { ProfilePage } from '../pages/client/ProfilePage';
+import { ClerkProvider } from '@clerk/react';
+
+// Import your publishable key
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Publishable Key");
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY} 
+      afterSignOutUrl="/"
+    >
+      <BrowserRouter>
+        <Routes>
         {/* Tela Inicial / Login */}
         <Route path="/" element={<LandingPage />} />
 
@@ -39,6 +51,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/admin/schedule" element={<ScheduleConfigPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ClerkProvider>
   </StrictMode>,
 );
