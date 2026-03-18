@@ -19,12 +19,14 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   // Hybrid approach for evaluation and production
   const adminEmails = [
-    'marianadiasgta.2017@gmail.com',
     ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
   ];
 
-  const isAdmin = 
-    user?.publicMetadata?.role === 'admin' || 
+  const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
+
+  const isAdmin =
+    !adminRestrictionEnabled ||
+    user?.publicMetadata?.role === 'admin' ||
     (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress));
 
   if (!isAdmin) {

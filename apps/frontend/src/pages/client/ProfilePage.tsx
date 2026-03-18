@@ -24,14 +24,15 @@ const RECENT_WORKS = [
 
 export function ProfilePage() {
   const { user, isLoaded } = useUser();
-  
+
   // Admin check (Hybrid: Metadata + Env/Hardcoded fallback for evaluation)
   const adminEmails = [
-    'marianadiasgta.2017@gmail.com',
     ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
   ];
+  const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
   const isAdmin = isLoaded && (
-    user?.publicMetadata?.role === 'admin' || 
+    !adminRestrictionEnabled ||
+    user?.publicMetadata?.role === 'admin' ||
     (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress))
   );
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -75,7 +76,7 @@ export function ProfilePage() {
     } catch (err) {
       console.warn("Clipboard copy failed:", err);
     }
-    
+
     // Always show feedback to indicate the action was attempted
     setShowCopiedFeedback(true);
     setTimeout(() => setShowCopiedFeedback(false), 3000);
@@ -83,11 +84,11 @@ export function ProfilePage() {
 
   return (
     <div className="w-full max-w-[600px] mx-auto flex flex-col min-h-[calc(100vh-80px)] bg-white shadow-sm rounded-lg overflow-hidden">
-      
+
       {/* Top Banner / Actions */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         {isAdmin ? (
-          <Link 
+          <Link
             to="/admin"
             className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-50 text-slate-700 transition-all hover:bg-brand-gold/10 hover:text-brand-gold active:scale-95"
             title="Acesso do Profissional"
@@ -97,7 +98,7 @@ export function ProfilePage() {
         ) : <div className="w-10 h-10" />}
 
         <div className="flex gap-2 relative">
-          <button 
+          <button
             onClick={handleShare}
             className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-50 text-slate-700 transition-all hover:bg-brand-gold/10 hover:text-brand-gold active:scale-95 relative"
           >
@@ -108,27 +109,26 @@ export function ProfilePage() {
               </span>
             )}
           </button>
-          
+
           <div className="relative" ref={menuRef}>
-            <button 
+            <button
               onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-              className={`flex items-center justify-center rounded-lg h-10 w-10 transition-all active:scale-95 ${
-                isMoreMenuOpen ? 'bg-brand-gold/10 text-brand-gold' : 'bg-slate-50 text-slate-700 hover:bg-brand-gold/10 hover:text-brand-gold'
-              }`}
+              className={`flex items-center justify-center rounded-lg h-10 w-10 transition-all active:scale-95 ${isMoreMenuOpen ? 'bg-brand-gold/10 text-brand-gold' : 'bg-slate-50 text-slate-700 hover:bg-brand-gold/10 hover:text-brand-gold'
+                }`}
             >
               <MoreHorizontal size={20} />
             </button>
 
             {isMoreMenuOpen && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                <button 
+                <button
                   onClick={() => setIsMoreMenuOpen(false)}
                   className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <ShieldAlert size={16} className="mr-3 text-slate-400" />
                   Reportar Problema
                 </button>
-                <button 
+                <button
                   onClick={() => setIsMoreMenuOpen(false)}
                   className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 >
@@ -136,7 +136,7 @@ export function ProfilePage() {
                   Sobre o HairAgenda
                 </button>
                 <div className="h-px bg-slate-100 my-1 mx-2" />
-                <button 
+                <button
                   onClick={() => setIsMoreMenuOpen(false)}
                   className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 >
@@ -153,8 +153,8 @@ export function ProfilePage() {
       <div className="flex flex-col items-center px-6 py-10 gap-6">
         <div className="relative">
           <div className="w-32 h-32 rounded-full border-4 border-brand-gold/20 p-1">
-            <div 
-              className="w-full h-full bg-center bg-no-repeat bg-cover rounded-full shadow-lg" 
+            <div
+              className="w-full h-full bg-center bg-no-repeat bg-cover rounded-full shadow-lg"
               style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200&h=200")' }}
             />
           </div>
@@ -164,7 +164,7 @@ export function ProfilePage() {
         <div className="flex flex-col items-center text-center gap-2">
           <h1 className="text-2xl font-bold tracking-tight text-brand-dark">Ana Silva - Colorista & Hair</h1>
           <p className="text-slate-600 text-base leading-relaxed max-w-sm">
-             Especialista em loiros e mechas há 10 anos. Localizada no Jardins.
+            Especialista em loiros e mechas há 10 anos. Localizada no Jardins.
           </p>
           <div className="flex items-center gap-1 mt-1 text-brand-gold">
             <MapPin size={16} />
@@ -174,23 +174,23 @@ export function ProfilePage() {
 
         {/* Action Buttons */}
         <div className="flex flex-col w-full gap-3 mt-4">
-          <Link 
-            to="/book/services" 
+          <Link
+            to="/book/services"
             className="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-brand-gold text-white text-lg font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-opacity"
           >
             <CalendarDays className="mr-2" size={24} />
             Agendar Horário
           </Link>
-          
+
           <div className="flex gap-3 w-full">
-            <Link 
+            <Link
               to="/services"
               className="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-brand-gold/30 bg-transparent text-brand-gold text-sm font-bold hover:bg-brand-gold/5 transition-colors"
             >
               <ClipboardList className="mr-2" size={18} />
               Ver Serviços
             </Link>
-            <button 
+            <button
               onClick={() => setIsContactModalOpen(true)}
               className="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-slate-200 bg-transparent text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors"
             >
@@ -209,13 +209,13 @@ export function ProfilePage() {
         </div>
         <div className="grid grid-cols-3 gap-2">
           {RECENT_WORKS.map((work) => (
-            <button 
+            <button
               key={work.id}
               onClick={() => setSelectedImage(work)}
               className="aspect-square rounded-lg bg-slate-100 overflow-hidden group relative"
             >
-              <div 
-                className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110 duration-500" 
+              <div
+                className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110 duration-500"
                 style={{ backgroundImage: `url("${work.url}")` }}
               ></div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -225,20 +225,20 @@ export function ProfilePage() {
           ))}
         </div>
       </div>
-      
+
       {/* Lightbox Modal */}
       {selectedImage && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 animate-in fade-in duration-200 p-4">
-          <button 
+          <button
             onClick={() => setSelectedImage(null)}
             className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors p-2"
           >
             <X size={32} />
           </button>
-          
+
           <div className="relative max-w-full max-h-[80vh] flex flex-col items-center">
-            <img 
-              src={selectedImage.url.replace('w=300', 'w=1200')} 
+            <img
+              src={selectedImage.url.replace('w=300', 'w=1200')}
               alt={selectedImage.title}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
             />
@@ -249,10 +249,10 @@ export function ProfilePage() {
           </div>
         </div>
       )}
-      
-      <ContactModal 
-        isOpen={isContactModalOpen} 
-        onClose={() => setIsContactModalOpen(false)} 
+
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
       />
     </div>
   );
