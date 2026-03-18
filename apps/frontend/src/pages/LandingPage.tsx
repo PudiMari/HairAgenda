@@ -1,12 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import { Scissors, LogIn, Calendar, Sparkles } from "lucide-react";
-import { useClerk } from "@clerk/react";
+import { Scissors, LogIn, Calendar, Sparkles, User } from "lucide-react";
+import { useClerk, useUser } from "@clerk/react";
+import { useEffect } from "react";
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { openSignIn } = useClerk();
+  const { user, isLoaded } = useUser();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isLoaded && user) {
+      navigate('/profile');
+    }
+  }, [isLoaded, user, navigate]);
 
   const handleLogin = () => {
+    if (user) {
+      navigate('/profile');
+      return;
+    }
     openSignIn({
       forceRedirectUrl: window.location.origin + '/profile'
     });
@@ -36,8 +49,8 @@ export function LandingPage() {
             onClick={handleLogin}
             className="flex items-center justify-center gap-3 bg-brand-gold text-brand-dark h-16 rounded-2xl text-lg font-black uppercase tracking-widest hover:bg-white hover:scale-[1.02] transition-all shadow-xl shadow-brand-gold/20 active:scale-95 group"
           >
-            <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
-            Acessar Minha Conta
+            {user ? <User size={20} className="group-hover:scale-110 transition-transform" /> : <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />}
+            {user ? 'Acessar Meu Perfil' : 'Acessar Minha Conta'}
           </button>
 
           <button 

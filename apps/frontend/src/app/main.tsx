@@ -8,6 +8,7 @@ import { ServicesPage } from '../pages/client/ServicesPage';
 import { ServiceSelectionPage } from '../pages/client/ServiceSelectionPage';
 import { BookingConfirmationPage } from '../pages/client/BookingConfirmationPage';
 import { PortfolioPage } from '../pages/client/PortfolioPage';
+import { MyBookingsPage } from '../pages/client/MyBookingsPage';
 import { AdminLayout } from '../components/layout/AdminLayout';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { ServicesConfigPage } from '../pages/admin/ServicesConfigPage';
@@ -124,6 +125,7 @@ if (!rootElement) {
                   <Route path="/book/services" element={<ServiceSelectionPage />} />
                   <Route path="/book/confirm" element={<BookingConfirmationPage />} />
                   <Route path="/portfolio" element={<PortfolioPage />} />
+                  <Route path="/my-bookings" element={<MyBookingsPage />} />
                 </Route>
 
                 {/* Fluxo do Admin (usando AdminLayout) */}

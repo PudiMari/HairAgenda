@@ -19,7 +19,7 @@ export function RootLayout() {
         <div className="container mx-auto flex items-center justify-between">
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
-            onClick={() => navigate('/')}
+            onClick={() => navigate(user ? '/profile' : '/')}
           >
             <div className="bg-brand-dark p-2 rounded-xl text-brand-gold transition-transform group-hover:scale-110">
               <Scissors size={20} />
@@ -33,7 +33,7 @@ export function RootLayout() {
             {isLoaded && user ? (
               <div className="flex items-center gap-4">
                 <button 
-                  onClick={() => navigate('/portfolio')}
+                  onClick={() => navigate('/my-bookings')}
                   className="hidden sm:block text-sm font-bold text-slate-600 hover:text-brand-dark transition-colors"
                 >
                   Meus Agendamentos
