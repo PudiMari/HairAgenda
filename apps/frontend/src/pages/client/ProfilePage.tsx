@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizontal, Check, ShieldAlert, FileText, Info, X, User } from "lucide-react";
+import { useUser } from "@clerk/react";
 import { Link } from "react-router-dom";
 import { ContactModal } from "../../components/ContactModal";
 
@@ -22,6 +23,17 @@ const RECENT_WORKS = [
 ];
 
 export function ProfilePage() {
+  const { user, isLoaded } = useUser();
+  
+  // Admin check (Hybrid: Metadata + Env/Hardcoded fallback for evaluation)
+  const adminEmails = [
+    'marianadiasgta.2017@gmail.com',
+    ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
+  ];
+  const isAdmin = isLoaded && (
+    user?.publicMetadata?.role === 'admin' || 
+    (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress))
+  );
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [showCopiedFeedback, setShowCopiedFeedback] = useState(false);
@@ -74,13 +86,15 @@ export function ProfilePage() {
       
       {/* Top Banner / Actions */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-        <Link 
-          to="/admin"
-          className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-50 text-slate-700 transition-all hover:bg-brand-gold/10 hover:text-brand-gold active:scale-95"
-          title="Acesso do Profissional"
-        >
-          <User size={20} />
-        </Link>
+        {isAdmin ? (
+          <Link 
+            to="/admin"
+            className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-50 text-slate-700 transition-all hover:bg-brand-gold/10 hover:text-brand-gold active:scale-95"
+            title="Acesso do Profissional"
+          >
+            <User size={20} />
+          </Link>
+        ) : <div className="w-10 h-10" />}
 
         <div className="flex gap-2 relative">
           <button 

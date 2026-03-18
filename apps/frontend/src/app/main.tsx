@@ -13,6 +13,7 @@ import { AdminLayout } from '../components/layout/AdminLayout';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { ServicesConfigPage } from '../pages/admin/ServicesConfigPage';
 import { ScheduleConfigPage } from '../pages/admin/ScheduleConfigPage';
+import { AdminGuard } from '../components/auth/AdminGuard';
 
 import { LandingPage } from '../pages/LandingPage';
 import { ProfilePage } from '../pages/client/ProfilePage';
@@ -128,8 +129,8 @@ if (!rootElement) {
                   <Route path="/my-bookings" element={<MyBookingsPage />} />
                 </Route>
 
-                {/* Fluxo do Admin (usando AdminLayout) */}
-                <Route element={<AdminLayout />}>
+                {/* Fluxo do Admin (usando AdminLayout) Protegido */}
+                <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/services" element={<ServicesConfigPage />} />
                   <Route path="/admin/schedule" element={<ScheduleConfigPage />} />
