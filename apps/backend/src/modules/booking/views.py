@@ -25,7 +25,7 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
         user_id = request.query_params.get('user_id')
         if not user_id:
             return Response({"error": "user_id is required"}, status=400)
-        
+
         try:
             profile = ProfessionalProfile.objects.get(user_id=user_id)
             serializer = self.get_serializer(profile)
