@@ -31,4 +31,4 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(profile)
             return Response(serializer.data)
         except ProfessionalProfile.DoesNotExist:
-            return Response({"error": "Profile not found"}, status=404)
+            return Response({"error": "Profile not found"}, status=404)

@@ -17,4 +17,4 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class ProfessionalProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfessionalProfile
-        fields = '__all__'
+        fields = '__all__'
