@@ -86,7 +86,7 @@ export interface ProfessionalProfile {
 }
 
 export const fetchProfessionalProfile = async (userId: string): Promise<ProfessionalProfile> => {
-  const response = await fetch(`${API_URL}/api/professional-profile/me/?user_id=${userId}`);
+  const response = await fetch(`${API_URL}/api/professional-profile/${userId}/`);
   if (!response.ok) throw new Error('Perfil não encontrado.');
   return response.json();
 };
@@ -101,7 +101,7 @@ export const createProfessionalProfile = async (profile: Omit<ProfessionalProfil
   return response.json();
 };
 
-export const updateProfessionalProfile = async (id: number, profile: Partial<ProfessionalProfile>) => {
+export const updateProfessionalProfile = async (id: string | number, profile: Partial<ProfessionalProfile>) => {
   const response = await fetch(`${API_URL}/api/professional-profile/${id}/`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

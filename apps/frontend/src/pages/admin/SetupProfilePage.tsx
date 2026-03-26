@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/react";
 import { User, MapPin, FileText, Camera, Check } from "lucide-react";
-import { createProfessionalProfile } from "../../lib/api";
+import { 
+  createProfessionalProfile, 
+  updateProfessionalProfile 
+} from "../../lib/api";
+import { useUser } from "@clerk/react";
 
 export function SetupProfilePage() {
   const { user } = useUser();
@@ -13,29 +15,45 @@ export function SetupProfilePage() {
   const [formData, setFormData] = useState({
     name: user?.fullName || "",
     description: "",
-    location: "São Paulo, SP",
-    photo_url: user?.imageUrl || ""
+    photo_url: user?.imageUrl || "",
+    location: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
 
     try {
-      await createProfessionalProfile({
-        user_id: user.id,
-        name: formData.name,
-        description: formData.description,
-        photo_url: formData.photo_url,
-        location: formData.location,
-        is_setup_completed: true
-      });
-      
-      // Update Clerk metadata if needed, but for now just navigate
-      navigate("/admin");
+      try {
+        await createProfessionalProfile({
+          user_id: user.id,
+          name: formData.name,
+          description: formData.description,
+          photo_url: formData.photo_url,
+          location: formData.location,
+          is_setup_completed: true
+        });
+      } catch (err: any) {
+        // If creation fails (e.g. already exists), update it using user.id as the lookup
+        await updateProfessionalProfile(user.id, {
+          name: formData.name,
+          description: formData.description,
+          photo_url: formData.photo_url,
+          location: formData.location,
+          is_setup_completed: true
+        }).catch(() => {
+          // If update also fails, throw the original error
+          throw err;
+        });
+      }
+
+      // Force a small delay to ensure DB consistency before navigating
+      setTimeout(() => {
+        window.location.href = "/admin";
+      }, 500);
     } catch (err: any) {
       setError(err.message || "Erro ao salvar perfil.");
     } finally {
