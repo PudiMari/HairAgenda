@@ -74,3 +74,39 @@ export const deleteService = async (id: number) => {
   });
   if (!response.ok) throw new Error('Erro ao excluir serviço.');
 };
+
+export interface ProfessionalProfile {
+  id: number;
+  user_id: string;
+  name: string;
+  description: string;
+  photo_url: string | null;
+  location: string;
+  is_setup_completed: boolean;
+}
+
+export const fetchProfessionalProfile = async (userId: string): Promise<ProfessionalProfile> => {
+  const response = await fetch(`${API_URL}/api/professional-profile/me/?user_id=${userId}`);
+  if (!response.ok) throw new Error('Perfil não encontrado.');
+  return response.json();
+};
+
+export const createProfessionalProfile = async (profile: Omit<ProfessionalProfile, 'id'>) => {
+  const response = await fetch(`${API_URL}/api/professional-profile/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(profile),
+  });
+  if (!response.ok) throw new Error('Erro ao criar perfil.');
+  return response.json();
+};
+
+export const updateProfessionalProfile = async (id: number, profile: Partial<ProfessionalProfile>) => {
+  const response = await fetch(`${API_URL}/api/professional-profile/${id}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(profile),
+  });
+  if (!response.ok) throw new Error('Erro ao atualizar perfil.');
+  return response.json();
+};

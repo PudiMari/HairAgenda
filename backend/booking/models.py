@@ -25,3 +25,14 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.date_time.strftime('%d/%m %H:%M')} - {self.client_name}"
+
+class ProfessionalProfile(models.Model):
+    user_id = models.CharField("ID do Usuário (Clerk)", max_length=100, unique=True)
+    name = models.CharField("Nome Profissional", max_length=100)
+    description = models.TextField("Bio/Descrição", blank=True)
+    photo_url = models.URLField("URL da Foto", blank=True, null=True)
+    location = models.CharField("Localização", max_length=200, blank=True)
+    is_setup_completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name

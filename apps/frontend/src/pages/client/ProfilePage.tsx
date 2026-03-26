@@ -1,10 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizontal, Check, ShieldAlert, FileText, Info, X, User } from "lucide-react";
 import { useUser } from "@clerk/react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ContactModal } from "../../components/ContactModal";
+import { fetchProfessionalProfile, ProfessionalProfile } from "../../lib/api";
 
-const RECENT_WORKS = [
+interface WorkItem {
+  id: number;
+  url: string;
+  title: string;
+}
+
+const RECENT_WORKS: WorkItem[] = [
   {
     id: 1,
     url: "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=300",
@@ -24,6 +31,30 @@ const RECENT_WORKS = [
 
 export function ProfilePage() {
   const { user, isLoaded } = useUser();
+  const [searchParams] = useSearchParams();
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Profile ID logic: 1. From URL (?u=...), 2. Fallback to current user if admin
+  const requestedUserId = searchParams.get('u');
+
+  useEffect(() => {
+    async function loadProfile() {
+      setLoading(true);
+      try {
+        const userIdToFetch = requestedUserId || user?.id; // If no u= param, try current user
+        if (userIdToFetch) {
+          const data = await fetchProfessionalProfile(userIdToFetch);
+          setProfile(data);
+        }
+      } catch (err) {
+        console.error("Profile not found or error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, [requestedUserId, user, isLoaded]);
 
   // Admin check (Hybrid: Metadata + Env/Hardcoded fallback for evaluation)
   const adminEmails = [
@@ -35,10 +66,11 @@ export function ProfilePage() {
     user?.publicMetadata?.role === 'admin' ||
     (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress))
   );
+
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [showCopiedFeedback, setShowCopiedFeedback] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<typeof RECENT_WORKS[0] | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{id: number, url: string, title: string} | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -53,9 +85,10 @@ export function ProfilePage() {
   }, []);
 
   const handleShare = async () => {
+    const profileName = profile?.name || "Profissional";
     const shareData = {
-      title: 'Ana Silva - Colorista & Hair',
-      text: 'Confira o perfil de Ana Silva no HairAgenda!',
+      title: `${profileName} - HairAgenda`,
+      text: `Confira o perfil de ${profileName} no HairAgenda!`,
       url: window.location.href,
     };
 
@@ -81,6 +114,31 @@ export function ProfilePage() {
     setShowCopiedFeedback(true);
     setTimeout(() => setShowCopiedFeedback(false), 3000);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="h-12 w-12 border-4 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!profile && !loading && requestedUserId) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+        <ShieldAlert size={48} className="text-slate-300 mb-4" />
+        <h1 className="text-xl font-bold text-brand-dark">Perfil não encontrado</h1>
+        <p className="text-slate-500 mt-2">O profissional que você procura não está disponível ou o link está incorreto.</p>
+        <Link to="/" className="mt-6 text-brand-gold font-bold hover:underline">Voltar para a página inicial</Link>
+      </div>
+    );
+  }
+
+  // Fallback to empty if no profile found (this case should ideally not happen if handled above)
+  const displayName = profile?.name || "";
+  const displayDescription = profile?.description || "";
+  const displayLocation = profile?.location || "";
+  const displayPhoto = profile?.photo_url || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200";
 
   return (
     <div className="w-full max-w-[600px] mx-auto flex flex-col min-h-[calc(100vh-80px)] bg-white shadow-sm rounded-lg overflow-hidden">
@@ -155,20 +213,20 @@ export function ProfilePage() {
           <div className="w-32 h-32 rounded-full border-4 border-brand-gold/20 p-1">
             <div
               className="w-full h-full bg-center bg-no-repeat bg-cover rounded-full shadow-lg"
-              style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200&h=200")' }}
+              style={{ backgroundImage: `url("${displayPhoto}")` }}
             />
           </div>
           <div className="absolute bottom-1 right-1 bg-green-500 w-5 h-5 rounded-full border-2 border-white"></div>
         </div>
 
         <div className="flex flex-col items-center text-center gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-brand-dark">Ana Silva - Colorista & Hair</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-brand-dark">{displayName}</h1>
           <p className="text-slate-600 text-base leading-relaxed max-w-sm">
-            Especialista em loiros e mechas há 10 anos. Localizada no Jardins.
+            {displayDescription}
           </p>
           <div className="flex items-center gap-1 mt-1 text-brand-gold">
             <MapPin size={16} />
-            <span className="text-xs font-bold uppercase tracking-wider">São Paulo, SP</span>
+            <span className="text-xs font-bold uppercase tracking-wider">{displayLocation}</span>
           </div>
         </div>
 
@@ -244,7 +302,7 @@ export function ProfilePage() {
             />
             <div className="mt-6 text-center">
               <h4 className="text-white text-xl font-bold">{selectedImage.title}</h4>
-              <p className="text-white/60 text-sm mt-1">Ana Silva - Colorista & Hair</p>
+              <p className="text-white/60 text-sm mt-1">{displayName}</p>
             </div>
           </div>
         </div>

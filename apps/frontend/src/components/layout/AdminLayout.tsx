@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Scissors, LayoutDashboard, Settings, Menu, Copy, X, LogOut } from "lucide-react";
+import { useUser } from "@clerk/react";
+import { fetchProfessionalProfile, ProfessionalProfile } from "../../lib/api";
+
 
 export function AdminLayout() {
+  const { user } = useUser();
   const location = useLocation();
   const currentPath = location.pathname;
   const [copied, setCopied] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (user) {
+        try {
+          const data = await fetchProfessionalProfile(user.id);
+          setProfile(data);
+        } catch (err) {
+          console.error("Error loading profile:", err);
+        }
+      }
+    }
+    loadProfile();
+  }, [user]);
 
   const handleCopyLink = () => {
-    const profileUrl = `${window.location.origin}/profile/ana-silva`;
+    const profileId = profile?.user_id || "ana-silva";
+    const profileUrl = `${window.location.origin}/profile?u=${profileId}`;
     navigator.clipboard.writeText(profileUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
 
   const navLinks = [
     { to: "/admin", icon: LayoutDashboard, label: "Visão Geral" },
@@ -82,12 +103,13 @@ export function AdminLayout() {
               <img 
                 alt="Profile photo" 
                 className="w-12 h-12 rounded-full object-cover border-2 border-brand-gold/20" 
-                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150&h=150"
+                src={profile?.photo_url || user?.imageUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150&h=150"}
               />
-              <div className="flex-1">
-                <p className="text-sm font-bold text-brand-dark uppercase tracking-wide">Ana Silva</p>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-bold text-brand-dark uppercase tracking-wide truncate">{profile?.name || user?.fullName || "Profissional"}</p>
                 <p className="text-[11px] text-slate-500 font-bold uppercase">Plano Premium</p>
               </div>
+
               <Link 
                 to="/" 
                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
@@ -112,9 +134,12 @@ export function AdminLayout() {
               <Menu size={24} />
             </button>
             <div>
-              <h2 className="text-2xl font-bold text-brand-dark tracking-tight">Olá, Ana! 👋</h2>
+              <h2 className="text-2xl font-bold text-brand-dark tracking-tight truncate max-w-[200px] md:max-w-md">
+                Olá, {profile?.name?.split(' ')[0] || user?.firstName || "Profissional"}! 👋
+              </h2>
               <p className="text-sm text-slate-500 hidden sm:block font-medium">Bom dia! Veja sua agenda para hoje.</p>
             </div>
+
           </div>
           <div className="flex gap-4">
             <button 

@@ -1,15 +1,39 @@
 import { useUser } from "@clerk/react";
-import { Navigate } from "react-router-dom";
-import { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { ReactNode, useEffect, useState } from "react";
+import { fetchProfessionalProfile, ProfessionalProfile } from "../../lib/api";
 
 interface AdminGuardProps {
   children: ReactNode;
+  checkProfile?: boolean;
 }
 
-export function AdminGuard({ children }: AdminGuardProps) {
+export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   const { user, isLoaded } = useUser();
+  const location = useLocation();
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(checkProfile);
 
-  if (!isLoaded) {
+  useEffect(() => {
+    async function checkExistingProfile() {
+      if (isLoaded && user && checkProfile) {
+        try {
+          const data = await fetchProfessionalProfile(user.id);
+          setProfile(data);
+        } catch (err) {
+          console.log("No profile found for this admin yet.");
+        } finally {
+          setProfileLoading(false);
+        }
+      } else {
+        setProfileLoading(false);
+      }
+    }
+
+    checkExistingProfile();
+  }, [isLoaded, user, checkProfile]);
+
+  if (!isLoaded || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="h-12 w-12 border-4 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin" />
@@ -32,6 +56,11 @@ export function AdminGuard({ children }: AdminGuardProps) {
   if (!isAdmin) {
     console.warn("Access denied: User is not an admin");
     return <Navigate to="/profile" replace />;
+  }
+
+  // Redirect to setup if profile is missing and we are not already on setup
+  if (checkProfile && !profile && location.pathname !== "/admin/setup") {
+    return <Navigate to="/admin/setup" replace />;
   }
 
   return <>{children}</>;

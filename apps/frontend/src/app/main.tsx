@@ -14,6 +14,8 @@ import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { ServicesConfigPage } from '../pages/admin/ServicesConfigPage';
 import { ScheduleConfigPage } from '../pages/admin/ScheduleConfigPage';
 import { AdminGuard } from '../components/auth/AdminGuard';
+import { SetupProfilePage } from '../pages/admin/SetupProfilePage';
+
 
 import { LandingPage } from '../pages/LandingPage';
 import { ProfilePage } from '../pages/client/ProfilePage';
@@ -130,7 +132,9 @@ if (!rootElement) {
                 </Route>
 
                 {/* Fluxo do Admin (usando AdminLayout) Protegido */}
+                <Route path="/admin/setup" element={<AdminGuard checkProfile={false}><SetupProfilePage /></AdminGuard>} />
                 <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
+
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/services" element={<ServicesConfigPage />} />
                   <Route path="/admin/schedule" element={<ScheduleConfigPage />} />
