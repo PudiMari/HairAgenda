@@ -58,8 +58,9 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
     return <Navigate to="/profile" replace />;
   }
 
-  // Redirect to setup if profile is missing and we are not already on setup
-  if (checkProfile && !profile && location.pathname !== "/admin/setup") {
+  // Redirect to setup if profile is missing OR incomplete, and we are not already on setup
+  const isProfileComplete = profile && profile.is_setup_completed;
+  if (checkProfile && !isProfileComplete && location.pathname !== "/admin/setup") {
     return <Navigate to="/admin/setup" replace />;
   }
 

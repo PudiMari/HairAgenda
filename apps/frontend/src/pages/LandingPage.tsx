@@ -11,7 +11,22 @@ export function LandingPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (isLoaded && user) {
-      navigate('/profile');
+      // Check if user is an admin
+      const adminEmails = [
+        ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
+      ];
+      const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
+      const isAdmin = (
+        !adminRestrictionEnabled ||
+        user?.publicMetadata?.role === 'admin' ||
+        (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress))
+      );
+
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
     }
   }, [isLoaded, user, navigate]);
 

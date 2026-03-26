@@ -219,6 +219,19 @@ export function ProfilePage() {
           <div className="absolute bottom-1 right-1 bg-green-500 w-5 h-5 rounded-full border-2 border-white"></div>
         </div>
 
+        {isAdmin && !profile && (
+          <div className="w-full bg-brand-gold/10 border-2 border-brand-gold/20 rounded-2xl p-6 text-center animate-pulse">
+            <h3 className="text-brand-dark font-bold mb-1">Seu perfil está vazio! 📢</h3>
+            <p className="text-slate-600 text-sm mb-4">Complete sua configuração para que seus clientes vejam suas informações reais.</p>
+            <Link 
+              to="/admin/setup"
+              className="inline-flex items-center justify-center bg-brand-gold text-white px-6 py-2 rounded-xl font-bold text-sm shadow-md"
+            >
+              Configurar Agora
+            </Link>
+          </div>
+        )}
+
         <div className="flex flex-col items-center text-center gap-2">
           <h1 className="text-2xl font-bold tracking-tight text-brand-dark">{displayName}</h1>
           <p className="text-slate-600 text-base leading-relaxed max-w-sm">
