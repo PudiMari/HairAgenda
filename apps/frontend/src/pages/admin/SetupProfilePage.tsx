@@ -8,7 +8,6 @@ import { useUser } from "@clerk/react";
 
 export function SetupProfilePage() {
   const { user } = useUser();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
