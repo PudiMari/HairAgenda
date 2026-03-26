@@ -11,6 +11,7 @@ interface AdminGuardProps {
 export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   const { user, isLoaded } = useUser();
   const location = useLocation();
+  const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(checkProfile);
 
@@ -20,8 +21,9 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
         try {
           const data = await fetchProfessionalProfile(user.id);
           setProfile(data);
-        } catch (err) {
-          console.log("No profile found for this admin yet.");
+        } catch (err: any) {
+          console.error("Error checking profile:", err);
+          setError(err.message || "Erro ao buscar perfil.");
         } finally {
           setProfileLoading(false);
         }
@@ -37,6 +39,23 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="h-12 w-12 border-4 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error && checkProfile) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md border border-slate-100">
+          <h2 className="text-xl font-bold text-red-600 mb-4">Erro de Perfil</h2>
+          <p className="text-slate-600 mb-6">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="w-full bg-brand-dark text-white px-6 py-3 rounded-2xl font-bold transition-all"
+          >
+            Tentar Novamente
+          </button>
+        </div>
       </div>
     );
   }
