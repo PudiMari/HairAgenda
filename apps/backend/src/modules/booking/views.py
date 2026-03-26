@@ -26,9 +26,9 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
         if not user_id:
             return Response({"error": "user_id is required"}, status=400)
 
-        try:
-            profile = ProfessionalProfile.objects.get(user_id=user_id)
-            serializer = self.get_serializer(profile)
-            return Response(serializer.data)
-        except ProfessionalProfile.DoesNotExist:
-            return Response({"error": "Profile not found"}, status=404)
+        profile = ProfessionalProfile.objects.filter(user_id=user_id).first()
+        if not profile:
+            return Response({"error": "Profile not found"}, status=404)
+
+        serializer = ProfessionalProfileSerializer(profile)
+        return Response(serializer.data)
