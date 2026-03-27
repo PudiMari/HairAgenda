@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { User, MapPin, FileText, Camera, Check } from "lucide-react";
 import { 
   createProfessionalProfile, 
@@ -9,6 +10,7 @@ import { useUser } from "@clerk/react";
 
 export function SetupProfilePage() {
   const { user } = useUser();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,10 +86,8 @@ export function SetupProfilePage() {
         }
       }
 
-      // Force a small delay to ensure DB consistency before navigating
-      setTimeout(() => {
-        window.location.href = "/admin";
-      }, 500);
+      // Redirect back to dashboard
+      navigate("/admin");
     } catch (err: any) {
       setError(err.message || "Erro ao salvar perfil.");
     } finally {
