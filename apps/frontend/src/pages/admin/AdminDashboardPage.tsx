@@ -111,18 +111,6 @@ export function AdminDashboardPage() {
     localStorage.setItem('admin_blocks', JSON.stringify(blocks));
   }, [blocks]);
 
-  // Daily stats calculation
-  const stats = useMemo(() => {
-    const todayStr = getLocalDateString(new Date());
-    const todaysAppts = appointments.filter(a => a.date === todayStr);
-    const totalRevenue = todaysAppts.reduce((sum, a) => sum + (a.price || 0), 0);
-    
-    return {
-      count: todaysAppts.length,
-      revenue: totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-    };
-  }, [appointments]);
-
   // Helper to get day of week and date for the current week starting from Monday
   const weekDates = useMemo(() => {
     const dates = [];
@@ -141,6 +129,34 @@ export function AdminDashboardPage() {
     }
     return dates;
   }, [selectedDate]);
+
+  // Daily and Weekly stats calculation
+  const stats = useMemo(() => {
+    const todayStr = getLocalDateString(new Date());
+    
+    // Get all dates for the current week
+    const weekDateStrings = weekDates.map(d => getLocalDateString(d));
+
+    const todaysAppts = appointments.filter(a => a.date === todayStr);
+    const weeklyAppts = appointments.filter(a => weekDateStrings.includes(a.date));
+
+    const todayRevenue = todaysAppts.reduce((sum, a) => sum + (a.price || 0), 0);
+    const weeklyRevenue = weeklyAppts.reduce((sum, a) => sum + (a.price || 0), 0);
+    
+    console.log("Dashboard Stats Calculation:", {
+      today: todayStr,
+      todaysApptsCount: todaysAppts.length,
+      weeklyApptsCount: weeklyAppts.length,
+      totalApptsCount: appointments.length
+    });
+
+    return {
+      todayCount: todaysAppts.length,
+      todayRevenue: todayRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      weekCount: weeklyAppts.length,
+      weekRevenue: weeklyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    };
+  }, [appointments, weekDates]);
 
   const daysLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
   
@@ -223,24 +239,44 @@ export function AdminDashboardPage() {
   return (
     <div className="space-y-12">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-6 transition-transform hover:scale-[1.02]">
-          <div className="bg-brand-dark/10 text-brand-dark p-4 rounded-2xl">
-            <CheckCircle2 size={32} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
+          <div className="bg-brand-dark/10 text-brand-dark p-3 rounded-2xl shrink-0">
+            <CheckCircle2 size={24} />
           </div>
           <div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Agendamentos Hoje</p>
-            <p className="text-3xl font-bold text-brand-dark">{stats.count}</p>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-0.5">Agendamentos Hoje</p>
+            <p className="text-2xl font-bold text-brand-dark">{stats.todayCount}</p>
           </div>
         </div>
         
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-6 transition-transform hover:scale-[1.02]">
-          <div className="bg-brand-gold/10 text-brand-gold p-4 rounded-2xl">
-            <Circle size={32} /> 
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
+          <div className="bg-brand-gold/10 text-brand-gold p-3 rounded-2xl shrink-0">
+            <Circle size={24} /> 
           </div>
           <div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Previsão R$ Hoje</p>
-            <p className="text-3xl font-bold text-brand-dark">{stats.revenue}</p>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-0.5">Receita Hoje</p>
+            <p className="text-2xl font-bold text-brand-dark">{stats.todayRevenue}</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
+          <div className="bg-brand-dark/10 text-brand-dark p-3 rounded-2xl shrink-0">
+            <CalendarIcon size={24} />
+          </div>
+          <div>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-0.5">Total na Semana</p>
+            <p className="text-2xl font-bold text-brand-dark">{stats.weekCount}</p>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-transform hover:scale-[1.02]">
+          <div className="bg-brand-gold/10 text-brand-gold p-3 rounded-2xl shrink-0">
+            <Plus size={24} /> 
+          </div>
+          <div>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-0.5">Previsão Semanal</p>
+            <p className="text-2xl font-bold text-brand-dark">{stats.weekRevenue}</p>
           </div>
         </div>
       </div>

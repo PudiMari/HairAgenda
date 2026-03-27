@@ -21,13 +21,13 @@ export interface Service {
 }
 
 export const fetchServices = async (): Promise<Service[]> => {
-  const response = await fetch(`${API_URL}/api/services/`);
+  const response = await fetch(`${API_URL}/api/services/?t=${Date.now()}`);
   if (!response.ok) throw new Error('Erro ao buscar serviços.');
   return response.json();
 };
 
 export const fetchAppointments = async (): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/api/appointments/`);
+  const response = await fetch(`${API_URL}/api/appointments/?t=${Date.now()}`);
   if (!response.ok) throw new Error('Erro ao buscar agendamentos.');
   return response.json();
 };
