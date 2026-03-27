@@ -73,6 +73,9 @@ export function ProfilePage() {
   const [selectedImage, setSelectedImage] = useState<{id: number, url: string, title: string} | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Check if current user is the owner of this profile
+  const isOwner = user?.id && (requestedUserId === user.id || (!requestedUserId && profile?.user_id === user.id));
+
   // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -145,7 +148,7 @@ export function ProfilePage() {
 
       {/* Top Banner / Actions */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-        {isAdmin ? (
+        {isAdmin && isOwner ? (
           <Link
             to="/admin"
             className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-50 text-slate-700 transition-all hover:bg-brand-gold/10 hover:text-brand-gold active:scale-95"
@@ -219,7 +222,7 @@ export function ProfilePage() {
           <div className="absolute bottom-1 right-1 bg-green-500 w-5 h-5 rounded-full border-2 border-white"></div>
         </div>
 
-        {isAdmin && !profile && (
+        {isAdmin && isOwner && !profile && (
           <div className="w-full bg-brand-gold/10 border-2 border-brand-gold/20 rounded-2xl p-6 text-center animate-pulse">
             <h3 className="text-brand-dark font-bold mb-1">Seu perfil está vazio! 📢</h3>
             <p className="text-slate-600 text-sm mb-4">Complete sua configuração para que seus clientes vejam suas informações reais.</p>
