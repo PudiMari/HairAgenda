@@ -6,6 +6,7 @@ export const fetchHealthStatus = async () => {
 };
 
 export interface AppointmentPayload {
+  client_user_id?: string;
   client_name: string;
   client_whatsapp: string;
   service: number; // ID of the service
@@ -26,8 +27,12 @@ export const fetchServices = async (): Promise<Service[]> => {
   return response.json();
 };
 
-export const fetchAppointments = async (): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/api/appointments/?t=${Date.now()}`);
+export const fetchAppointments = async (clientId?: string): Promise<any[]> => {
+  const url = clientId 
+    ? `${API_URL}/api/appointments/?client_id=${clientId}&t=${Date.now()}`
+    : `${API_URL}/api/appointments/?t=${Date.now()}`;
+    
+  const response = await fetch(url);
   if (!response.ok) throw new Error('Erro ao buscar agendamentos.');
   return response.json();
 };

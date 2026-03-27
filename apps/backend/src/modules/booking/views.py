@@ -14,6 +14,13 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        client_id = self.request.query_params.get('client_id')
+        if client_id:
+            queryset = queryset.filter(client_user_id=client_id)
+        return queryset
+
 
 class ProfessionalProfileViewSet(viewsets.ModelViewSet):
     queryset = ProfessionalProfile.objects.all()

@@ -9,9 +9,16 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    service_name = serializers.CharField(source='service.name', read_only=True)
+    service_price = serializers.DecimalField(source='service.price', max_digits=8, decimal_places=2, read_only=True)
+
     class Meta:
         model = Appointment
-        fields = '__all__'
+        fields = [
+            'id', 'client_name', 'client_whatsapp', 'service', 
+            'service_name', 'service_price', 'date_time', 
+            'status', 'created_at', 'client_user_id'
+        ]
 
 
 class ProfessionalProfileSerializer(serializers.ModelSerializer):

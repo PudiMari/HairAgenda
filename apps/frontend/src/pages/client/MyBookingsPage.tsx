@@ -1,11 +1,36 @@
-import { ArrowLeft, Calendar, Clock, Scissors, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Calendar, Clock, Scissors, ChevronRight, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-
-// Mock data for bookings - in a real app this would come from an API
-const MOCK_BOOKINGS: any[] = [];
+import { useUser } from "@clerk/react";
+import { fetchAppointments } from "../../lib/api";
 
 export function MyBookingsPage() {
   const navigate = useNavigate();
+  const { user, isLoaded } = useUser();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadBookings() {
+      if (!isLoaded || !user) {
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        const data = await fetchAppointments(user.id);
+        setBookings(data);
+      } catch (err) {
+        setError("Não foi possível carregar seus agendamentos.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadBookings();
+  }, [user, isLoaded]);
 
   return (
     <div className="w-full max-w-[600px] mx-auto flex flex-col min-h-[calc(100vh-80px)] bg-slate-50/50">
@@ -24,9 +49,19 @@ export function MyBookingsPage() {
       </div>
 
       <div className="flex-1 p-4 space-y-4">
-        {MOCK_BOOKINGS.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+             <div className="w-12 h-12 border-4 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin"></div>
+             <p className="mt-4 text-slate-500 font-medium whitespace-nowrap">Carregando seus agendamentos...</p>
+          </div>
+        ) : error ? (
+          <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100">
+            <AlertCircle size={20} />
+            <p className="text-sm font-medium">{error}</p>
+          </div>
+        ) : bookings.length > 0 ? (
           <div className="space-y-4">
-            {MOCK_BOOKINGS.map((booking) => (
+            {bookings.map((booking) => (
               <div 
                 key={booking.id}
                 className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
@@ -37,17 +72,17 @@ export function MyBookingsPage() {
                       <Scissors size={24} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900">{booking.serviceName}</h3>
-                      <p className="text-sm text-slate-500">{booking.professionalName}</p>
+                      <h3 className="font-bold text-slate-900">{booking.service_name || `Serviço #${booking.service}`}</h3>
+                      <p className="text-sm text-slate-500">HairAgenda Profissional</p>
                       
                       <div className="flex flex-col gap-1 mt-3">
                         <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
                           <Calendar size={14} className="text-brand-gold" />
-                          <span>{booking.date}</span>
+                          <span>{new Date(booking.date_time).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
                           <Clock size={14} className="text-brand-gold" />
-                          <span>{booking.time}</span>
+                          <span>{new Date(booking.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
                     </div>
@@ -55,11 +90,11 @@ export function MyBookingsPage() {
                   
                   <div className="flex flex-col items-end gap-2">
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                      booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                     }`}>
-                      {booking.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
+                      {booking.status === 'PENDING' ? 'Pendente' : 'Confirmado'}
                     </span>
-                    <span className="text-sm font-bold text-brand-dark">R$ {booking.price}</span>
+                    <span className="text-sm font-bold text-brand-dark">R$ {booking.service_price || '0,00'}</span>
                   </div>
                 </div>
               </div>

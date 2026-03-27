@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizontal, Check, ShieldAlert, FileText, Info, X, User } from "lucide-react";
+import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizontal, Check, ShieldAlert, FileText, Info, X, User, Clock, ChevronRight, History } from "lucide-react";
 import { useUser } from "@clerk/react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ContactModal } from "../../components/ContactModal";
-import { fetchProfessionalProfile, fetchServices, ProfessionalProfile, Service as APIService } from "../../lib/api";
+import { fetchProfessionalProfile, fetchServices, fetchAppointments, ProfessionalProfile, Service as APIService } from "../../lib/api";
 
 interface WorkItem {
   id: number;
@@ -34,6 +34,7 @@ export function ProfilePage() {
   const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [services, setServices] = useState<APIService[]>([]);
+  const [clientAppointments, setClientAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Profile ID logic: 1. From URL (?u=...), 2. Fallback to current user if admin
@@ -41,19 +42,51 @@ export function ProfilePage() {
 
   useEffect(() => {
     async function loadData() {
+      if (!isLoaded) return;
       setLoading(true);
       try {
         const userIdToFetch = requestedUserId || user?.id;
+        
+        // Parallel fetch for profile/services and client appointments if logged in
+        const promises: Promise<any>[] = [];
+        
         if (userIdToFetch) {
-          const [profileData, servicesData] = await Promise.all([
-            fetchProfessionalProfile(userIdToFetch),
-            fetchServices() // We should ideally filter by professional, but for now we fetch all
-          ]);
-          setProfile(profileData);
-          setServices(servicesData);
+          promises.push(fetchProfessionalProfile(userIdToFetch).catch(() => null));
+          promises.push(fetchServices().catch(() => []));
+        } else {
+          promises.push(Promise.resolve(null));
+          promises.push(Promise.resolve([]));
+        }
+        
+        if (user?.id) {
+          promises.push(fetchAppointments(user.id).catch(() => []));
+        } else {
+          promises.push(Promise.resolve([]));
+        }
+
+        const [profileData, servicesData, appointmentsData] = await Promise.all(promises);
+        
+        setProfile(profileData);
+        setServices(servicesData);
+        setClientAppointments(appointmentsData);
+
+        // Save to Recent Professionals if we're viewing someone else's profile
+        if (profileData && requestedUserId && requestedUserId !== user?.id) {
+          const recentKey = `recent_pros_${user?.id || 'guest'}`;
+          const recent = JSON.parse(localStorage.getItem(recentKey) || '[]');
+          const newEntry = {
+            id: profileData.user_id,
+            name: profileData.name,
+            photo: profileData.photo_url,
+            location: profileData.location
+          };
+          
+          const filtered = recent.filter((p: any) => p.id !== newEntry.id);
+          const updated = [newEntry, ...filtered].slice(0, 5);
+          localStorage.setItem(recentKey, JSON.stringify(updated));
         }
       } catch (err) {
-        console.error("Error loading profile data:", err);
+        console.error("Error loading dashboard data:", err);
       } finally {
         setLoading(false);
       }
@@ -138,6 +171,123 @@ export function ProfilePage() {
         <h1 className="text-xl font-bold text-brand-dark">Perfil não encontrado</h1>
         <p className="text-slate-500 mt-2">O profissional que você procura não está disponível ou o link está incorreto.</p>
         <Link to="/" className="mt-6 text-brand-gold font-bold hover:underline">Voltar para a página inicial</Link>
+      </div>
+    );
+  }
+
+  // Check if we should show the Client Dashboard
+  const isClientDashboard = !requestedUserId && !profile && !loading;
+
+  if (isClientDashboard) {
+    const recentKey = `recent_pros_${user?.id || 'guest'}`;
+    const recentPros = JSON.parse(localStorage.getItem(recentKey) || '[]');
+
+    return (
+      <div className="w-full max-w-[600px] mx-auto flex flex-col min-h-[calc(100vh-80px)] bg-slate-50 shadow-sm rounded-lg overflow-hidden pb-10">
+        <div className="bg-white px-6 pt-8 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold border-2 border-brand-gold/20">
+              <User size={32} />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-brand-dark">Olá, {user?.firstName || 'visitante'}! 👋</h1>
+              <p className="text-slate-500 text-sm">Bem-vindo ao seu painel.</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/my-bookings" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-brand-gold/5 border border-brand-gold/20 hover:bg-brand-gold/10 transition-all text-center">
+              <CalendarDays className="text-brand-gold mb-2" size={24} />
+              <span className="text-xs font-bold text-brand-dark">Meus Agendamentos</span>
+            </Link>
+            <Link to="/services" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-all text-center">
+              <ClipboardList className="text-slate-600 mb-2" size={24} />
+              <span className="text-xs font-bold text-brand-dark">Explorar Serviços</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* My Appointments Section */}
+        <div className="px-6 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-brand-dark text-lg font-bold">Próximos Agendamentos</h3>
+            <Link to="/my-bookings" className="text-brand-gold text-sm font-bold hover:underline">Ver todos</Link>
+          </div>
+          
+          {clientAppointments.length > 0 ? (
+            <div className="space-y-3">
+              {clientAppointments.slice(0, 3).map((app: any) => (
+                <div key={app.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-brand-gold">
+                      <Clock size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-brand-dark text-sm">{new Date(app.date_time).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} • {new Date(app.date_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+                      <p className="text-xs text-slate-500 italic">{app.service_name || `Serviço #${app.service}`}</p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    app.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-brand-gold/10 text-brand-gold'
+                  }`}>
+                    {app.status === 'PENDING' ? 'Pendente' : 'Confirmado'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white p-8 rounded-2xl border-2 border-dashed border-slate-200 text-center">
+              <CalendarDays size={40} className="mx-auto text-slate-300 mb-3" />
+              <p className="text-slate-500 text-sm">Você não tem agendamentos próximos.</p>
+              <Link to="/services" className="inline-block mt-4 text-brand-gold font-bold text-sm">Agendar agora →</Link>
+            </div>
+          )}
+        </div>
+
+        {/* Recent Professionals Section */}
+        <div className="px-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-brand-dark text-lg font-bold">Profissionais Recentes</h3>
+            <div className="h-0.5 flex-1 bg-slate-100 mx-4 opacity-50"></div>
+          </div>
+
+          {recentPros.length > 0 ? (
+            <div className="grid grid-cols-1 gap-3">
+              {recentPros.map((pro: any) => (
+                <Link 
+                  key={pro.id} 
+                  to={`/profile?u=${pro.id}`}
+                  className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between group hover:border-brand-gold/30 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-12 h-12 rounded-full bg-cover bg-center border-2 border-slate-100"
+                      style={{ backgroundImage: `url("${pro.photo || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=150'}")` }}
+                    />
+                    <div>
+                      <p className="font-bold text-brand-dark group-hover:text-brand-gold transition-colors">{pro.name}</p>
+                      <div className="flex items-center gap-1 text-slate-500 text-[10px]">
+                        <MapPin size={10} />
+                        <span>{pro.location}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} className="text-slate-300 group-hover:text-brand-gold transition-colors" />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center">
+              <History size={32} className="mx-auto text-slate-200 mb-2" />
+              <p className="text-slate-400 text-xs italic">Você ainda não visitou profissionais.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions Footer */}
+        <div className="mt-8 px-6">
+          <p className="text-slate-400 text-[10px] text-center uppercase tracking-[0.2em] font-bold mb-6">HairAgenda • Sua Agenda Inteligente</p>
+        </div>
       </div>
     );
   }

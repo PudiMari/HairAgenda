@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { X, CheckCircle, Calendar, Clock, User, Phone, ArrowRight, Lock, Info, AlertCircle } from "lucide-react";
 import { createAppointment } from "../../lib/api";
+import { useUser } from "@clerk/react";
 
 export function BookingConfirmationPage() {
+  const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -38,10 +40,10 @@ export function BookingConfirmationPage() {
       const monthNum = monthMap[monthToken] || "01";
       const dayNum = dayToken.padStart(2, '0');
       
-      // Use the local timezone offset for Sao Paulo (GMT-3)
       const dateTimeIso = `${currentYear}-${monthNum}-${dayNum}T${time}:00-03:00`;
 
       await createAppointment({
+        client_user_id: user?.id,
         client_name: clientName,
         client_whatsapp: clientWhatsapp,
         service: parseInt(service.id, 10),

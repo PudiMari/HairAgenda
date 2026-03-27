@@ -22,10 +22,12 @@ class Appointment(models.Model):
         null=True,
         blank=True
     )
+    client_user_id = models.CharField(max_length=100, null=True, blank=True)
     client_name = models.CharField("Nome da Cliente", max_length=100)
     client_whatsapp = models.CharField("WhatsApp", max_length=20)
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     date_time = models.DateTimeField("Data e Hora")
+    status = models.CharField(max_length=20, default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
