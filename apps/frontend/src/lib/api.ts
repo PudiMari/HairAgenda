@@ -86,7 +86,7 @@ export interface ProfessionalProfile {
 }
 
 export const fetchProfessionalProfile = async (userId: string): Promise<ProfessionalProfile> => {
-  const response = await fetch(`${API_URL}/api/professional-profile/${userId}/`);
+  const response = await fetch(`${API_URL}/api/professional-profile/${userId}/?t=${Date.now()}`);
   if (!response.ok) throw new Error('Perfil não encontrado.');
   return response.json();
 };
