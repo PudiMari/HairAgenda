@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { X, CheckCircle, Calendar, Clock, User, Phone, ArrowRight, Lock, Info, AlertCircle } from "lucide-react";
 import { createAppointment } from "../../lib/api";
 
 export function BookingConfirmationPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const requestedUserId = searchParams.get('u');
   
   const service = location.state?.service || { id: "1", name: "Corte Feminino" };
   const date = location.state?.date || "24 Mai";
@@ -47,7 +49,7 @@ export function BookingConfirmationPage() {
       });
 
       alert("Agendamento confirmado com sucesso!");
-      navigate("/profile");
+      navigate(`/profile${requestedUserId ? `?u=${requestedUserId}` : ""}`);
     } catch (err: any) {
       setError(err.message || "Ocorreu um erro ao salvar o agendamento.");
     } finally {
@@ -62,7 +64,7 @@ export function BookingConfirmationPage() {
       <header className="flex items-center justify-between mb-8">
         <h2 className="text-xl font-bold text-brand-dark">HairAgenda</h2>
         <button 
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate(`/profile${requestedUserId ? `?u=${requestedUserId}` : ""}`)}
           className="flex items-center justify-center rounded-full h-10 w-10 transition-colors hover:bg-brand-gold/20 bg-brand-gold/10 text-brand-gold"
         >
           <X size={20} />
