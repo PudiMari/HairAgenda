@@ -20,7 +20,9 @@ export function SetupProfilePage() {
     name: user?.fullName || "",
     description: "",
     photo_url: user?.imageUrl || "",
-    location: ""
+    location: "",
+    whatsapp: "",
+    instagram: ""
   });
 
   useEffect(() => {
@@ -34,7 +36,9 @@ export function SetupProfilePage() {
             name: profile.name || user.fullName || "",
             description: profile.description || "",
             photo_url: profile.photo_url || user.imageUrl || "",
-            location: profile.location || ""
+            location: profile.location || "",
+            whatsapp: profile.whatsapp || "",
+            instagram: profile.instagram || ""
           });
           setIsEditMode(true);
         }
@@ -62,6 +66,8 @@ export function SetupProfilePage() {
           description: formData.description,
           photo_url: formData.photo_url,
           location: formData.location,
+          whatsapp: formData.whatsapp,
+          instagram: formData.instagram,
           is_setup_completed: true
         });
       } else {
@@ -72,6 +78,8 @@ export function SetupProfilePage() {
             description: formData.description,
             photo_url: formData.photo_url,
             location: formData.location,
+            whatsapp: formData.whatsapp,
+            instagram: formData.instagram,
             is_setup_completed: true
           });
         } catch (err: any) {
@@ -81,6 +89,8 @@ export function SetupProfilePage() {
             description: formData.description,
             photo_url: formData.photo_url,
             location: formData.location,
+            whatsapp: formData.whatsapp,
+            instagram: formData.instagram,
             is_setup_completed: true
           });
         }
@@ -161,6 +171,33 @@ export function SetupProfilePage() {
                   className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-brand-dark font-medium focus:border-brand-gold focus:bg-white outline-none transition-all"
                   required
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    WhatsApp
+                  </label>
+                  <input 
+                    type="text" 
+                    value={formData.whatsapp}
+                    onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                    placeholder="11 99999-9999"
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-brand-dark font-medium focus:border-brand-gold focus:bg-white outline-none transition-all text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    Instagram
+                  </label>
+                  <input 
+                    type="text" 
+                    value={formData.instagram}
+                    onChange={(e) => setFormData({...formData, instagram: e.target.value})}
+                    placeholder="@seu.perfil"
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-brand-dark font-medium focus:border-brand-gold focus:bg-white outline-none transition-all text-sm"
+                  />
+                </div>
               </div>
             </div>
           </div>

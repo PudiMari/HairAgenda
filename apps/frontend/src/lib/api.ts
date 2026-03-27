@@ -82,6 +82,8 @@ export interface ProfessionalProfile {
   description: string;
   photo_url: string | null;
   location: string;
+  whatsapp: string;
+  instagram: string;
   is_setup_completed: boolean;
 }
 
