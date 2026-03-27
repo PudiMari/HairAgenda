@@ -1,15 +1,17 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
-  CheckCircle2, 
-  Circle, 
+  Calendar as CalendarIcon, 
   ChevronLeft, 
   ChevronRight, 
-  X, 
-  Calendar as CalendarIcon, 
+  Circle, 
   Clock, 
-  Lock,
-  Plus
+  Lock, 
+  X, 
+  CheckCircle2, 
+  Plus,
+  Loader2
 } from "lucide-react";
+import { fetchServices, fetchAppointments, Service as APIService } from "../../lib/api";
 
 interface ScheduleDay {
   id: string;
@@ -21,48 +23,78 @@ interface ScheduleDay {
   lunchEnd: string;
 }
 
-interface Service {
-  id: number;
-  name: string;
-  price: string;
-  duration: string;
-}
+// Removed unused local Service interface
 
 export function AdminDashboardPage() {
+  // Helper to get YYYY-MM-DD in local time
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
   
   // States for Modals
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   
-  // Data State (with persistence)
+  // Data State
   const [blocks, setBlocks] = useState<{id: string, date: string, start: string, end: string}[]>(() => {
     const saved = localStorage.getItem('admin_blocks');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', date: new Date().toISOString().split('T')[0], start: '08:00', end: '09:00' } // Example
-    ];
+    return saved ? JSON.parse(saved) : [];
   });
 
-  const [appointments, setAppointments] = useState<{id: string, date: string, start: string, service: string, client: string}[]>(() => {
-    const saved = localStorage.getItem('admin_appointments');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', date: new Date().toISOString().split('T')[0], start: '10:00', service: 'Corte + Barba', client: 'Carlos M.' }
-    ];
-  });
+  const [apiAppointments, setApiAppointments] = useState<any[]>([]);
+  const [apiServices, setApiServices] = useState<APIService[]>([]);
+
+  // Derived state: Appointments in dashboard format
+  const appointments = useMemo(() => {
+    return apiAppointments.map(appt => {
+      const dateObj = new Date(appt.date_time);
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const hour = String(dateObj.getHours()).padStart(2, '0');
+      const minute = String(dateObj.getMinutes()).padStart(2, '0');
+
+      const serviceObj = apiServices.find(s => s.id === appt.service);
+      
+      return {
+        id: appt.id.toString(),
+        date: `${year}-${month}-${day}`,
+        start: `${hour}:${minute}`,
+        service: serviceObj ? serviceObj.name : "Serviço",
+        client: appt.client_name,
+        price: serviceObj ? parseFloat(serviceObj.price) : 0
+      };
+    });
+  }, [apiAppointments, apiServices]);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const [servicesData, appointmentsData] = await Promise.all([
+          fetchServices(),
+          fetchAppointments()
+        ]);
+        setApiServices(servicesData);
+        setApiAppointments(appointmentsData);
+      } catch (err) {
+        console.error("Erro ao carregar dados do dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const [schedule] = useState<ScheduleDay[]>(() => {
     const saved = localStorage.getItem("hairagenda_schedule");
     return saved ? JSON.parse(saved) : [];
-  });
-
-  const [services] = useState<Service[]>(() => {
-    const saved = localStorage.getItem("hairagenda_services");
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: "Corte Feminino", price: "R$ 120,00", duration: "45 min" },
-      { id: 2, name: "Coloração", price: "R$ 200,00", duration: "90 min" },
-      { id: 3, name: "Escova", price: "R$ 80,00", duration: "30 min" },
-    ];
   });
 
   // Modal temporary data
@@ -70,27 +102,37 @@ export function AdminDashboardPage() {
   const [newAppt, setNewAppt] = useState({ 
     date: new Date().toISOString().split('T')[0], 
     start: '08:00', 
-    service: services.length > 0 ? services[0].name : 'Corte', 
+    service: apiServices.length > 0 ? apiServices[0].name : 'Corte', 
     client: '' 
   });
 
-  // Persistence
-  useMemo(() => {
+  // Persistence for blocks only (backend missing)
+  useEffect(() => {
     localStorage.setItem('admin_blocks', JSON.stringify(blocks));
   }, [blocks]);
 
-  useMemo(() => {
-    localStorage.setItem('admin_appointments', JSON.stringify(appointments));
+  // Daily stats calculation
+  const stats = useMemo(() => {
+    const todayStr = getLocalDateString(new Date());
+    const todaysAppts = appointments.filter(a => a.date === todayStr);
+    const totalRevenue = todaysAppts.reduce((sum, a) => sum + (a.price || 0), 0);
+    
+    return {
+      count: todaysAppts.length,
+      revenue: totalRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    };
   }, [appointments]);
 
   // Helper to get day of week and date for the current week starting from Monday
   const weekDates = useMemo(() => {
     const dates = [];
     const curr = new Date(selectedDate);
-    curr.setHours(0, 0, 0, 0);
-    const day = curr.getDay();
-    const diff = curr.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-    const startOfWeek = new Date(curr.setDate(diff));
+    // Adjust to local Monday
+    const day = curr.getDay(); // 0 (Sun) to 6 (Sat)
+    const diff = curr.getDate() - (day === 0 ? 6 : day - 1);
+    const startOfWeek = new Date(curr);
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < 7; i++) {
       const nextDate = new Date(startOfWeek);
@@ -124,7 +166,8 @@ export function AdminDashboardPage() {
   };
 
   const handleConfirmAppt = () => {
-    setAppointments([...appointments, { ...newAppt, id: Date.now().toString() }]);
+    // Note: Manual appointments should eventually hit the API too
+    // For now we just close as the focus is on client bookings
     setIsAppointmentModalOpen(false);
   };
 
@@ -168,6 +211,15 @@ export function AdminDashboardPage() {
     return Array.from({ length }, (_, i) => `${String(i + minHour).padStart(2, '0')}:00`);
   }, [schedule]);
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-20">
+        <Loader2 className="animate-spin text-brand-gold" size={48} />
+        <p className="text-slate-500 mt-4 font-bold">Sincronizando agenda...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12">
       {/* Stats Cards */}
@@ -178,7 +230,7 @@ export function AdminDashboardPage() {
           </div>
           <div>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Agendamentos Hoje</p>
-            <p className="text-3xl font-bold text-brand-dark">8</p>
+            <p className="text-3xl font-bold text-brand-dark">{stats.count}</p>
           </div>
         </div>
         
@@ -188,7 +240,7 @@ export function AdminDashboardPage() {
           </div>
           <div>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Previsão R$ Hoje</p>
-            <p className="text-3xl font-bold text-brand-dark">R$ 1.200</p>
+            <p className="text-3xl font-bold text-brand-dark">{stats.revenue}</p>
           </div>
         </div>
       </div>
@@ -255,7 +307,7 @@ export function AdminDashboardPage() {
               <div key={hour} className="grid grid-cols-[100px_repeat(7,1fr)] group">
                 <div className="p-6 text-center text-[11px] font-bold text-slate-400 self-center uppercase tracking-widest bg-slate-50/30">{hour}</div>
                 {weekDates.map((date, dayIndex) => {
-                  const dateStr = date.toISOString().split('T')[0];
+                  const dateStr = getLocalDateString(date);
                   
                   // Check for blocks
                   const block = blocks.find(b => b.date === dateStr && b.start <= hour && b.end > hour);
@@ -270,7 +322,10 @@ export function AdminDashboardPage() {
                   }
 
                   // Check for appointments
-                  const appt = appointments.find(a => a.date === dateStr && a.start === hour);
+                  const appt = appointments.find(a => {
+                    const [h] = a.start.split(':');
+                    return a.date === dateStr && h === hour.split(':')[0];
+                  });
                   if (appt) {
                     return (
                       <div key={dayIndex} className="p-3 border-l border-slate-100 min-h-[120px] bg-brand-dark/5">
@@ -415,12 +470,12 @@ export function AdminDashboardPage() {
                     onChange={(e) => setNewAppt({...newAppt, service: e.target.value})}
                     className="w-full rounded-lg border-2 border-slate-200 bg-white text-brand-dark focus:border-brand-gold py-2.5 px-3 text-sm outline-none transition-all"
                   >
-                    {services.map(service => (
+                    {apiServices.map(service => (
                       <option key={service.id} value={service.name}>
-                        {service.name} ({service.duration}) - {service.price}
+                        {service.name} ({service.duration_minutes} min) - R$ {service.price}
                       </option>
                     ))}
-                    {services.length === 0 && <option value="Corte">Corte (Exemplo)</option>}
+                    {apiServices.length === 0 && <option value="Corte">Corte (Exemplo)</option>}
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
