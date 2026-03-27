@@ -249,7 +249,7 @@ export function ProfilePage() {
         {/* Action Buttons */}
         <div className="flex flex-col w-full gap-3 mt-4">
           <Link
-            to="/book/services"
+            to={`/book/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
             className="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-brand-gold text-white text-lg font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-opacity"
           >
             <CalendarDays className="mr-2" size={24} />
@@ -258,7 +258,7 @@ export function ProfilePage() {
 
           <div className="flex gap-3 w-full">
             <Link
-              to="/services"
+              to={`/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
               className="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-brand-gold/30 bg-transparent text-brand-gold text-sm font-bold hover:bg-brand-gold/5 transition-colors"
             >
               <ClipboardList className="mr-2" size={18} />

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Clock, Info, CheckCircle2, Loader2 } from "lucide-react";
 import { fetchServices, Service } from "../../lib/api";
 
 export function ServicesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedUserId = searchParams.get('u');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +28,7 @@ export function ServicesPage() {
   }, []);
 
   const handleBookService = (service: Service) => {
-    navigate("/book/services", {
+    navigate(`/book/services${requestedUserId ? `?u=${requestedUserId}` : ""}`, {
       state: {
         preSelectedService: {
           id: service.id.toString(),
@@ -50,7 +52,7 @@ export function ServicesPage() {
       {/* Header */}
       <div className="pt-8 pb-6 border-b border-primary/10 mb-8">
         <div className="flex items-center gap-4 mb-2">
-          <Link to="/profile" className="text-brand-gold hover:opacity-80 transition-opacity">
+          <Link to={`/profile${requestedUserId ? `?u=${requestedUserId}` : ""}`} className="text-brand-gold hover:opacity-80 transition-opacity">
             <ArrowLeft size={24} />
           </Link>
           <h1 className="text-2xl font-black text-brand-dark tracking-tight">Nossos Serviços</h1>

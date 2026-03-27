@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchServices, fetchAppointments, Service } from "../../lib/api";
 
 export function ServiceSelectionPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const requestedUserId = searchParams.get('u');
   const preSelected = location.state?.preSelectedService;
 
   const [services, setServices] = useState<Service[]>([]);
@@ -130,7 +132,7 @@ export function ServiceSelectionPage() {
   };
 
   const handleNext = () => {
-    navigate("/book/confirm", { 
+    navigate(`/book/confirm${requestedUserId ? `?u=${requestedUserId}` : ""}`, { 
       state: { 
         service: selectedService, 
         date: selectedDate, 
@@ -295,7 +297,7 @@ export function ServiceSelectionPage() {
       {/* Navigation Buttons */}
       <div className="flex items-center gap-4 mt-8">
         <Link 
-          to="/profile"
+          to={`/profile${requestedUserId ? `?u=${requestedUserId}` : ""}`}
           className="flex-1 flex items-center justify-center gap-2 h-14 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all"
         >
           <ArrowLeft size={20} />
