@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { Scissors, LayoutDashboard, Settings, Menu, Copy, X, LogOut } from "lucide-react";
-import { useUser } from "@clerk/react";
+import { Scissors, LayoutDashboard, Settings, Menu, Copy, X, LogOut, ExternalLink } from "lucide-react";
+import { useUser, useClerk } from "@clerk/react";
 import { fetchProfessionalProfile, ProfessionalProfile } from "../../lib/api";
 
 
 export function AdminLayout() {
   const { user } = useUser();
+  const { signOut } = useClerk();
   const location = useLocation();
   const currentPath = location.pathname;
   const [copied, setCopied] = useState(false);
@@ -27,12 +28,22 @@ export function AdminLayout() {
     loadProfile();
   }, [user]);
 
+  const profileUrl = `${window.location.origin}/profile?u=${profile?.user_id || user?.id}`;
+
   const handleCopyLink = () => {
-    const profileId = profile?.user_id || "ana-silva";
-    const profileUrl = `${window.location.origin}/profile?u=${profileId}`;
     navigator.clipboard.writeText(profileUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout error:", err);
+      window.location.href = "/";
+    }
   };
 
 
@@ -99,24 +110,30 @@ export function AdminLayout() {
           </nav>
 
           <div className="pt-8 border-t border-slate-100">
-            <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <img 
-                alt="Profile photo" 
-                className="w-12 h-12 rounded-full object-cover border-2 border-brand-gold/20" 
-                src={profile?.photo_url || user?.imageUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150&h=150"}
-              />
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-bold text-brand-dark uppercase tracking-wide truncate">{profile?.name || user?.fullName || "Profissional"}</p>
-                <p className="text-[11px] text-slate-500 font-bold uppercase">Plano Premium</p>
-              </div>
-
+            <div className="relative group/user bg-slate-50 p-4 rounded-2xl border border-slate-100 transition-all hover:bg-slate-100">
               <Link 
-                to="/" 
-                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                title="Sair da visão profissional"
+                to="/admin/setup"
+                className="flex items-center gap-4 flex-1 overflow-hidden pr-8"
+                title="Editar Perfil Profissional"
+              >
+                <img 
+                  alt="Profile photo" 
+                  className="w-12 h-12 rounded-full object-cover border-2 border-brand-gold/20" 
+                  src={profile?.photo_url || user?.imageUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150&h=150"}
+                />
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-bold text-brand-dark uppercase tracking-wide truncate">{profile?.name || user?.fullName || "Profissional"}</p>
+                  <p className="text-[11px] text-slate-500 font-bold uppercase">Editar Perfil</p>
+                </div>
+              </Link>
+
+              <button 
+                onClick={handleLogout}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                title="Sair da conta"
               >
                 <LogOut size={20} />
-              </Link>
+              </button>
             </div>
           </div>
           
@@ -125,7 +142,7 @@ export function AdminLayout() {
 
       {/* Main Content Area */}
       <main className="flex-1 transition-all flex flex-col min-h-screen w-full">
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-20 px-6 py-6 md:px-12 border-b border-slate-100 flex items-center justify-between">
+        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-20 px-6 py-4 md:px-12 border-b border-slate-100 flex items-center justify-between min-h-[90px]">
           <div className="flex items-center gap-6">
             <button 
               className="md:hidden text-brand-dark bg-slate-50 p-2 rounded-xl border border-slate-100"
@@ -141,10 +158,21 @@ export function AdminLayout() {
             </div>
 
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-4">
+            <a 
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border border-slate-200 hover:border-brand-gold/30 hover:bg-brand-gold/5 text-slate-600 hover:text-brand-gold p-3 sm:px-6 sm:py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 shadow-sm"
+              title="Visualizar Perfil Público"
+            >
+              <ExternalLink size={18} />
+              <span className="hidden sm:inline">Ver Perfil</span>
+            </a>
+            
             <button 
               onClick={handleCopyLink}
-              className={`${copied ? 'bg-green-50 text-green-600 border-green-200' : 'bg-brand-gold/10 hover:bg-brand-gold/20 text-brand-gold border-brand-gold/20'} px-6 py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 border shadow-sm`}
+              className={`${copied ? 'bg-green-50 text-green-600 border-green-200' : 'bg-brand-dark text-white border-brand-dark hover:bg-brand-dark/90'} p-3 sm:px-6 sm:py-3 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 border shadow-sm shadow-brand-dark/10`}
             >
               <Copy size={18} />
               <span className="hidden sm:inline">

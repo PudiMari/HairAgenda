@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, MapPin, FileText, Camera, Check } from "lucide-react";
 import { 
   createProfessionalProfile, 
-  updateProfessionalProfile 
+  updateProfessionalProfile,
+  fetchProfessionalProfile
 } from "../../lib/api";
 import { useUser } from "@clerk/react";
 
 export function SetupProfilePage() {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.fullName || "",
@@ -17,6 +20,31 @@ export function SetupProfilePage() {
     photo_url: user?.imageUrl || "",
     location: ""
   });
+
+  useEffect(() => {
+    async function loadExistingProfile() {
+      if (!user) return;
+      setFetching(true);
+      try {
+        const profile = await fetchProfessionalProfile(user.id);
+        if (profile) {
+          setFormData({
+            name: profile.name || user.fullName || "",
+            description: profile.description || "",
+            photo_url: profile.photo_url || user.imageUrl || "",
+            location: profile.location || ""
+          });
+          setIsEditMode(true);
+        }
+      } catch (err) {
+        // Silently fail if no profile exists yet (new user)
+        console.log("No existing profile found to pre-fill.");
+      } finally {
+        setFetching(false);
+      }
+    }
+    loadExistingProfile();
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,27 +54,34 @@ export function SetupProfilePage() {
     setError(null);
 
     try {
-      try {
-        await createProfessionalProfile({
-          user_id: user.id,
-          name: formData.name,
-          description: formData.description,
-          photo_url: formData.photo_url,
-          location: formData.location,
-          is_setup_completed: true
-        });
-      } catch (err: any) {
-        // If creation fails (e.g. already exists), update it using user.id as the lookup
+      if (isEditMode) {
         await updateProfessionalProfile(user.id, {
           name: formData.name,
           description: formData.description,
           photo_url: formData.photo_url,
           location: formData.location,
           is_setup_completed: true
-        }).catch(() => {
-          // If update also fails, throw the original error
-          throw err;
         });
+      } else {
+        try {
+          await createProfessionalProfile({
+            user_id: user.id,
+            name: formData.name,
+            description: formData.description,
+            photo_url: formData.photo_url,
+            location: formData.location,
+            is_setup_completed: true
+          });
+        } catch (err: any) {
+          // Fallback if record somehow exists but isEditMode was false
+          await updateProfessionalProfile(user.id, {
+            name: formData.name,
+            description: formData.description,
+            photo_url: formData.photo_url,
+            location: formData.location,
+            is_setup_completed: true
+          });
+        }
       }
 
       // Force a small delay to ensure DB consistency before navigating
@@ -65,8 +100,12 @@ export function SetupProfilePage() {
       <div className="w-full max-w-2xl bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="bg-brand-dark p-10 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-brand-gold/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-          <h1 className="text-3xl font-black tracking-tight mb-2 relative z-10">Bem-vindo(a) ao HairAgenda! 👋</h1>
-          <p className="text-brand-gold font-bold uppercase tracking-widest text-xs relative z-10">Configuração do seu perfil profissional</p>
+          <h1 className="text-3xl font-black tracking-tight mb-2 relative z-10">
+            {isEditMode ? "Editar Perfil 👋" : "Bem-vindo(a) ao HairAgenda! 👋"}
+          </h1>
+          <p className="text-brand-gold font-bold uppercase tracking-widest text-xs relative z-10">
+            {isEditMode ? "Atualize suas informações profissionais" : "Configuração do seu perfil profissional"}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-10 space-y-8">
@@ -143,7 +182,7 @@ export function SetupProfilePage() {
 
           <button 
             type="submit"
-            disabled={loading}
+            disabled={loading || fetching}
             className="w-full bg-brand-gold text-white rounded-2xl h-16 text-lg font-black tracking-tight shadow-xl shadow-brand-gold/20 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? (
@@ -151,7 +190,7 @@ export function SetupProfilePage() {
             ) : (
               <>
                 <Check size={24} />
-                Concluir Configuração
+                {isEditMode ? "Salvar Alterações" : "Concluir Configuração"}
               </>
             )}
           </button>
