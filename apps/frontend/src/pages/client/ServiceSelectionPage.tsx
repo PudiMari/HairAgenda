@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { fetchServices, fetchAppointments, Service } from "../../lib/api";
+import { fetchServices, fetchAppointments, fetchProfessionalProfile, Service } from "../../lib/api";
 
 export function ServiceSelectionPage() {
   const navigate = useNavigate();
@@ -24,10 +24,17 @@ export function ServiceSelectionPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [servicesData, appointmentsData] = await Promise.all([
+        const [servicesData, appointmentsData, profileData] = await Promise.all([
           fetchServices(),
-          fetchAppointments()
+          fetchAppointments(),
+          requestedUserId ? fetchProfessionalProfile(requestedUserId).catch(() => null) : Promise.resolve(null)
         ]);
+
+        if (profileData && requestedUserId) {
+          const { registerProfessionalVisit } = await import("../../lib/recentPros");
+          registerProfessionalVisit(undefined, profileData);
+        }
+
         setServices(servicesData);
         setAppointments(appointmentsData);
         
@@ -43,7 +50,7 @@ export function ServiceSelectionPage() {
       }
     }
     loadData();
-  }, [preSelected]);
+  }, [preSelected, requestedUserId]);
 
   const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const dayOfWeekNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];

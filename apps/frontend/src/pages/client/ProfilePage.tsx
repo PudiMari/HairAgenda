@@ -4,6 +4,7 @@ import { useUser } from "@clerk/react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ContactModal } from "../../components/ContactModal";
 import { fetchProfessionalProfile, fetchServices, fetchAppointments, ProfessionalProfile, Service as APIService } from "../../lib/api";
+import { registerProfessionalVisit } from "../../lib/recentPros";
 
 interface WorkItem {
   id: number;
@@ -72,18 +73,7 @@ export function ProfilePage() {
 
         // Save to Recent Professionals if we're viewing someone else's profile
         if (profileData && requestedUserId && requestedUserId !== user?.id) {
-          const recentKey = `recent_pros_${user?.id || 'guest'}`;
-          const recent = JSON.parse(localStorage.getItem(recentKey) || '[]');
-          const newEntry = {
-            id: profileData.user_id,
-            name: profileData.name,
-            photo: profileData.photo_url,
-            location: profileData.location
-          };
-          
-          const filtered = recent.filter((p: any) => p.id !== newEntry.id);
-          const updated = [newEntry, ...filtered].slice(0, 5);
-          localStorage.setItem(recentKey, JSON.stringify(updated));
+          registerProfessionalVisit(user?.id, profileData);
         }
       } catch (err) {
         console.error("Error loading dashboard data:", err);
@@ -186,9 +176,17 @@ export function ProfilePage() {
       <div className="w-full max-w-[600px] mx-auto flex flex-col min-h-[calc(100vh-80px)] bg-slate-50 shadow-sm rounded-lg overflow-hidden pb-10">
         <div className="bg-white px-6 pt-8 pb-6 border-b border-slate-100">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold border-2 border-brand-gold/20">
-              <User size={32} />
-            </div>
+            {user?.imageUrl ? (
+              <img 
+                src={user.imageUrl} 
+                className="w-16 h-16 rounded-full border-2 border-brand-gold/20 object-cover"
+                alt={user.fullName || "Perfil"}
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold border-2 border-brand-gold/20">
+                <User size={32} />
+              </div>
+            )}
             <div>
               <h1 className="text-xl font-bold text-brand-dark">Olá, {user?.firstName || 'visitante'}! 👋</h1>
               <p className="text-slate-500 text-sm">Bem-vindo ao seu painel.</p>

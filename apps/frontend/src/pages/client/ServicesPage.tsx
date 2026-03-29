@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Clock, Info, CheckCircle2, Loader2 } from "lucide-react";
-import { fetchServices, Service } from "../../lib/api";
+import { fetchServices, fetchProfessionalProfile, Service } from "../../lib/api";
 
 export function ServicesPage() {
   const navigate = useNavigate();
@@ -13,8 +13,17 @@ export function ServicesPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await fetchServices();
-        setServices(data.map(s => ({
+        const [servicesData, profileData] = await Promise.all([
+          fetchServices(),
+          requestedUserId ? fetchProfessionalProfile(requestedUserId).catch(() => null) : Promise.resolve(null)
+        ]);
+
+        if (profileData && requestedUserId) {
+          const { registerProfessionalVisit } = await import("../../lib/recentPros");
+          registerProfessionalVisit(undefined, profileData); // Using undefined for guest fallback
+        }
+
+        setServices(servicesData.map(s => ({
           ...s,
           price: s.price.replace(".", ",") // UI template adds R$
         })));
@@ -25,7 +34,7 @@ export function ServicesPage() {
       }
     }
     load();
-  }, []);
+  }, [requestedUserId]);
 
   const handleBookService = (service: Service) => {
     navigate(`/book/services${requestedUserId ? `?u=${requestedUserId}` : ""}`, {
