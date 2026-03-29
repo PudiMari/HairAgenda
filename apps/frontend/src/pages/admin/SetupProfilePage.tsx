@@ -231,6 +231,21 @@ export function SetupProfilePage() {
               </>
             )}
           </button>
+
+          <div className="pt-4 border-t border-slate-100 text-center">
+            <button
+              type="button"
+              onClick={async () => {
+                if (window.confirm("Você tem certeza que deseja mudar seu perfil para Cliente? Suas informações profissionais continuarão salvas, mas você acessará o painel de cliente.")) {
+                  await user?.update({ unsafeMetadata: { role: 'client' } });
+                  navigate("/profile");
+                }
+              }}
+              className="text-slate-400 hover:text-brand-dark text-sm font-bold uppercase tracking-widest transition-colors"
+            >
+              Mudar para perfil de Cliente
+            </button>
+          </div>
         </form>
       </div>
     </div>

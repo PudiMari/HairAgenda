@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizontal, Check, ShieldAlert, FileText, Info, X, User, Clock, ChevronRight, History } from "lucide-react";
 import { useUser } from "@clerk/react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { ContactModal } from "../../components/ContactModal";
 import { fetchProfessionalProfile, fetchServices, fetchAppointments, ProfessionalProfile, Service as APIService } from "../../lib/api";
 import { registerProfessionalVisit } from "../../lib/recentPros";
@@ -32,6 +32,7 @@ const RECENT_WORKS: WorkItem[] = [
 
 export function ProfilePage() {
   const { user, isLoaded } = useUser();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [services, setServices] = useState<APIService[]>([]);
@@ -193,14 +194,10 @@ export function ProfilePage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/my-bookings" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-brand-gold/5 border border-brand-gold/20 hover:bg-brand-gold/10 transition-all text-center">
-              <CalendarDays className="text-brand-gold mb-2" size={24} />
-              <span className="text-xs font-bold text-brand-dark">Meus Agendamentos</span>
-            </Link>
-            <Link to="/services" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-all text-center">
-              <ClipboardList className="text-slate-600 mb-2" size={24} />
-              <span className="text-xs font-bold text-brand-dark">Explorar Serviços</span>
+          <div className="flex justify-center">
+            <Link to="/my-bookings" className="flex flex-col items-center justify-center w-full p-6 rounded-2xl bg-brand-gold/5 border border-brand-gold/20 hover:bg-brand-gold/10 transition-all text-center group">
+              <CalendarDays className="text-brand-gold mb-2 group-hover:scale-110 transition-transform" size={32} />
+              <span className="text-sm font-bold text-brand-dark uppercase tracking-wide">Meus Agendamentos</span>
             </Link>
           </div>
         </div>
@@ -283,8 +280,23 @@ export function ProfilePage() {
         </div>
 
         {/* Quick Actions Footer */}
-        <div className="mt-8 px-6">
-          <p className="text-slate-400 text-[10px] text-center uppercase tracking-[0.2em] font-bold mb-6">HairAgenda • Sua Agenda Inteligente</p>
+        <div className="mt-8 px-6 pb-6 space-y-4">
+          <p className="text-slate-400 text-[10px] text-center uppercase tracking-[0.2em] font-bold">HairAgenda • Sua Agenda Inteligente</p>
+          
+          <div className="pt-6 border-t border-slate-100 text-center">
+            <button
+              type="button"
+              onClick={async () => {
+                if (window.confirm("Você deseja mudar seu perfil para Profissional? Você poderá configurar sua agenda, serviços e receber agendamentos.")) {
+                  await user?.update({ unsafeMetadata: { role: 'admin' } });
+                  navigate("/admin/setup");
+                }
+              }}
+              className="px-6 py-3 rounded-xl bg-slate-100 text-slate-500 hover:text-brand-dark hover:bg-slate-200 text-xs font-bold uppercase tracking-widest transition-all"
+            >
+              Quero ser um Profissional
+            </button>
+          </div>
         </div>
       </div>
     );
