@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Scissors, LogIn, Calendar, Sparkles, User } from "lucide-react";
+import { Scissors, LogIn, Sparkles, User } from "lucide-react";
 import { useClerk, useUser } from "@clerk/react";
 import { useEffect } from "react";
 
@@ -77,13 +77,6 @@ export function LandingPage() {
             {user ? 'Acessar Meu Perfil' : 'Acessar Minha Conta'}
           </button>
 
-          <button 
-            onClick={() => navigate('/services')}
-            className="flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 text-white h-16 rounded-2xl text-lg font-bold border border-white/10 transition-all active:scale-95 group"
-          >
-            <Calendar size={20} className="text-brand-gold group-hover:scale-110 transition-transform" />
-            Explorar Serviços
-          </button>
         </div>
 
         <div className="flex items-center gap-2 mt-8 text-brand-muted/60">
