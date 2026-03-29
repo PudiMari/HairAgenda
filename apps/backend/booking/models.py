@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+
 class ProfessionalProfile(models.Model):
     user_id = models.CharField("ID do Usuário (Clerk)", max_length=100, unique=True)
     name = models.CharField("Nome Profissional", max_length=100)
@@ -12,10 +13,11 @@ class ProfessionalProfile(models.Model):
     def __str__(self):
         return self.name
 
+
 class Service(models.Model):
     professional = models.ForeignKey(
-        ProfessionalProfile, 
-        on_delete=models.CASCADE, 
+        ProfessionalProfile,
+        on_delete=models.CASCADE,
         related_name='services',
         null=True,
         blank=True
@@ -28,10 +30,11 @@ class Service(models.Model):
     def __str__(self):
         return f"{self.name} - R$ {self.price}"
 
+
 class Appointment(models.Model):
     professional = models.ForeignKey(
-        ProfessionalProfile, 
-        on_delete=models.CASCADE, 
+        ProfessionalProfile,
+        on_delete=models.CASCADE,
         related_name='appointments',
         null=True,
         blank=True

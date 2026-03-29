@@ -9,4 +9,4 @@ router.register(r'professional-profile', ProfessionalProfileViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-]
+]
