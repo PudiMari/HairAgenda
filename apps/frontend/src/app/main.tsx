@@ -17,6 +17,9 @@ import { AdminGuard } from '../components/auth/AdminGuard';
 import { SetupProfilePage } from '../pages/admin/SetupProfilePage';
 
 
+import { RoleSelectionPage } from '../pages/RoleSelectionPage';
+
+
 import { LandingPage } from '../pages/LandingPage';
 import { ProfilePage } from '../pages/client/ProfilePage';
 import { ClerkProvider } from '@clerk/react';
@@ -120,6 +123,7 @@ if (!rootElement) {
               <Routes>
                 {/* Tela Inicial / Login */}
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/role-selection" element={<RoleSelectionPage />} />
 
                 {/* Fluxo do Cliente (usando RootLayout) */}
                 <Route element={<RootLayout />}>

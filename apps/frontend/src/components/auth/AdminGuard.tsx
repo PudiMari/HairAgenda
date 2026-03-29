@@ -70,7 +70,18 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   const isAdmin =
     !adminRestrictionEnabled ||
     user?.publicMetadata?.role === 'admin' ||
+    user?.unsafeMetadata?.role === 'admin' ||
     (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress));
+
+  const hasRole = 
+    user?.publicMetadata?.role === 'admin' || 
+    user?.publicMetadata?.role === 'client' ||
+    user?.unsafeMetadata?.role === 'admin' || 
+    user?.unsafeMetadata?.role === 'client';
+
+  if (isLoaded && user && !hasRole && location.pathname !== "/role-selection") {
+    return <Navigate to="/role-selection" replace />;
+  }
 
   if (!isAdmin) {
     console.warn("Access denied: User is not an admin");

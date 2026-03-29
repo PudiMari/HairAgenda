@@ -1,11 +1,26 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { Scissors, LogIn } from "lucide-react";
 import { UserButton, useClerk, useUser } from "@clerk/react";
+import { useEffect } from "react";
 
 export function RootLayout() {
   const navigate = useNavigate();
   const { openSignIn } = useClerk();
   const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      const hasRole = 
+        user?.publicMetadata?.role === 'admin' || 
+        user?.publicMetadata?.role === 'client' ||
+        user?.unsafeMetadata?.role === 'admin' || 
+        user?.unsafeMetadata?.role === 'client';
+
+      if (!hasRole) {
+        navigate('/role-selection');
+      }
+    }
+  }, [isLoaded, user, navigate]);
 
   const handleLogin = () => {
     openSignIn({
