@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Service, Appointment
 
+
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('name', 'professional', 'price', 'duration_minutes')
