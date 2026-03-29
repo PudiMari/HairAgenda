@@ -18,6 +18,7 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   useEffect(() => {
     async function checkExistingProfile() {
       if (isLoaded && user && checkProfile) {
+        setProfileLoading(true);
         try {
           const data = await fetchProfessionalProfile(user.id);
           setProfile(data);

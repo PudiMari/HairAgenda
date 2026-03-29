@@ -136,8 +136,8 @@ if (!rootElement) {
                 </Route>
 
                 {/* Fluxo do Admin (usando AdminLayout) Protegido */}
-                <Route path="/admin/setup" element={<AdminGuard checkProfile={false}><SetupProfilePage /></AdminGuard>} />
-                <Route element={<AdminGuard><AdminLayout /></AdminGuard>}>
+                <Route path="/admin/setup" element={<AdminGuard key="setup" checkProfile={false}><SetupProfilePage /></AdminGuard>} />
+                <Route element={<AdminGuard key="admin"><AdminLayout /></AdminGuard>}>
 
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/services" element={<ServicesConfigPage />} />
