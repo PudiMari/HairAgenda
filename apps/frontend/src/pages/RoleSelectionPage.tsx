@@ -1,12 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/react";
-import { Scissors, User, ChevronRight, Sparkles } from "lucide-react";
+import { useUser, useClerk } from "@clerk/react";
+import { Scissors, User, ChevronRight, Sparkles, LogOut } from "lucide-react";
 import { useState } from "react";
 
 export function RoleSelectionPage() {
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   const handleSelectRole = async (role: 'admin' | 'client') => {
     if (!user) return;
@@ -37,6 +43,17 @@ export function RoleSelectionPage() {
       {/* Background Decor */}
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-gold/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-gold/5 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Logout Button */}
+      <div className="absolute top-8 right-8 z-20">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all group"
+        >
+          <LogOut size={18} className="text-brand-gold group-hover:rotate-12 transition-transform" />
+          <span>Sair da conta</span>
+        </button>
+      </div>
 
       <div className="max-w-4xl w-full relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-12">
