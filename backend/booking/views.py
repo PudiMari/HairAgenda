@@ -8,9 +8,23 @@ class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        professional_id = self.request.query_params.get('professional_id')
+        if professional_id:
+            queryset = queryset.filter(professional_id=professional_id)
+        return queryset
+
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        professional_id = self.request.query_params.get('professional_id')
+        if professional_id:
+            queryset = queryset.filter(professional_id=professional_id)
+        return queryset
 
 class ProfessionalProfileViewSet(viewsets.ModelViewSet):
     queryset = ProfessionalProfile.objects.all()
