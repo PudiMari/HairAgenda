@@ -92,9 +92,10 @@ export interface ProfessionalProfile {
   is_setup_completed: boolean;
 }
 
-export const fetchProfessionalProfile = async (userId: string): Promise<ProfessionalProfile> => {
+export const fetchProfessionalProfile = async (userId: string): Promise<ProfessionalProfile | null> => {
   const response = await fetch(`${API_URL}/api/professional-profile/${userId}/?t=${Date.now()}`);
-  if (!response.ok) throw new Error('Perfil não encontrado.');
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error('Erro ao buscar perfil.');
   return response.json();
 };
 

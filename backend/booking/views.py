@@ -15,6 +15,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 class ProfessionalProfileViewSet(viewsets.ModelViewSet):
     queryset = ProfessionalProfile.objects.all()
     serializer_class = ProfessionalProfileSerializer
+    lookup_field = 'user_id'
 
     @action(detail=False, methods=['get'])
     def me(self, request):
