@@ -484,7 +484,8 @@ export function ProfilePage() {
             {popularServices.map((service) => (
               <Link 
                 key={service.id}
-                to={`/book/select-time?service=${service.id}${requestedUserId ? `&u=${requestedUserId}` : ""}`}
+                to={`/book/services?service=${service.id}${requestedUserId ? `&u=${requestedUserId}` : ""}`}
+
                 className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-brand-gold/30 hover:bg-brand-gold/5 transition-all group"
               >
                 <div>

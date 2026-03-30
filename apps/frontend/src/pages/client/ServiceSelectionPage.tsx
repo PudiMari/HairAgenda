@@ -38,11 +38,19 @@ export function ServiceSelectionPage() {
         setServices(servicesData);
         setAppointments(appointmentsData);
         
+        const serviceIdParam = searchParams.get('service');
         if (preSelected) {
            setSelectedService(preSelected);
+        } else if (serviceIdParam) {
+           const s = servicesData.find(svc => svc.id.toString() === serviceIdParam);
+           if (s) setSelectedService({ id: s.id.toString(), name: s.name });
+           else if (servicesData.length > 0) {
+             setSelectedService({ id: servicesData[0].id.toString(), name: servicesData[0].name });
+           }
         } else if (servicesData.length > 0) {
            setSelectedService({ id: servicesData[0].id.toString(), name: servicesData[0].name });
         }
+
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
       } finally {
