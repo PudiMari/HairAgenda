@@ -200,12 +200,8 @@ export function ProfilePage() {
             </div>
           </div>
           
-          <div className="flex justify-center">
-            <Link to="/my-bookings" className="flex flex-col items-center justify-center w-full p-6 rounded-2xl bg-brand-gold/5 border border-brand-gold/20 hover:bg-brand-gold/10 transition-all text-center group">
-              <CalendarDays className="text-brand-gold mb-2 group-hover:scale-110 transition-transform" size={32} />
-              <span className="text-sm font-bold text-brand-dark uppercase tracking-wide">Meus Agendamentos</span>
-            </Link>
-          </div>
+          {/* Redundant card removed as per user request */}
+
         </div>
 
         {/* My Appointments Section */}
