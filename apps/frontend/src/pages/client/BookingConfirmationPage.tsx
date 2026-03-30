@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { X, CheckCircle, Calendar, Clock, User, Phone, ArrowRight, Lock, Info, AlertCircle } from "lucide-react";
 import { createAppointment } from "../../lib/api";
@@ -19,6 +20,17 @@ export function BookingConfirmationPage() {
   const [clientWhatsapp, setClientWhatsapp] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Pre-fill user data
+  useEffect(() => {
+    if (user) {
+      if (!clientName) setClientName(user.fullName || "");
+      if (!clientWhatsapp && user.primaryPhoneNumber) {
+        setClientWhatsapp(user.primaryPhoneNumber.phoneNumber || "");
+      }
+    }
+  }, [user]);
+
 
   const handleConfirm = async () => {
     if (!clientName.trim() || !clientWhatsapp.trim()) {
