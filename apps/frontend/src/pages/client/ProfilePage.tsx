@@ -90,8 +90,9 @@ export function ProfilePage() {
     ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
   ];
   const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
-  const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+  const userRole = user?.unsafeMetadata?.role || user?.publicMetadata?.role;
   const isEmailAdmin = user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress);
+
 
   const isAdmin = isLoaded && (
     !adminRestrictionEnabled ||
