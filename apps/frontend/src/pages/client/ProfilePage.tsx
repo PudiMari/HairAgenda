@@ -172,7 +172,8 @@ export function ProfilePage() {
   }
 
   // Check if we should show the Client Dashboard
-  const isClientDashboard = !requestedUserId && !profile && !loading;
+  const isClientDashboard = !requestedUserId && (userRole === 'client' || (!profile && !loading));
+
 
   if (isClientDashboard) {
     const recentKey = `recent_pros_${user?.id || 'guest'}`;
