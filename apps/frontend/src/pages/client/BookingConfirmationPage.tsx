@@ -23,13 +23,43 @@ export function BookingConfirmationPage() {
 
   // Pre-fill user data
   useEffect(() => {
-    if (user) {
-      if (!clientName) setClientName(user.fullName || "");
-      if (!clientWhatsapp && user.primaryPhoneNumber) {
-        setClientWhatsapp(user.primaryPhoneNumber.phoneNumber || "");
+    async function preFillData() {
+      if (user) {
+        if (!clientName) setClientName(user.fullName || "");
+        
+        let phone = "";
+        
+        // 1. Try primary phone number
+        if (user.primaryPhoneNumber) {
+          phone = user.primaryPhoneNumber.phoneNumber || "";
+        }
+        
+        // 2. Try any phone number
+        if (!phone && user.phoneNumbers?.length > 0) {
+          phone = user.phoneNumbers[0].phoneNumber || "";
+        }
+
+        // 3. Fallback to Professional Profile if available
+        if (!phone) {
+          try {
+            const { fetchProfessionalProfile } = await import("../../lib/api");
+            const profile = await fetchProfessionalProfile(user.id);
+            if (profile?.whatsapp) {
+              phone = profile.whatsapp;
+            }
+          } catch (e) {
+            // No profile or error, silently fail
+          }
+        }
+
+        if (!clientWhatsapp && phone) {
+          setClientWhatsapp(phone);
+        }
       }
     }
+    preFillData();
   }, [user]);
+
 
 
   const handleConfirm = async () => {
