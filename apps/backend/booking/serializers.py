@@ -16,11 +16,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = [
-            'id', 'professional', 'professional_name', 'client_name', 
-            'client_whatsapp', 'service', 'service_name', 'service_price', 
+            'id', 'professional', 'professional_name', 'client_name',
+            'client_whatsapp', 'service', 'service_name', 'service_price',
             'date_time', 'client_user_id', 'status', 'created_at'
         ]
-
 
 
 class ProfessionalProfileSerializer(serializers.ModelSerializer):
