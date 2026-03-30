@@ -8,7 +8,11 @@ class ProfessionalProfile(models.Model):
     description = models.TextField("Bio/Descrição", blank=True)
     photo_url = models.URLField("URL da Foto", blank=True, null=True)
     location = models.CharField("Localização", max_length=200, blank=True)
+    whatsapp = models.CharField("WhatsApp", max_length=20, blank=True)
+    instagram = models.CharField("Instagram", max_length=100, blank=True)
     is_setup_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -43,6 +47,8 @@ class Appointment(models.Model):
     client_whatsapp = models.CharField("WhatsApp", max_length=20)
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     date_time = models.DateTimeField("Data e Hora")
+    client_user_id = models.CharField("ID Usuário (Clerk)", max_length=100, blank=True, null=True)
+    status = models.CharField("Status", max_length=20, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
