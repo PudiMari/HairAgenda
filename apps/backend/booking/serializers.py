@@ -9,9 +9,18 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    service_name = serializers.ReadOnlyField(source='service.name')
+    service_price = serializers.ReadOnlyField(source='service.price')
+    professional_name = serializers.ReadOnlyField(source='professional.name')
+
     class Meta:
         model = Appointment
-        fields = '__all__'
+        fields = [
+            'id', 'professional', 'professional_name', 'client_name', 
+            'client_whatsapp', 'service', 'service_name', 'service_price', 
+            'date_time', 'client_user_id', 'status', 'created_at'
+        ]
+
 
 
 class ProfessionalProfileSerializer(serializers.ModelSerializer):

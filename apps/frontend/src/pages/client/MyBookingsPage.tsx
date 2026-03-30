@@ -73,7 +73,8 @@ export function MyBookingsPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-900">{booking.service_name || `Serviço #${booking.service}`}</h3>
-                      <p className="text-sm text-slate-500">HairAgenda Profissional</p>
+                      <p className="text-sm text-slate-500">{booking.professional_name || "HairAgenda Profissional"}</p>
+
                       
                       <div className="flex flex-col gap-1 mt-3">
                         <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
