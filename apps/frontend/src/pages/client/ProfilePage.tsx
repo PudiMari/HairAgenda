@@ -90,11 +90,15 @@ export function ProfilePage() {
     ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
   ];
   const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
+  const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+  const isEmailAdmin = user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress);
+
   const isAdmin = isLoaded && (
     !adminRestrictionEnabled ||
-    user?.publicMetadata?.role === 'admin' ||
-    (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress))
+    userRole === 'admin' ||
+    (isEmailAdmin && !userRole)
   );
+
 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);

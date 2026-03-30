@@ -67,12 +67,14 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   ];
 
   const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
+  const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+  const isEmailAdmin = user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress);
 
   const isAdmin =
     !adminRestrictionEnabled ||
-    user?.publicMetadata?.role === 'admin' ||
-    user?.unsafeMetadata?.role === 'admin' ||
-    (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress));
+    userRole === 'admin' ||
+    (isEmailAdmin && !userRole);
+
 
   const hasRole = 
     user?.publicMetadata?.role === 'admin' || 
