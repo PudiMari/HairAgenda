@@ -24,8 +24,13 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         professional_id = self.request.query_params.get('professional_id')
+        client_id = self.request.query_params.get('client_id')
+        
         if professional_id:
             queryset = queryset.filter(professional_id=professional_id)
+        if client_id:
+            queryset = queryset.filter(client_user_id=client_id)
+            
         return queryset
 
 
