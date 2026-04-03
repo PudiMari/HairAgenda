@@ -25,6 +25,14 @@ export function SetupProfilePage() {
     instagram: ""
   });
 
+  const formatPhone = (val: string) => {
+    let digits = val.replace(/\D/g, "");
+    if (digits.length > 11) digits = digits.slice(0, 11);
+    if (digits.length > 2) digits = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length > 10) digits = `${digits.slice(0, 10)}-${digits.slice(10)}`;
+    return digits;
+  };
+
   useEffect(() => {
     async function loadExistingProfile() {
       if (!user) return;
@@ -37,7 +45,7 @@ export function SetupProfilePage() {
             description: profile.description || "",
             photo_url: profile.photo_url || user.imageUrl || "",
             location: profile.location || "",
-            whatsapp: profile.whatsapp || "",
+            whatsapp: profile.whatsapp ? formatPhone(profile.whatsapp) : "",
             instagram: profile.instagram || ""
           });
           setIsEditMode(true);
@@ -52,12 +60,26 @@ export function SetupProfilePage() {
     loadExistingProfile();
   }, [user]);
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({...formData, whatsapp: formatPhone(e.target.value)});
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
+    if (formData.whatsapp) {
+      const rawPhone = formData.whatsapp.replace(/\D/g, "");
+      if (rawPhone.length > 0 && rawPhone.length !== 11) {
+        setError("Telefone inválido. Informe o DDD (2 dígitos) e o número (9 dígitos). Ex: (11) 99999-9999");
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
+
+    const rawWhatsapp = formData.whatsapp.replace(/\D/g, "");
 
     try {
       if (isEditMode) {
@@ -66,7 +88,7 @@ export function SetupProfilePage() {
           description: formData.description,
           photo_url: formData.photo_url,
           location: formData.location,
-          whatsapp: formData.whatsapp,
+          whatsapp: rawWhatsapp,
           instagram: formData.instagram,
           is_setup_completed: true
         });
@@ -78,7 +100,7 @@ export function SetupProfilePage() {
             description: formData.description,
             photo_url: formData.photo_url,
             location: formData.location,
-            whatsapp: formData.whatsapp,
+            whatsapp: rawWhatsapp,
             instagram: formData.instagram,
             is_setup_completed: true
           });
@@ -89,7 +111,7 @@ export function SetupProfilePage() {
             description: formData.description,
             photo_url: formData.photo_url,
             location: formData.location,
-            whatsapp: formData.whatsapp,
+            whatsapp: rawWhatsapp,
             instagram: formData.instagram,
             is_setup_completed: true
           });
@@ -181,7 +203,7 @@ export function SetupProfilePage() {
                   <input 
                     type="text" 
                     value={formData.whatsapp}
-                    onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                    onChange={handlePhoneChange}
                     placeholder="11 99999-9999"
                     className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 text-brand-dark font-medium focus:border-brand-gold focus:bg-white outline-none transition-all text-sm"
                   />

@@ -62,10 +62,29 @@ export function BookingConfirmationPage() {
 
 
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > 11) val = val.slice(0, 11);
+    
+    if (val.length > 2) {
+      val = `(${val.slice(0, 2)}) ${val.slice(2)}`;
+    }
+    if (val.length > 10) {
+      val = `${val.slice(0, 10)}-${val.slice(10)}`;
+    }
+    setClientWhatsapp(val);
+  };
+
   const handleConfirm = async () => {
     if (!clientName.trim() || !clientWhatsapp.trim()) {
        setError("Por favor, preencha seu nome e WhatsApp.");
        return;
+    }
+
+    const rawPhone = clientWhatsapp.replace(/\D/g, "");
+    if (rawPhone.length !== 11) {
+      setError("Telefone inválido. Informe o DDD (2 dígitos) e o número (9 dígitos). Ex: (11) 99999-9999");
+      return;
     }
 
     setIsSubmitting(true);
@@ -87,7 +106,7 @@ export function BookingConfirmationPage() {
       await createAppointment({
         client_user_id: user?.id,
         client_name: clientName,
-        client_whatsapp: clientWhatsapp,
+        client_whatsapp: rawPhone,
         service: parseInt(service.id, 10),
         date_time: dateTimeIso,
       });
@@ -197,7 +216,7 @@ export function BookingConfirmationPage() {
               id="phone" 
               type="tel" 
               value={clientWhatsapp}
-              onChange={(e) => setClientWhatsapp(e.target.value)}
+              onChange={handlePhoneChange}
               placeholder="(00) 00000-0000"
               className="flex w-full rounded-xl text-brand-dark border-2 border-slate-200 bg-white h-14 pl-12 pr-4 focus:border-brand-gold focus:ring-0 transition-all placeholder:text-slate-400 outline-none" 
             />
