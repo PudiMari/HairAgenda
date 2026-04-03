@@ -12,7 +12,7 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 - **Componentes Principais:** 
   - **Web Client (Frontend Público):** Interface Single Page Application (SPA) responsiva para autoagendamento, funcionando perfeitamente em Desktop e Mobile.
   - **Admin e Backend Server:** Servidor que processa as lógicas de negócio dos profissionais (bloqueio de agendas) usando Django (Python).
-  - **Serviço de Background (Worker):** Módulo dedicado para disparar mensagens sem congestionar a rede web (Filas e Orquestração).
+  - **Serviço de Background (Opcional/V2):** Módulo planejado para disparar mensagens sem congestionar a rede web. Na V1, os disparos são feitos de forma síncrona via API.
 - **Autenticação e Autorização:** Autenticação padrão baseada em Sessão para os profissionais administradores. Uso de JWT apenas se o front-end for desacoplado estritamente.
 - **Protocolos de Comunicação:** HTTPS padrão com APIs comunicando-se em `application/json`.
 - **Infraestrutura de Deployment:** Render atrelado à hospedagem do servidor da API e do banco de dados relacional. Vercel utilizada para o deploy e hospedagem do Web Client (Frontend), garantindo carregamento rápido em borda (edge).
@@ -26,7 +26,7 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 - **Persistência de Dados (DB):** PostgreSQL. Altamente recomendado para evitar falhas de concorrência (*overbooking* no mesmo slot de hora) através de bloqueios transacionais (ACID).
 - **ORM:** Django ORM padrão.
 - **Integrações (Mensageria Automática):** Consumo de Webhooks ou APIs de disparo de WhatsApp (ex: Z-API para custo-benefício, ou API Oficial Meta) / SMS (Twilio).
-- **Filas e Agendadores:** Redis como Memory Broker e o Celery para gerir as tarefas retardadas (ex: "Enviar lembrete 12 horas antes").
+- **Filas e Agendadores (V2):** Planejado o uso de Redis e Celery para gerir tarefas em background (ex: "Enviar lembrete 12 horas antes"). Na V1, a lógica de lembrete é simplificada ou delegada a gatilhos de API.
 - **Estáticos e Segurança (Middlewares):** Uso do pacote WhiteNoise para a entrega otimizada de arquivos estáticos em ambiente de produção no Django, e configuração estrita de CORS (Cross-Origin Resource Sharing) para garantir a segurança das requisições entre o frontend (Vercel) e a API (Render).
 
 ---

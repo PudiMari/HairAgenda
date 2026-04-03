@@ -8,10 +8,17 @@ Este documento consolida as entregas incrementais e os principais achados técni
 
 Ao longo do desenvolvimento, foram produzidos e entregues os seguintes artefatos de negócio e técnicos:
 
-### Visão de Negócio e Produto
-- **[PRD (Product Requirements Document)](file:///c:/Users/maria/Documents/HairAgenda/docs/prd.md)**: Definição de problemas, perfis de usuários (Personas e Jornadas) e escopo do MVP.
-- **[Lean Canvas](file:///c:/Users/maria/Documents/HairAgenda/docs/lean_canvas.md)**: Modelagem estratégica do negócio e proposta de valor única.
-- **[Persona & Jornada](file:///c:/Users/maria/Documents/HairAgenda/docs/persona.md)**: Detalhamento do comportamento e necessidades do profissional e do cliente final.
+### Visão de Negócio e Síntese (Executive Summary)
+Para garantir clareza imediata sobre o valor do produto, sumarizamos abaixo o núcleo dos artefatos estratégicos:
+* **Problema:** A gestão de agenda via WhatsApp é caótica, toma tempo do profissional entre os atendimentos e gera atrito na captação de clientes.
+* **Solução (A Aplicação Desenvolvida):** O HairAgenda é uma plataforma web responsiva (Mobile-First) que oferece uma vitrine digital 24/7 com agendamento autônomo (Zero-Login para clientes) e um dashboard gerencial unificado para o profissional.
+* **Persona Central:** "Luciana Oliveira" - Manicure/Cabeleireira independente, 32 anos, que necessita focar na execução do serviço e não quer lidar com sistemas complexos.
+* **A Jornada:** Origina-se via link na bio do Instagram, passa pela escolha autoguiada de serviço/horário por parte do cliente, e culmina no preenchimento do bloco de tempo direto no painel da profissional, com bloqueio arquitetural contra *overbooking*.
+
+Os documentos detalhados gerados ao longo do projeto incluem:
+- **[PRD (Product Requirements Document)](file:///c:/Users/maria/Documents/HairAgenda/docs/prd.md)**: Documento fundacional do MVP.
+- **[Lean Canvas](file:///c:/Users/maria/Documents/HairAgenda/docs/lean_canvas.md)**: Modelagem estratégica.
+- **[Persona & Jornada](file:///c:/Users/maria/Documents/HairAgenda/docs/persona.md)**: Detalhamento do fluxo do usuário.
 
 ### Design e Experiência do Usuário (UX/UI)
 - **[Design System](file:///c:/Users/maria/Documents/HairAgenda/docs/design_system.md)**: Guia de estilos, paleta de cores premium, tipografia e bibliotecas de componentes.
@@ -21,6 +28,12 @@ Ao longo do desenvolvimento, foram produzidos e entregues os seguintes artefatos
 - **[Especificação Técnica](file:///c:/Users/maria/Documents/HairAgenda/docs/spec_tech.md)**: Definição do stack (Django/React), segurança e infraestrutura.
 - **[C4 Model](file:///c:/Users/maria/Documents/HairAgenda/docs/c4_model.md)**: Diagramas de arquitetura de contexto e contêineres utilizando Mermaid.
 - **[ADRs (Architecture Decision Records)](file:///c:/Users/maria/Documents/HairAgenda/docs/adr.md)**: Registro histórico de decisões críticas (Auth com Clerk, Monorepo, DB Supabase).
+
+### Acesso ao Ambiente Produtivo (Deploy)
+A plataforma gerada encontra-se publicamente avaliável através da infraestrutura Vercel:
+- **Frontend / Dashboard Web:** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
+- **Backend / API GET Test:** [https://hair-agenda-backend.vercel.app/api/services/](https://hair-agenda-backend.vercel.app/api/services/)
+> *(Nota: O bloqueio administrativo padrão foi desativado na Vercel para permitir avaliação das telas de gerência sem cadastro prévio no banco).*
 
 ---
 
@@ -39,7 +52,7 @@ Durante o processo de desenvolvimento assistido e implementação, destacaram-se
 
 ### Observações sobre o Processo
 - **Desenvolvimento Orientado a Documentação**: A criação prévia de PRDs e Specs UI serviu como "Single Source of Truth", garantindo que a implementação técnica fosse fiel aos objetivos de negócio.
-- **Iteração Rápida**: O uso de React 19 e Tailwind 4 proporcionou um ciclo de feedback visual instantâneo.
+- **Iteração Rápida**: O uso de React 18 e Tailwind 4 proporcionou um ciclo de feedback visual instantâneo.
 
 ## 3. Reflexão Crítica: Desenvolvimento com Suporte de IA
 

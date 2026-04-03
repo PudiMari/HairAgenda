@@ -113,7 +113,23 @@ O sistema de front-end do cliente deve focar em acessibilidade e zero curva de a
   - Inicialmente as ferramentas são limitadas à "gestão de horários", não constituindo um ERP complexo com frente de caixa e estoque de produtos.
   - A *V1* não terá gateway de pagamentos online implementado (transações são offline presencialmente no salão).
 
-## Escopo
+## Escopo e Limitações
 
-- **V1 (Core MVP):** Perfil básico do Profissional, Cadastro de serviços e horários da agenda, Geração do Link Único para a bio do Instagram, Autoagendamento Simplificado Web do Cliente, Disparo de lembretes básicos por WhatsApp/SMS.
-- **V2 (Expansão do MVP):** Relatórios de agendamentos, Histórico básico de clientes (CRM simplificado) e controle de status dos agendamentos (Cancelado, Concluído, No-show).
+### O que está no Escopo (V1 - Core MVP)
+- **Perfil do Profissional**: Gestão de serviços, preços e horários.
+- **Vitrine Digital**: Geração de link único para bio de redes sociais.
+- **Autoagendamento**: Interface web rápida para clientes sem necessidade de login complexo.
+- **Motor de Lembretes**: Disparo de mensagens proativas (Síncronas na V1).
+- **Dashboard Admin**: Visualização consolidada de ocupação e faturamento diário.
+
+### O que está FORA de Escopo (Out of Scope)
+- **Gateway de Pagamento**: Transações financeiras ocorrem presencialmente (fora do app).
+- **Gestão de Estoque**: Não há controle de insumos ou produtos físicos.
+- **Aplicativo Nativo**: O sistema é uma Web App (PWA-ready), não disponível em App Store/Play Store.
+- **Relatórios Avançados**: Gráficos de performance e CRM detalhado (Planejado para V2).
+
+### Roadmap (V2)
+- Relatórios de agendamentos e exportação de dados.
+- Histórico completo de clientes (CRM simplificado).
+- Controle de status detalhado (Cancelado, Concluído, No-show).
+- Migração para tarefas assíncronas (Celery/Redis) para notificações.

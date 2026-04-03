@@ -6,10 +6,16 @@ Este documento consolida a entrega final do projeto **HairAgenda**, detalhando o
 
 O HairAgenda é uma plataforma premium de agendamento online focada em profissionais de estética. Foram entregues os seguintes documentos incrementais:
 
-### Documentação de Negócio (Docs de Produto)
-- **PRD (Product Requirements Document):** Detalha problemas, persona, MVP e métricas.
-- **Lean Canvas:** Visão estratégica e proposta de valor clara.
-- **Jornada do Usuário:** Mapeamento visual da experiência do cliente.
+### Síntese Executiva de Negócio
+- **O Problema:** Agendamentos 100% manuais via WhatsApp causam desorganização e perda de clientes fora do horário comercial.
+- **A Solução:** Plataforma Web de agendamento 24/7 B2C, com vitrine digital B2B. Zero-login para o cliente, maximizando a conversão.
+- **A Persona:** "Luciana", cabeleireira autônoma que precisa focar nas mãos no cabelo, e não nas mãos no celular.
+- **A Jornada do Usuário:** Aquisição via link no Instagram -> Menu de Serviços -> Slot B2C -> Confirmação B2B Automática (Restrição nativa Anti-Overbooking).
+
+### Documentação Referencial (Links Internos)
+- **PRD (Product Requirements Document):** Documento detalhado de escopo.
+- **Lean Canvas:** Visão estratégica B2C/B2B.
+- **Persona & Jornada:** Documentação comportamental.
 
 ### Documentação Técnica e Design
 - **Spec Técnica:** Descrição do stack, segurança e padrões de API.

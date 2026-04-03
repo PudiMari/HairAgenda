@@ -27,6 +27,15 @@ hairagenda/
 └── package.json      # Scripts globais do monorepo
 ```
 
+## 🌐 Acesso ao Projeto Implantado (Produção)
+
+A plataforma encontra-se disponível e plenamente acessível nos ambientes listados abaixo:
+
+* **Frontend (App Público e Dashboard):** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
+* **Backend (API GET Test):** [https://hair-agenda-backend.vercel.app/api/services/](https://hair-agenda-backend.vercel.app/api/services/)
+
+> **Nota para Avaliadores:** Conforme nossa [Apresentação Final](./docs/apresentacao_final.md), a trava seletiva de administrador (`VITE_ENABLE_ADMIN_RESTRICTION`) encontra-se temporariamente desativada no deploy. Dessa forma, qualquer login efetuado via Node garantirá visibilidade total à área administrativa, viabilizando avaliação estrita!
+
 ## 🚀 Como começar (Getting Started)
 
 O ambiente de desenvolvimento local foi totalmente preparado com contêineres Docker para evitar configurações complexas na máquina física.
