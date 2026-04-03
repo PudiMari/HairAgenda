@@ -61,16 +61,16 @@ class Appointment(models.Model):
             return
 
         end_time = self.date_time + timedelta(minutes=self.service.duration_minutes)
-        
+
         # Busca agendamentos do mesmo profissional que se sobrepõem
         conflicts = Appointment.objects.filter(
             professional=self.professional,
-            status='confirmed' # Apenas confirmados ou pendentes impactam a agenda
+            status='confirmed'  # Apenas confirmados ou pendentes impactam a agenda
         ).exclude(pk=self.pk)
 
         for conflict in conflicts:
             conflict_end = conflict.date_time + timedelta(minutes=conflict.service.duration_minutes)
-            
+
             # Checa se há interseção de intervalos [start, end)
             if (self.date_time < conflict_end) and (conflict.date_time < end_time):
                 raise ValidationError(f"Conflito de horário: {conflict.client_name} já agendou entre {conflict.date_time.strftime('%H:%M')} e {conflict_end.strftime('%H:%M')}.")
