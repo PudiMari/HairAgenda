@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Circle, ArrowLeft, ArrowRight, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { fetchServices, fetchAppointments, fetchProfessionalProfile, Service } from "../../lib/api";
 
 export function ServiceSelectionPage() {
@@ -158,15 +158,26 @@ export function ServiceSelectionPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-20">
-        <Loader2 className="animate-spin text-brand-gold" size={48} />
-        <p className="text-slate-500 mt-4 font-bold">Carregando serviços...</p>
+      <div className="flex-1 max-w-2xl mx-auto w-full pb-20 px-4 animate-pulse pt-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="h-6 w-32 bg-slate-200 rounded-lg"></div>
+          <div className="h-4 w-20 bg-slate-200 rounded-lg"></div>
+        </div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-5 w-40 bg-slate-200 rounded-lg"></div>
+          <div className="h-4 w-24 bg-slate-200 rounded-lg"></div>
+        </div>
+        <div className="grid gap-3">
+          {[1, 2, 3].map((i) => (
+             <div key={i} className="h-20 w-full bg-slate-100 rounded-xl border-2 border-slate-200"></div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 max-w-2xl mx-auto w-full pb-20 px-4">
+    <div className="flex-1 max-w-2xl mx-auto w-full pb-32 px-4 relative">
       {/* Header Info */}
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-xl font-bold text-brand-dark">Agendamento</h2>
@@ -310,22 +321,24 @@ export function ServiceSelectionPage() {
       </section>
 
       {/* Navigation Buttons */}
-      <div className="flex items-center gap-4 mt-8">
-        <Link 
-          to={`/profile${requestedUserId ? `?u=${requestedUserId}` : ""}`}
-          className="flex-1 flex items-center justify-center gap-2 h-14 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all"
-        >
-          <ArrowLeft size={20} />
-          Voltar
-        </Link>
-        <button 
-          onClick={handleNext}
-          disabled={!selectedService || !selectedDate || !selectedTime}
-          className="flex-[2_2_0px] flex items-center justify-center gap-2 h-14 rounded-xl bg-brand-gold text-white font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Avançar
-          <ArrowRight size={20} />
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-100 sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-t-0 sm:p-0 z-50">
+        <div className="max-w-2xl mx-auto flex items-center gap-4 sm:mt-8">
+          <Link 
+            to={`/profile${requestedUserId ? `?u=${requestedUserId}` : ""}`}
+            className="flex-1 flex items-center justify-center gap-2 h-14 rounded-xl border-2 border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all bg-white"
+          >
+            <ArrowLeft size={20} />
+            Voltar
+          </Link>
+          <button 
+            onClick={handleNext}
+            disabled={!selectedService || !selectedDate || !selectedTime}
+            className="flex-[2_2_0px] flex items-center justify-center gap-2 h-14 rounded-xl bg-brand-gold text-white font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Avançar
+            <ArrowRight size={20} />
+          </button>
+        </div>
       </div>
     </div>
   );

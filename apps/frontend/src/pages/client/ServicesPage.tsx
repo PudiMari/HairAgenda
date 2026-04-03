@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Clock, Info, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, Info, CheckCircle2 } from "lucide-react";
 import { fetchServices, fetchProfessionalProfile, Service } from "../../lib/api";
 
 export function ServicesPage() {
@@ -49,9 +49,19 @@ export function ServicesPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-20 bg-background-light">
-        <Loader2 className="animate-spin text-brand-gold" size={48} />
-        <p className="text-slate-500 mt-4 font-bold">Carregando catálogo...</p>
+      <div className="flex-1 max-w-2xl mx-auto w-full pb-20 px-4 bg-background-light animate-pulse pt-8">
+        <div className="h-8 w-48 bg-slate-200 rounded-lg mb-2"></div>
+        <div className="h-4 w-64 bg-slate-200 rounded-lg mb-8"></div>
+        <div className="grid gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6">
+              <div className="h-6 w-40 bg-slate-200 rounded-lg mb-4"></div>
+              <div className="h-4 w-full bg-slate-100 rounded-lg mb-2"></div>
+              <div className="h-4 w-2/3 bg-slate-100 rounded-lg mb-6"></div>
+              <div className="h-12 w-full bg-slate-200 rounded-xl"></div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

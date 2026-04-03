@@ -18,7 +18,7 @@ import { SetupProfilePage } from '../pages/admin/SetupProfilePage';
 
 
 import { RoleSelectionPage } from '../pages/RoleSelectionPage';
-
+import { NotFoundPage } from '../pages/NotFoundPage';
 
 import { LandingPage } from '../pages/LandingPage';
 import { ProfilePage } from '../pages/client/ProfilePage';
@@ -138,11 +138,13 @@ if (!rootElement) {
                 {/* Fluxo do Admin (usando AdminLayout) Protegido */}
                 <Route path="/admin/setup" element={<AdminGuard key="setup" checkProfile={false}><SetupProfilePage /></AdminGuard>} />
                 <Route element={<AdminGuard key="admin"><AdminLayout /></AdminGuard>}>
-
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/services" element={<ServicesConfigPage />} />
                   <Route path="/admin/schedule" element={<ScheduleConfigPage />} />
                 </Route>
+
+                {/* TELA 404 */}
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </BrowserRouter>
           </ClerkProvider>

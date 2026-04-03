@@ -50,9 +50,18 @@ export function MyBookingsPage() {
 
       <div className="flex-1 p-4 space-y-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-             <div className="w-12 h-12 border-4 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin"></div>
-             <p className="mt-4 text-slate-500 font-medium whitespace-nowrap">Carregando seus agendamentos...</p>
+          <div className="space-y-4 animate-pulse pt-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-start justify-between">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-slate-200 shrink-0"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 bg-slate-200 rounded"></div>
+                    <div className="h-3 w-24 bg-slate-100 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100">
