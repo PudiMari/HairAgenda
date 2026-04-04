@@ -108,3 +108,21 @@ class OpeningHour(models.Model):
 
     def __str__(self):
         return f"{self.professional.name} - {self.get_day_of_week_display()}"
+
+
+class ProfessionalBlock(models.Model):
+    professional = models.ForeignKey(
+        ProfessionalProfile,
+        on_delete=models.CASCADE,
+        related_name='blocks'
+    )
+    date = models.DateField("Data Bloqueada")
+    reason = models.CharField("Motivo", max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('professional', 'date')
+        ordering = ['date']
+
+    def __str__(self):
+        return f"{self.professional.name} - Bloqueio {self.date}"

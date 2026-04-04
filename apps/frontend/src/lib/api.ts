@@ -22,6 +22,14 @@ export interface Service {
   duration_minutes: number;
 }
 
+export interface ProfessionalBlock {
+  id: number;
+  professional: number;
+  date: string; // YYYY-MM-DD
+  reason: string;
+  created_at: string;
+}
+
 export const fetchServices = async (professionalId?: number | string): Promise<Service[]> => {
   const url = professionalId 
     ? `${API_URL}/api/services/?professional_id=${professionalId}&t=${Date.now()}`
@@ -160,4 +168,26 @@ export const createOpeningHour = async (data: Omit<OpeningHour, 'id'>) => {
   });
   if (!response.ok) throw new Error('Erro ao criar horário.');
   return response.json();
+};
+export const fetchProfessionalBlocks = async (professionalId: number | string): Promise<ProfessionalBlock[]> => {
+  const response = await fetch(`${API_URL}/api/professional-blocks/?professional_id=${professionalId}&t=${Date.now()}`);
+  if (!response.ok) throw new Error('Erro ao buscar bloqueios de datas.');
+  return response.json();
+};
+
+export const createProfessionalBlock = async (data: { professional: number; date: string; reason?: string }) => {
+  const response = await fetch(`${API_URL}/api/professional-blocks/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Erro ao criar bloqueio de data.');
+  return response.json();
+};
+
+export const deleteProfessionalBlock = async (id: number) => {
+  const response = await fetch(`${API_URL}/api/professional-blocks/${id}/`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Erro ao excluir bloqueio de data.');
 };

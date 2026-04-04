@@ -1,6 +1,8 @@
 from datetime import timedelta
 from rest_framework import serializers
-from .models import Service, Appointment, ProfessionalProfile, OpeningHour
+from .models import (
+    Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock
+)
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -30,9 +32,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
         if not professional or not date_time:
             return data
 
-        # Django's date_time is already timezone-aware if configured.
-        # Get day of week (0=Monday, ..., 6=Sunday)
-        # Note: isoformat() is easier, but d.weekday() returns 0-6
         day_index = date_time.weekday()
         appointment_time = date_time.time()
 
@@ -42,27 +41,35 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 day_of_week=day_index
             )
         except OpeningHour.DoesNotExist:
-            # Se não houver configuração, assume fechado por segurança
-            raise serializers.ValidationError("O profissional não atende neste dia da semana.")
-
-        if not opening_hour.is_open:
-            raise serializers.ValidationError("O profissional está fechado neste dia.")
-
-        # Check work hours
-        if appointment_time < opening_hour.work_start or appointment_time >= opening_hour.work_end:
             raise serializers.ValidationError(
-                f"Horário fora do expediente. O profissional atende das {opening_hour.work_start.strftime('%H:%M')} às {opening_hour.work_end.strftime('%H:%M')}."
+                "O profissional não atende neste dia da semana."
             )
 
-        # Check lunch break
-        if opening_hour.lunch_start <= appointment_time < opening_hour.lunch_end:
-            raise serializers.ValidationError("O profissional está em horário de almoço neste momento.")
+        if not opening_hour.is_open:
+            raise serializers.ValidationError(
+                "O profissional está fechado neste dia."
+            )
 
-        # Optional: Check if service ends after work hours
+        if (appointment_time < opening_hour.work_start or
+                appointment_time >= opening_hour.work_end):
+            raise serializers.ValidationError(
+                f"Horário fora do expediente. O profissional atende das "
+                f"{opening_hour.work_start.strftime('%H:%M')} às "
+                f"{opening_hour.work_end.strftime('%H:%M')}."
+            )
+
+        if (opening_hour.lunch_start <= appointment_time <
+                opening_hour.lunch_end):
+            raise serializers.ValidationError(
+                "O profissional está em horário de almoço neste momento."
+            )
+
         if service:
             end_dt = date_time + timedelta(minutes=service.duration_minutes)
             if end_dt.time() > opening_hour.work_end:
-                raise serializers.ValidationError("O serviço termina após o horário de expediente.")
+                raise serializers.ValidationError(
+                    "O serviço termina após o horário de expediente."
+                )
 
         return data
 
@@ -76,4 +83,10 @@ class ProfessionalProfileSerializer(serializers.ModelSerializer):
 class OpeningHourSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpeningHour
+        fields = '__all__'
+
+
+class ProfessionalBlockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfessionalBlock
         fields = '__all__'

@@ -7,9 +7,11 @@ import {
   fetchAppointments,
   fetchProfessionalProfile, 
   fetchOpeningHours,
+  fetchProfessionalBlocks,
   Service,
   OpeningHour,
-  ProfessionalProfile
+  ProfessionalProfile,
+  ProfessionalBlock
 } from "../../lib/api";
 
 export function ServiceSelectionPage() {
@@ -24,6 +26,7 @@ export function ServiceSelectionPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [openingHours, setOpeningHours] = useState<OpeningHour[]>([]);
+  const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
   const [loading, setLoading] = useState(true);
 
   // State for selections
@@ -54,15 +57,17 @@ export function ServiceSelectionPage() {
              registerProfessionalVisit(user?.id, profileData);
           }
 
-          const [servicesData, hoursData, appointmentsData] = await Promise.all([
+          const [servicesData, hoursData, appointmentsData, blocksData] = await Promise.all([
             fetchServices(profileData.id),
             fetchOpeningHours(profileData.id),
-            fetchAppointments({ professionalId: profileData.id })
+            fetchAppointments({ professionalId: profileData.id }),
+            fetchProfessionalBlocks(profileData.id)
           ]);
           
           setServices(servicesData);
           setOpeningHours(hoursData);
           setAppointments(appointmentsData);
+          setBlocks(blocksData);
 
           const serviceIdParam = searchParams.get('service');
           if (preSelected) {
@@ -113,6 +118,10 @@ export function ServiceSelectionPage() {
         isDisabled = apiDay === 6; // Domingo fechado por padrão
       }
 
+      // Check if date is blocked by ProfessionalBlock
+      const dateStr = d.toISOString().split('T')[0];
+      const isDateBlocked = blocks.some((b: ProfessionalBlock) => b.date === dateStr);
+
       result.push({
         id: i.toString(),
         dayOfWeek: i === 0 ? "Hoje" : dayOfWeekNames[d.getDay()],
@@ -121,11 +130,11 @@ export function ServiceSelectionPage() {
         year: d.getFullYear(),
         dateObj: new Date(d),
         fullDate: fullDateStr,
-        disabled: isDisabled
+        disabled: isDisabled || isDateBlocked
       });
     }
     return result;
-  }, [openingHours]);
+  }, [openingHours, blocks]);
 
   const visibleDates = dates.slice(dateStartIndex, dateStartIndex + datesToShow);
 

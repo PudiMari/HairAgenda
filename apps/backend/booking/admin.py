@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Service, Appointment, ProfessionalProfile, OpeningHour
+from .models import (
+    Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock
+)
 
 
 @admin.register(ProfessionalProfile)
@@ -22,5 +24,14 @@ class AppointmentAdmin(admin.ModelAdmin):
 
 @admin.register(OpeningHour)
 class OpeningHourAdmin(admin.ModelAdmin):
-    list_display = ('professional', 'day_of_week', 'is_open', 'work_start', 'work_end')
+    list_display = (
+        'professional', 'day_of_week', 'is_open',
+        'work_start', 'work_end'
+    )
     list_filter = ('professional', 'day_of_week', 'is_open')
+
+
+@admin.register(ProfessionalBlock)
+class ProfessionalBlockAdmin(admin.ModelAdmin):
+    list_display = ('professional', 'date', 'reason', 'created_at')
+    list_filter = ('professional', 'date')

@@ -1,12 +1,15 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Service, Appointment, ProfessionalProfile, OpeningHour
+from .models import (
+    Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock
+)
 from .serializers import (
     ServiceSerializer,
     AppointmentSerializer,
     ProfessionalProfileSerializer,
-    OpeningHourSerializer
+    OpeningHourSerializer,
+    ProfessionalBlockSerializer
 )
 
 
@@ -48,19 +51,37 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
     def me(self, request):
         user_id = request.query_params.get('user_id')
         if not user_id:
-            return Response({"detail": "user_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "user_id parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             profile = ProfessionalProfile.objects.get(user_id=user_id)
             serializer = self.get_serializer(profile)
             return Response(serializer.data)
         except ProfessionalProfile.DoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class OpeningHourViewSet(viewsets.ModelViewSet):
     queryset = OpeningHour.objects.all()
     serializer_class = OpeningHourSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        professional_id = self.request.query_params.get('professional_id')
+        if professional_id:
+            queryset = queryset.filter(professional_id=professional_id)
+        return queryset
+
+
+class ProfessionalBlockViewSet(viewsets.ModelViewSet):
+    queryset = ProfessionalBlock.objects.all()
+    serializer_class = ProfessionalBlockSerializer
 
     def get_queryset(self):
         queryset = super().get_queryset()
