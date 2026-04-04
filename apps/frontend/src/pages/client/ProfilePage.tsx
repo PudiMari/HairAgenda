@@ -236,7 +236,17 @@ export function ProfilePage() {
             <div className="bg-white p-8 rounded-2xl border-2 border-dashed border-slate-200 text-center">
               <CalendarDays size={40} className="mx-auto text-slate-300 mb-3" />
               <p className="text-slate-500 text-sm">Você não tem agendamentos próximos.</p>
-              <Link to="/services" className="inline-block mt-4 text-brand-gold font-bold text-sm">Agendar agora →</Link>
+              {(() => {
+                const recentKey = `recent_pros_${user?.id || 'guest'}`;
+                const recentPros = JSON.parse(localStorage.getItem(recentKey) || '[]');
+                const lastVisitedUserId = recentPros.length > 0 ? recentPros[0].id : null;
+
+                if (lastVisitedUserId) {
+                  return <Link to={`/book/services?u=${lastVisitedUserId}`} className="inline-block mt-4 text-brand-gold font-bold text-sm hover:underline">Agendar agora →</Link>
+                }
+                
+                return <p className="text-xs text-amber-600 font-medium mt-4 bg-amber-50 rounded-lg p-3 inline-block">Para agendar seu 1º horário, acesse o <strong>link de convite</strong> enviado pelo seu profissional parceiro.</p>
+              })()}
             </div>
           )}
         </div>
