@@ -1,3 +1,4 @@
+from datetime import timedelta
 from rest_framework import serializers
 from .models import Service, Appointment, ProfessionalProfile, OpeningHour
 
@@ -20,6 +21,51 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'client_whatsapp', 'service', 'service_name', 'service_price',
             'date_time', 'client_user_id', 'status', 'created_at'
         ]
+
+    def validate(self, data):
+        professional = data.get('professional')
+        date_time = data.get('date_time')
+        service = data.get('service')
+
+        if not professional or not date_time:
+            return data
+
+        # Django's date_time is already timezone-aware if configured.
+        # Get day of week (0=Monday, ..., 6=Sunday)
+        # Note: isoformat() is easier, but d.weekday() returns 0-6
+        day_index = date_time.weekday()
+        appointment_time = date_time.time()
+
+        try:
+            opening_hour = OpeningHour.objects.get(
+                professional=professional,
+                day_of_week=day_index
+            )
+        except OpeningHour.DoesNotExist:
+            # Se não houver configuração, assume fechado por segurança
+            raise serializers.ValidationError("O profissional não atende neste dia da semana.")
+
+        if not opening_hour.is_open:
+            raise serializers.ValidationError("O profissional está fechado neste dia.")
+
+        # Check work hours
+        if appointment_time < opening_hour.work_start or appointment_time >= opening_hour.work_end:
+            raise serializers.ValidationError(
+                f"Horário fora do expediente. O profissional atende das {opening_hour.work_start.strftime('%H:%M')} às {opening_hour.work_end.strftime('%H:%M')}."
+            )
+
+        # Check lunch break
+        if opening_hour.lunch_start <= appointment_time < opening_hour.lunch_end:
+            raise serializers.ValidationError("O profissional está em horário de almoço neste momento.")
+
+        # Optional: Check if service ends after work hours
+        if service:
+            from datetime import datetime, combine
+            end_dt = date_time + timedelta(minutes=service.duration_minutes)
+            if end_dt.time() > opening_hour.work_end:
+                raise serializers.ValidationError("O serviço termina após o horário de expediente.")
+
+        return data
 
 
 class ProfessionalProfileSerializer(serializers.ModelSerializer):

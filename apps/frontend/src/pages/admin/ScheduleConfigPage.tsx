@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { CalendarDays, Clock, Utensils, Info, Loader2 } from "lucide-react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/react";
 import { 
   fetchProfessionalProfile, 
   fetchOpeningHours, 
   updateOpeningHour, 
   createOpeningHour,
-  OpeningHour,
   ProfessionalProfile
 } from "../../lib/api";
 
@@ -39,9 +38,6 @@ const DEFAULT_SCHEDULE: Omit<ScheduleDay, 'dbId'>[] = [
   { id: "sunday", dayName: "Domingo", dayOfWeek: 6, isOpen: false, workStart: "00:00", workEnd: "00:00", lunchStart: "00:00", lunchEnd: "00:00" },
 ];
 
-const dayOfWeekToId: Record<number, string> = {
-  0: "monday", 1: "tuesday", 2: "wednesday", 3: "thursday", 4: "friday", 5: "saturday", 6: "sunday"
-};
 
 export function ScheduleConfigPage() {
   const { user } = useUser();

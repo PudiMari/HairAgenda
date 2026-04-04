@@ -75,10 +75,6 @@ export function ServiceSelectionPage() {
   const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const dayOfWeekNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   
-  // Map day index (0-6) from Date.getDay() to API day_of_week string
-  const dayIndexToName: Record<number, string> = {
-    0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday", 4: "thursday", 5: "friday", 6: "saturday"
-  };
 
   const dates = useMemo(() => {
     const result = [];
@@ -89,8 +85,9 @@ export function ServiceSelectionPage() {
       d.setDate(today.getDate() + i);
       const fullDateStr = `${d.getDate()} ${monthNames[d.getMonth()]}`;
       
-      const dayName = dayIndexToName[d.getDay()];
-      const dayConfig = openingHours.find(oh => oh.day_of_week === dayName);
+      const jsDay = d.getDay();
+      const apiDay = jsDay === 0 ? 6 : jsDay - 1;
+      const dayConfig = openingHours.find(oh => oh.day_of_week === apiDay);
       
       // Se não houver configuração, assume fechado por segurança
       // Ou se estiver configurado como fechado explicitamente
@@ -139,8 +136,9 @@ export function ServiceSelectionPage() {
     const dateObjRec = dates.find(d => d.fullDate === selectedDate);
     if (!dateObjRec) return false;
     
-    const dayName = dayIndexToName[dateObjRec.dateObj.getDay()];
-    const dayConfig = openingHours.find(oh => oh.day_of_week === dayName);
+    const jsDay = dateObjRec.dateObj.getDay();
+    const apiDay = jsDay === 0 ? 6 : jsDay - 1;
+    const dayConfig = openingHours.find(oh => oh.day_of_week === apiDay);
     
     if (!dayConfig || !dayConfig.is_open) return false;
 
