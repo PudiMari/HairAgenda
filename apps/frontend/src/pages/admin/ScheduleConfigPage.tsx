@@ -45,7 +45,7 @@ export function ScheduleConfigPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
-  const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleDay[]>(DEFAULT_SCHEDULE as ScheduleDay[]);
 
   useEffect(() => {
     async function loadData() {
@@ -56,27 +56,25 @@ export function ScheduleConfigPage() {
           setProfile(profProfile);
           const openingHours = await fetchOpeningHours(profProfile.id);
           
-          if (openingHours.length > 0) {
-            // Map API to local state
-            const mapped = DEFAULT_SCHEDULE.map(day => {
-              const apiDay = openingHours.find(oh => oh.day_of_week === day.dayOfWeek);
-              if (apiDay) {
-                return {
-                  ...day,
-                  dbId: apiDay.id,
-                  isOpen: apiDay.is_open,
-                  workStart: apiDay.work_start.substring(0, 5),
-                  workEnd: apiDay.work_end.substring(0, 5),
-                  lunchStart: apiDay.lunch_start.substring(0, 5),
-                  lunchEnd: apiDay.lunch_end.substring(0, 5),
-                };
-              }
-              return day;
-            });
-            setSchedule(mapped);
-          } else {
-            setSchedule(DEFAULT_SCHEDULE);
-          }
+          const mapped = DEFAULT_SCHEDULE.map(day => {
+            const apiDay = openingHours.find(oh => oh.day_of_week === day.dayOfWeek);
+            if (apiDay) {
+              return {
+                ...day as any,
+                dbId: apiDay.id,
+                isOpen: apiDay.is_open,
+                workStart: apiDay.work_start.substring(0, 5),
+                workEnd: apiDay.work_end.substring(0, 5),
+                lunchStart: apiDay.lunch_start.substring(0, 5),
+                lunchEnd: apiDay.lunch_end.substring(0, 5),
+              };
+            }
+            return day;
+          });
+          setSchedule(mapped as ScheduleDay[]);
+        } else {
+          // Profile exists but no hours, use default
+          setSchedule(DEFAULT_SCHEDULE as ScheduleDay[]);
         }
       } catch (error) {
         console.error("Error loading schedule:", error);
