@@ -60,7 +60,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
         # Optional: Check if service ends after work hours
         if service:
-            from datetime import datetime, combine
             end_dt = date_time + timedelta(minutes=service.duration_minutes)
             if end_dt.time() > opening_hour.work_end:
                 raise serializers.ValidationError("O serviço termina após o horário de expediente.")

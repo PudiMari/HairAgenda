@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Service, Appointment, ProfessionalProfile, OpeningHour
 from .serializers import (
-    ServiceSerializer, 
-    AppointmentSerializer, 
+    ServiceSerializer,
+    AppointmentSerializer,
     ProfessionalProfileSerializer,
     OpeningHourSerializer
 )
