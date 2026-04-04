@@ -92,6 +92,17 @@ export interface ProfessionalProfile {
   is_setup_completed: boolean;
 }
 
+export interface OpeningHour {
+  id: number;
+  professional: number;
+  day_of_week: number; // 0-6
+  is_open: boolean;
+  work_start: string; // "HH:MM:SS"
+  work_end: string;
+  lunch_start: string;
+  lunch_end: string;
+}
+
 export const fetchProfessionalProfile = async (userId: string): Promise<ProfessionalProfile | null> => {
   const response = await fetch(`${API_URL}/api/professional-profile/${userId}/?t=${Date.now()}`);
   if (response.status === 404) return null;
@@ -116,5 +127,31 @@ export const updateProfessionalProfile = async (id: string | number, profile: Pa
     body: JSON.stringify(profile),
   });
   if (!response.ok) throw new Error('Erro ao atualizar perfil.');
+  return response.json();
+};
+
+export const fetchOpeningHours = async (professionalId: number): Promise<OpeningHour[]> => {
+  const response = await fetch(`${API_URL}/api/opening-hours/?professional_id=${professionalId}&t=${Date.now()}`);
+  if (!response.ok) throw new Error('Erro ao buscar horários.');
+  return response.json();
+};
+
+export const updateOpeningHour = async (id: number, data: Partial<OpeningHour>) => {
+  const response = await fetch(`${API_URL}/api/opening-hours/${id}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Erro ao atualizar horário.');
+  return response.json();
+};
+
+export const createOpeningHour = async (data: Omit<OpeningHour, 'id'>) => {
+  const response = await fetch(`${API_URL}/api/opening-hours/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Erro ao criar horário.');
   return response.json();
 };

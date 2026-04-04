@@ -77,3 +77,34 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.date_time.strftime('%d/%m %H:%M')} - {self.client_name}"
+
+
+class OpeningHour(models.Model):
+    DAY_CHOICES = [
+        (0, 'Segunda-feira'),
+        (1, 'Terça-feira'),
+        (2, 'Quarta-feira'),
+        (3, 'Quinta-feira'),
+        (4, 'Sexta-feira'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+
+    professional = models.ForeignKey(
+        ProfessionalProfile,
+        on_delete=models.CASCADE,
+        related_name='opening_hours'
+    )
+    day_of_week = models.IntegerField(choices=DAY_CHOICES)
+    is_open = models.BooleanField(default=True)
+    work_start = models.TimeField(default="08:00")
+    work_end = models.TimeField(default="18:00")
+    lunch_start = models.TimeField(default="12:00")
+    lunch_end = models.TimeField(default="13:00")
+
+    class Meta:
+        unique_together = ('professional', 'day_of_week')
+        ordering = ['day_of_week']
+
+    def __str__(self):
+        return f"{self.professional.name} - {self.get_day_of_week_display()}"

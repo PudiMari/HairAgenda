@@ -1,5 +1,14 @@
-import { useState } from "react";
-import { CalendarDays, Clock, Utensils, Info } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CalendarDays, Clock, Utensils, Info, Loader2 } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { 
+  fetchProfessionalProfile, 
+  fetchOpeningHours, 
+  updateOpeningHour, 
+  createOpeningHour,
+  OpeningHour,
+  ProfessionalProfile
+} from "../../lib/api";
 
 const ALL_HOURS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 const HALF_HOURS = Array.from({ length: 48 }, (_, i) => {
@@ -9,8 +18,10 @@ const HALF_HOURS = Array.from({ length: 48 }, (_, i) => {
 });
 
 interface ScheduleDay {
+  dbId?: number;
   id: string;
   dayName: string;
+  dayOfWeek: number;
   isOpen: boolean;
   workStart: string;
   workEnd: string;
@@ -18,76 +29,67 @@ interface ScheduleDay {
   lunchEnd: string;
 }
 
+const DEFAULT_SCHEDULE: Omit<ScheduleDay, 'dbId'>[] = [
+  { id: "monday", dayName: "Segunda-feira", dayOfWeek: 0, isOpen: true, workStart: "08:00", workEnd: "18:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  { id: "tuesday", dayName: "Terça-feira", dayOfWeek: 1, isOpen: true, workStart: "08:00", workEnd: "18:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  { id: "wednesday", dayName: "Quarta-feira", dayOfWeek: 2, isOpen: true, workStart: "08:00", workEnd: "18:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  { id: "thursday", dayName: "Quinta-feira", dayOfWeek: 3, isOpen: true, workStart: "08:00", workEnd: "18:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  { id: "friday", dayName: "Sexta-feira", dayOfWeek: 4, isOpen: true, workStart: "08:00", workEnd: "18:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  { id: "saturday", dayName: "Sábado", dayOfWeek: 5, isOpen: true, workStart: "09:00", workEnd: "14:00", lunchStart: "12:00", lunchEnd: "12:30" },
+  { id: "sunday", dayName: "Domingo", dayOfWeek: 6, isOpen: false, workStart: "00:00", workEnd: "00:00", lunchStart: "00:00", lunchEnd: "00:00" },
+];
+
+const dayOfWeekToId: Record<number, string> = {
+  0: "monday", 1: "tuesday", 2: "wednesday", 3: "thursday", 4: "friday", 5: "saturday", 6: "sunday"
+};
+
 export function ScheduleConfigPage() {
+  const { user } = useUser();
   const [isSaved, setIsSaved] = useState(false);
-  const [schedule, setSchedule] = useState<ScheduleDay[]>(() => {
-    const saved = localStorage.getItem("hairagenda_schedule");
-    return saved ? JSON.parse(saved) : [
-      {
-        id: "monday",
-        dayName: "Segunda-feira",
-        isOpen: true,
-        workStart: "08:00",
-        workEnd: "18:00",
-        lunchStart: "12:00",
-        lunchEnd: "13:00",
-      },
-      {
-        id: "tuesday",
-        dayName: "Terça-feira",
-        isOpen: true,
-        workStart: "08:00",
-        workEnd: "18:00",
-        lunchStart: "12:00",
-        lunchEnd: "13:00",
-      },
-      {
-        id: "wednesday",
-        dayName: "Quarta-feira",
-        isOpen: true,
-        workStart: "08:00",
-        workEnd: "18:00",
-        lunchStart: "12:00",
-        lunchEnd: "13:00",
-      },
-      {
-        id: "thursday",
-        dayName: "Quinta-feira",
-        isOpen: true,
-        workStart: "08:00",
-        workEnd: "18:00",
-        lunchStart: "12:00",
-        lunchEnd: "13:00",
-      },
-      {
-        id: "friday",
-        dayName: "Sexta-feira",
-        isOpen: true,
-        workStart: "08:00",
-        workEnd: "18:00",
-        lunchStart: "12:00",
-        lunchEnd: "13:00",
-      },
-      {
-        id: "saturday",
-        dayName: "Sábado",
-        isOpen: true,
-        workStart: "09:00",
-        workEnd: "14:00",
-        lunchStart: "12:00",
-        lunchEnd: "12:30",
-      },
-      {
-        id: "sunday",
-        dayName: "Domingo",
-        isOpen: false,
-        workStart: "00:00",
-        workEnd: "00:00",
-        lunchStart: "00:00",
-        lunchEnd: "00:00",
-      },
-    ];
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      if (!user) return;
+      try {
+        const profProfile = await fetchProfessionalProfile(user.id);
+        if (profProfile) {
+          setProfile(profProfile);
+          const openingHours = await fetchOpeningHours(profProfile.id);
+          
+          if (openingHours.length > 0) {
+            // Map API to local state
+            const mapped = DEFAULT_SCHEDULE.map(day => {
+              const apiDay = openingHours.find(oh => oh.day_of_week === day.dayOfWeek);
+              if (apiDay) {
+                return {
+                  ...day,
+                  dbId: apiDay.id,
+                  isOpen: apiDay.is_open,
+                  workStart: apiDay.work_start.substring(0, 5),
+                  workEnd: apiDay.work_end.substring(0, 5),
+                  lunchStart: apiDay.lunch_start.substring(0, 5),
+                  lunchEnd: apiDay.lunch_end.substring(0, 5),
+                };
+              }
+              return day;
+            });
+            setSchedule(mapped);
+          } else {
+            setSchedule(DEFAULT_SCHEDULE);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading schedule:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, [user]);
 
   const toggleDay = (id: string) => {
     setSchedule(schedule.map(day => 
@@ -101,11 +103,53 @@ export function ScheduleConfigPage() {
     ));
   };
 
-  const handleSave = () => {
-    localStorage.setItem("hairagenda_schedule", JSON.stringify(schedule));
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+  const handleSave = async () => {
+    if (!profile) return;
+    setIsSaving(true);
+    try {
+      const promises = schedule.map(day => {
+        const data = {
+          professional: profile.id,
+          day_of_week: day.dayOfWeek,
+          is_open: day.isOpen,
+          work_start: day.workStart + ":00",
+          work_end: day.workEnd + ":00",
+          lunch_start: day.lunchStart + ":00",
+          lunch_end: day.lunchEnd + ":00",
+        };
+
+        if (day.dbId) {
+          return updateOpeningHour(day.dbId, data);
+        } else {
+          return createOpeningHour(data);
+        }
+      });
+
+      const results = await Promise.all(promises);
+      
+      // Update local state with new IDs
+      setSchedule(schedule.map((day, index) => ({
+        ...day,
+        dbId: results[index].id
+      })));
+
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (error) {
+      console.error("Error saving schedule:", error);
+      alert("Erro ao salvar horários.");
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-gold" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -120,13 +164,16 @@ export function ScheduleConfigPage() {
           </div>
           <button 
             onClick={handleSave}
+            disabled={isSaving}
             className={`hidden sm:flex items-center justify-center px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md ${
+              isSaving ? "opacity-50 cursor-not-allowed" : ""
+            } ${
               isSaved 
                 ? "bg-green-500 text-white shadow-green-200" 
                 : "bg-brand-gold text-white shadow-brand-gold/20 hover:opacity-90"
             }`}
           >
-            {isSaved ? "Salvo!" : "Salvar"}
+            {isSaving ? "Salvando..." : isSaved ? "Salvo!" : "Salvar"}
           </button>
         </div>
       </div>
@@ -253,22 +300,28 @@ export function ScheduleConfigPage() {
       <div className="pt-8 mt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 text-slate-500 text-sm bg-slate-50 py-2 px-4 rounded-lg w-full md:w-auto">
           <Info size={18} className="text-brand-gold" />
-          <span className="font-medium">As alterações afetarão a disponibilidade a partir de amanhã.</span>
+          <span className="font-medium">As alterações afetarão a disponibilidade em tempo real.</span>
         </div>
         
         <div className="flex gap-3 w-full md:w-auto">
-          <button className="flex-1 md:flex-initial px-6 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors">
+          <button 
+            onClick={() => window.location.reload()}
+            className="flex-1 md:flex-initial px-6 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors"
+          >
             Descartar
           </button>
           <button 
             onClick={handleSave}
+            disabled={isSaving}
             className={`flex-1 md:flex-initial px-8 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 ${
+              isSaving ? "opacity-50 cursor-not-allowed" : ""
+            } ${
               isSaved 
                 ? "bg-green-500 text-white shadow-green-200" 
                 : "bg-brand-gold text-white shadow-brand-gold/20 hover:opacity-90"
             }`}
           >
-            {isSaved ? "Ajustes Salvos!" : "Salvar Alterações"}
+            {isSaving ? "Salvando..." : isSaved ? "Ajustes Salvos!" : "Salvar Alterações"}
           </button>
         </div>
       </div>

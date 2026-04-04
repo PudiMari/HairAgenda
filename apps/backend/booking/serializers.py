@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Service, Appointment, ProfessionalProfile
+from .models import Service, Appointment, ProfessionalProfile, OpeningHour
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -25,4 +25,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class ProfessionalProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfessionalProfile
+        fields = '__all__'
+
+
+class OpeningHourSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpeningHour
         fields = '__all__'

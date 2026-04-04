@@ -1,8 +1,13 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Service, Appointment, ProfessionalProfile
-from .serializers import ServiceSerializer, AppointmentSerializer, ProfessionalProfileSerializer
+from .models import Service, Appointment, ProfessionalProfile, OpeningHour
+from .serializers import (
+    ServiceSerializer, 
+    AppointmentSerializer, 
+    ProfessionalProfileSerializer,
+    OpeningHourSerializer
+)
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
@@ -51,3 +56,15 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except ProfessionalProfile.DoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class OpeningHourViewSet(viewsets.ModelViewSet):
+    queryset = OpeningHour.objects.all()
+    serializer_class = OpeningHourSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        professional_id = self.request.query_params.get('professional_id')
+        if professional_id:
+            queryset = queryset.filter(professional_id=professional_id)
+        return queryset

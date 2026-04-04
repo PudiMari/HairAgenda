@@ -1,7 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { fetchServices, fetchAppointments, fetchProfessionalProfile, Service } from "../../lib/api";
+import { 
+  fetchServices, 
+  fetchAppointments, 
+  fetchProfessionalProfile, 
+  fetchOpeningHours,
+  Service,
+  OpeningHour 
+} from "../../lib/api";
 
 export function ServiceSelectionPage() {
   const navigate = useNavigate();
@@ -12,6 +19,7 @@ export function ServiceSelectionPage() {
 
   const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [openingHours, setOpeningHours] = useState<OpeningHour[]>([]);
   const [loading, setLoading] = useState(true);
 
   // State for selections
@@ -33,6 +41,10 @@ export function ServiceSelectionPage() {
         if (profileData && requestedUserId) {
           const { registerProfessionalVisit } = await import("../../lib/recentPros");
           registerProfessionalVisit(undefined, profileData);
+          
+          // Fetch specific opening hours for this professional
+          const hoursData = await fetchOpeningHours(profileData.id);
+          setOpeningHours(hoursData);
         }
 
         setServices(servicesData);
@@ -62,27 +74,41 @@ export function ServiceSelectionPage() {
 
   const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const dayOfWeekNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  
+  // Map day index (0-6) from Date.getDay() to API day_of_week string
+  const dayIndexToName: Record<number, string> = {
+    0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday", 4: "thursday", 5: "friday", 6: "saturday"
+  };
 
   const dates = useMemo(() => {
     const result = [];
     const today = new Date();
-    // Gera 30 dias para navegação
-    for (let i = 0; i < 30; i++) {
+    // Gera 45 dias para navegação
+    for (let i = 0; i < 45; i++) {
       const d = new Date();
       d.setDate(today.getDate() + i);
       const fullDateStr = `${d.getDate()} ${monthNames[d.getMonth()]}`;
+      
+      const dayName = dayIndexToName[d.getDay()];
+      const dayConfig = openingHours.find(oh => oh.day_of_week === dayName);
+      
+      // Se não houver configuração, assume fechado por segurança
+      // Ou se estiver configurado como fechado explicitamente
+      const isDisabled = dayConfig ? !dayConfig.is_open : true;
+
       result.push({
         id: i.toString(),
         dayOfWeek: i === 0 ? "Hoje" : dayOfWeekNames[d.getDay()],
         day: d.getDate().toString(),
         month: monthNames[d.getMonth()],
         year: d.getFullYear(),
+        dateObj: new Date(d),
         fullDate: fullDateStr,
-        disabled: d.getDay() === 0 // Exemplo: Domingo fechado
+        disabled: isDisabled
       });
     }
     return result;
-  }, []);
+  }, [openingHours]);
 
   const visibleDates = dates.slice(dateStartIndex, dateStartIndex + datesToShow);
 
@@ -105,20 +131,47 @@ export function ServiceSelectionPage() {
     }
   }, [dates, selectedDate]);
 
-  const timeSlots = ["09:00", "10:00", "11:30", "13:00", "14:30", "15:00", "16:30", "18:00"];
+  const timeSlots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
 
   const isTimeSlotAvailable = (time: string) => {
     if (!selectedDate) return false;
     
-    const dateObj = dates.find(d => d.fullDate === selectedDate);
-    if (!dateObj) return false;
+    const dateObjRec = dates.find(d => d.fullDate === selectedDate);
+    if (!dateObjRec) return false;
     
+    const dayName = dayIndexToName[dateObjRec.dateObj.getDay()];
+    const dayConfig = openingHours.find(oh => oh.day_of_week === dayName);
+    
+    if (!dayConfig || !dayConfig.is_open) return false;
+
+    // Check if time is within work hours and NOT in lunch break
+    const [h, m] = time.split(":").map(Number);
+    const timeVal = h * 60 + m;
+
+    const [wsH, wsM] = dayConfig.work_start.split(":").map(Number);
+    const workStartVal = wsH * 60 + wsM;
+
+    const [weH, weM] = dayConfig.work_end.split(":").map(Number);
+    const workEndVal = weH * 60 + weM;
+
+    const [lsH, lsM] = dayConfig.lunch_start.split(":").map(Number);
+    const lunchStartVal = lsH * 60 + lsM;
+
+    const [leH, leM] = dayConfig.lunch_end.split(":").map(Number);
+    const lunchEndVal = leH * 60 + leM;
+
+    // Must be within work hours
+    if (timeVal < workStartVal || timeVal >= workEndVal) return false;
+
+    // Must NOT be within lunch break
+    if (timeVal >= lunchStartVal && timeVal < lunchEndVal) return false;
+
+    // Check existing appointments
     const [hours, minutes] = time.split(":").map(n => parseInt(n, 10));
     
     return !appointments.some(app => {
       const appDate = new Date(app.date_time);
       
-      // Use Intl.DateTimeFormat to get components in Sao Paulo time
       const formatter = new Intl.DateTimeFormat('pt-BR', {
         timeZone: 'America/Sao_Paulo',
         year: 'numeric',
@@ -136,9 +189,9 @@ export function ServiceSelectionPage() {
       const appHour = parseInt(parts.find(p => p.type === 'hour')!.value, 10);
       const appMinute = parseInt(parts.find(p => p.type === 'minute')!.value, 10);
       
-      const dateMatch = appYear === dateObj.year &&
-                        appMonth === monthNames.indexOf(dateObj.month) &&
-                        appDay === parseInt(dateObj.day, 10);
+      const dateMatch = appYear === dateObjRec.year &&
+                        appMonth === monthNames.indexOf(dateObjRec.month) &&
+                        appDay === parseInt(dateObjRec.day, 10);
                         
       const timeMatch = appHour === hours && appMinute === minutes;
       
