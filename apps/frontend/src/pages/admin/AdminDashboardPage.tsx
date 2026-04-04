@@ -11,7 +11,8 @@ import {
   Plus,
   Loader2
 } from "lucide-react";
-import { fetchServices, fetchAppointments, Service as APIService } from "../../lib/api";
+import { useUser } from "@clerk/react";
+import { fetchServices, fetchAppointments, fetchProfessionalProfile, Service as APIService } from "../../lib/api";
 
 interface ScheduleDay {
   id: string;
@@ -26,6 +27,7 @@ interface ScheduleDay {
 // Removed unused local Service interface
 
 export function AdminDashboardPage() {
+  const { user, isLoaded } = useUser();
   // Helper to get YYYY-MM-DD in local time
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
@@ -75,11 +77,19 @@ export function AdminDashboardPage() {
 
   useEffect(() => {
     async function loadData() {
+      if (!isLoaded || !user) return;
       setLoading(true);
       try {
+        const profile = await fetchProfessionalProfile(user.id);
+        if (!profile) {
+           console.error("Profile not found for user", user.id);
+           setLoading(false);
+           return;
+        }
+
         const [servicesData, appointmentsData] = await Promise.all([
-          fetchServices(),
-          fetchAppointments()
+          fetchServices(profile.id),
+          fetchAppointments({ professionalId: profile.id })
         ]);
         setApiServices(servicesData);
         setApiAppointments(appointmentsData);
@@ -90,7 +100,7 @@ export function AdminDashboardPage() {
       }
     }
     loadData();
-  }, []);
+  }, [user, isLoaded]);
 
   const [schedule] = useState<ScheduleDay[]>(() => {
     const saved = localStorage.getItem("hairagenda_schedule");

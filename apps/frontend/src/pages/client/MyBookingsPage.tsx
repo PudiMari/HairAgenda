@@ -20,7 +20,7 @@ export function MyBookingsPage() {
       
       setLoading(true);
       try {
-        const data = await fetchAppointments(user.id);
+        const data = await fetchAppointments({ clientId: user.id });
         setBookings(data);
       } catch (err) {
         setError("Não foi possível carregar seus agendamentos.");

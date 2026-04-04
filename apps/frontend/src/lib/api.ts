@@ -15,6 +15,7 @@ export interface AppointmentPayload {
 
 export interface Service {
   id: number;
+  professional: number;
   name: string;
   description: string;
   price: string;

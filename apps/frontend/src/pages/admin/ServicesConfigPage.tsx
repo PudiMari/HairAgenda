@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Search, X } from "lucide-react";
-import { fetchServices, createService, updateService, deleteService } from "../../lib/api";
+import { useUser } from "@clerk/react";
+import { fetchServices, createService, updateService, deleteService, fetchProfessionalProfile } from "../../lib/api";
 
 // Map our local UI Service to the API Service
 interface Service {
@@ -12,15 +13,27 @@ interface Service {
 }
 
 export function ServicesConfigPage() {
+  const { user, isLoaded } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [professionalId, setProfessionalId] = useState<number | null>(null);
 
   // Load services from API
   useEffect(() => {
     async function load() {
+      if (!isLoaded || !user) return;
+      setLoading(true);
       try {
-        const data = await fetchServices();
+        const profile = await fetchProfessionalProfile(user.id);
+        if (!profile) {
+           console.error("Profile not found for user", user.id);
+           setLoading(false);
+           return;
+        }
+        setProfessionalId(profile.id);
+
+        const data = await fetchServices(profile.id);
         setServices(data.map(s => ({
           id: s.id,
           name: s.name,
@@ -35,7 +48,7 @@ export function ServicesConfigPage() {
       }
     }
     load();
-  }, []);
+  }, [user, isLoaded]);
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -68,6 +81,7 @@ export function ServicesConfigPage() {
     try {
       const numericPrice = price.replace(",", ".").replace("R$ ", "").trim();
       const payload = {
+        professional: professionalId!,
         name,
         price: numericPrice,
         duration_minutes: parseInt(duration),
@@ -81,7 +95,7 @@ export function ServicesConfigPage() {
       }
 
       // Reload list
-      const data = await fetchServices();
+      const data = await fetchServices(professionalId!);
       setServices(data.map(s => ({
         id: s.id,
         name: s.name,
