@@ -108,7 +108,7 @@ export function ProfilePage() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user is the owner of this profile
-  const isOwner = user?.id && (requestedUserId === user.id || (!requestedUserId && profile?.user_id === user.id));
+  const isOwner = !!(user?.id && (!requestedUserId || requestedUserId === user.id || profile?.user_id === user.id));
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -315,10 +315,10 @@ export function ProfilePage() {
   }
 
   // Fallback to empty if no profile found (this case should ideally not happen if handled above)
-  const displayName = profile?.name || "";
-  const displayDescription = profile?.description || "";
-  const displayLocation = profile?.location || "";
-  const displayPhoto = profile?.photo_url || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200";
+  const displayName = profile?.name || user?.fullName || "Seu Nome";
+  const displayDescription = profile?.description || "Sua descrição profissional aparecerá aqui após a configuração.";
+  const displayLocation = profile?.location || "Sua Localização";
+  const displayPhoto = profile?.photo_url || user?.imageUrl || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200";
   const displayWhatsApp = profile?.whatsapp || "";
   const displayInstagram = profile?.instagram || "";
 
@@ -429,62 +429,64 @@ export function ProfilePage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col w-full gap-3 mt-4">
-          <Link
-            to={`/book/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
-            className="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-brand-gold text-white text-lg font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-opacity"
-          >
-            <CalendarDays className="mr-2" size={24} />
-            Agendar Horário
-          </Link>
-
-          <div className="flex gap-3 w-full">
+        {profile && (
+          <div className="flex flex-col w-full gap-3 mt-4">
             <Link
-              to={`/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
-              className="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-brand-gold/30 bg-transparent text-brand-gold text-sm font-bold hover:bg-brand-gold/5 transition-colors"
+              to={`/book/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
+              className="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-brand-gold text-white text-lg font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-opacity"
             >
-              <ClipboardList className="mr-2" size={18} />
-              Ver Serviços
+              <CalendarDays className="mr-2" size={24} />
+              Agendar Horário
             </Link>
-            <div className="flex flex-1 gap-2">
-              {displayWhatsApp && (
-                <a
-                  href={`https://wa.me/${displayWhatsApp.replace(/\D/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-1 items-center justify-center rounded-2xl h-12 px-2 border-2 border-[#25D366]/30 bg-transparent text-[#25D366] hover:bg-[#25D366]/5 transition-colors"
-                  title="WhatsApp"
-                >
-                  <MessageCircle size={20} />
-                </a>
-              )}
-              {displayInstagram && (
-                <a
-                  href={`https://instagram.com/${displayInstagram.replace('@', '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-1 items-center justify-center rounded-2xl h-12 px-2 border-2 border-[#E1306C]/30 bg-transparent text-[#E1306C] hover:bg-[#E1306C]/5 transition-colors"
-                  title="Instagram"
-                >
-                  <Share2 size={20} />
-                </a>
-              )}
-              {!displayWhatsApp && !displayInstagram && (
-                <button
-                  onClick={() => setIsContactModalOpen(true)}
-                  className="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-slate-200 bg-transparent text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors"
-                >
-                  <MessageCircle className="mr-2" size={18} />
-                  Contato
-                </button>
-              )}
+
+            <div className="flex gap-3 w-full">
+              <Link
+                to={`/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
+                className="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-brand-gold/30 bg-transparent text-brand-gold text-sm font-bold hover:bg-brand-gold/5 transition-colors"
+              >
+                <ClipboardList className="mr-2" size={18} />
+                Ver Serviços
+              </Link>
+              <div className="flex flex-1 gap-2">
+                {displayWhatsApp && (
+                  <a
+                    href={`https://wa.me/${displayWhatsApp.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-1 items-center justify-center rounded-2xl h-12 px-2 border-2 border-[#25D366]/30 bg-transparent text-[#25D366] hover:bg-[#25D366]/5 transition-colors"
+                    title="WhatsApp"
+                  >
+                    <MessageCircle size={20} />
+                  </a>
+                )}
+                {displayInstagram && (
+                  <a
+                    href={`https://instagram.com/${displayInstagram.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-1 items-center justify-center rounded-2xl h-12 px-2 border-2 border-[#E1306C]/30 bg-transparent text-[#E1306C] hover:bg-[#E1306C]/5 transition-colors"
+                    title="Instagram"
+                  >
+                    <Share2 size={20} />
+                  </a>
+                )}
+                {!displayWhatsApp && !displayInstagram && (
+                  <button
+                    onClick={() => setIsContactModalOpen(true)}
+                    className="flex flex-1 items-center justify-center rounded-2xl h-12 px-4 border-2 border-slate-200 bg-transparent text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors"
+                  >
+                    <MessageCircle className="mr-2" size={18} />
+                    Contato
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Popular Services Highlight */}
-      {popularServices.length > 0 && (
+      {profile && popularServices.length > 0 && (
         <div className="px-6 mb-10">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-brand-dark text-lg font-bold">Serviços Populares</h3>
@@ -513,29 +515,31 @@ export function ProfilePage() {
       )}
 
       {/* Recent Works Grid */}
-      <div className="px-6 pb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-brand-dark text-lg font-bold">Trabalhos Recentes</h3>
-          <Link to="/portfolio" className="text-brand-gold text-sm font-bold hover:underline">Ver todos</Link>
+      {profile && (
+        <div className="px-6 pb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-brand-dark text-lg font-bold">Trabalhos Recentes</h3>
+            <Link to="/portfolio" className="text-brand-gold text-sm font-bold hover:underline">Ver todos</Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {RECENT_WORKS.map((work) => (
+              <button
+                key={work.id}
+                onClick={() => setSelectedImage(work)}
+                className="aspect-square rounded-lg bg-slate-100 overflow-hidden group relative"
+              >
+                <div
+                  className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110 duration-500"
+                  style={{ backgroundImage: `url("${work.url}")` }}
+                ></div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <Info size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {RECENT_WORKS.map((work) => (
-            <button
-              key={work.id}
-              onClick={() => setSelectedImage(work)}
-              className="aspect-square rounded-lg bg-slate-100 overflow-hidden group relative"
-            >
-              <div
-                className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110 duration-500"
-                style={{ backgroundImage: `url("${work.url}")` }}
-              ></div>
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                <Info size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Lightbox Modal */}
       {selectedImage && (
