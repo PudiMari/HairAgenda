@@ -204,11 +204,16 @@ export function ServiceSelectionPage() {
                     : "border-slate-200 bg-white hover:border-brand-gold/50"
                 }`}
               >
-                <div className="flex flex-col gap-1 text-left">
-                  <p className="font-bold text-brand-dark">{service.name}</p>
-                  <p className={`text-sm font-bold uppercase tracking-tighter ${isSelected ? "text-brand-gold" : "text-slate-500"}`}>
+                <div className="flex flex-col gap-1 text-left flex-1 min-w-0">
+                  <p className="font-bold text-brand-dark truncate">{service.name}</p>
+                  <p className={`text-[10px] font-bold uppercase tracking-tight ${isSelected ? "text-brand-gold" : "text-slate-500"}`}>
                     R$ {service.price} • {service.duration_minutes} min
                   </p>
+                  {service.description && (
+                    <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 font-medium">
+                      {service.description}
+                    </p>
+                  )}
                 </div>
                 {isSelected ? (
                   <CheckCircle2 className="text-brand-gold" size={24} />

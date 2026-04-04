@@ -116,8 +116,7 @@ export function ServicesPage() {
               </div>
 
               <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                Procedimento realizado com os melhores produtos do mercado, garantindo um resultado impecável e duradouro.
-                {/* Note: In a real app, service.description would go here if available */}
+                {service.description || "Descrição não disponível para este serviço."}
               </p>
 
               <button
