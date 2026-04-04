@@ -50,16 +50,16 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 "O profissional está fechado neste dia."
             )
 
-        if (appointment_time < opening_hour.work_start or
-                appointment_time >= opening_hour.work_end):
+        if (appointment_time < opening_hour.work_start
+                or appointment_time >= opening_hour.work_end):
             raise serializers.ValidationError(
                 f"Horário fora do expediente. O profissional atende das "
                 f"{opening_hour.work_start.strftime('%H:%M')} às "
                 f"{opening_hour.work_end.strftime('%H:%M')}."
             )
 
-        if (opening_hour.lunch_start <= appointment_time <
-                opening_hour.lunch_end):
+        if (opening_hour.lunch_start <= appointment_time
+                < opening_hour.lunch_end):
             raise serializers.ValidationError(
                 "O profissional está em horário de almoço neste momento."
             )
