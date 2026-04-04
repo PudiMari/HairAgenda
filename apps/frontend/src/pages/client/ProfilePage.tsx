@@ -172,7 +172,7 @@ export function ProfilePage() {
   }
 
   // Check if we should show the Client Dashboard
-  const isClientDashboard = !requestedUserId && (userRole === 'client' || (!profile && !loading));
+  const isClientDashboard = !requestedUserId && (userRole === 'client' || (!profile && !loading && !isAdmin));
 
 
   if (isClientDashboard) {
