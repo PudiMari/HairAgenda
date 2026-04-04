@@ -120,13 +120,30 @@ export function MyBookingsPage() {
               Você ainda não possui nenhum horário marcado. Que tal garantir seu próximo visual hoje?
             </p>
             
-            <Link 
-              to="/book/services"
-              className="group flex items-center justify-center gap-2 bg-brand-gold text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-gold/20 hover:scale-[1.02] active:scale-95 transition-all"
-            >
-              <span>Agendar Agora</span>
-              <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
+            {(() => {
+              const recentKey = `recent_pros_${user?.id || 'guest'}`;
+              const recentPros = JSON.parse(localStorage.getItem(recentKey) || '[]');
+              const lastVisitedUserId = recentPros.length > 0 ? recentPros[0].id : null;
+
+              if (lastVisitedUserId) {
+                return (
+                  <Link 
+                    to={`/book/services?u=${lastVisitedUserId}`}
+                    className="group flex items-center justify-center gap-2 bg-brand-gold text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-gold/20 hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    <span>Agendar Agora</span>
+                    <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                );
+              }
+              
+              return (
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-sm font-medium leading-relaxed max-w-sm">
+                  Para realizar seu primeiro agendamento, <br />
+                  <strong className="text-amber-900 font-bold block mt-1">acesse o link do seu profissional!</strong>
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
