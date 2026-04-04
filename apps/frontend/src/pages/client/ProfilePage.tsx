@@ -54,14 +54,14 @@ export function ProfilePage() {
         
         if (userIdToFetch) {
           promises.push(fetchProfessionalProfile(userIdToFetch).catch(() => null));
-          promises.push(fetchServices().catch(() => []));
+          promises.push(fetchServices(userIdToFetch).catch(() => []));
         } else {
           promises.push(Promise.resolve(null));
           promises.push(Promise.resolve([]));
         }
         
         if (user?.id) {
-          promises.push(fetchAppointments(user.id).catch(() => []));
+          promises.push(fetchAppointments({ clientId: user.id }).catch(() => []));
         } else {
           promises.push(Promise.resolve([]));
         }

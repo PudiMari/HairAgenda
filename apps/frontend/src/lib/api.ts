@@ -21,18 +21,23 @@ export interface Service {
   duration_minutes: number;
 }
 
-export const fetchServices = async (): Promise<Service[]> => {
-  const response = await fetch(`${API_URL}/api/services/?t=${Date.now()}`);
+export const fetchServices = async (professionalId?: number | string): Promise<Service[]> => {
+  const url = professionalId 
+    ? `${API_URL}/api/services/?professional_id=${professionalId}&t=${Date.now()}`
+    : `${API_URL}/api/services/?t=${Date.now()}`;
+    
+  const response = await fetch(url);
   if (!response.ok) throw new Error('Erro ao buscar serviços.');
   return response.json();
 };
 
-export const fetchAppointments = async (clientId?: string): Promise<any[]> => {
-  const url = clientId 
-    ? `${API_URL}/api/appointments/?client_id=${clientId}&t=${Date.now()}`
-    : `${API_URL}/api/appointments/?t=${Date.now()}`;
+export const fetchAppointments = async (filters?: { clientId?: string, professionalId?: string | number }): Promise<any[]> => {
+  const params = new URLSearchParams();
+  if (filters?.clientId) params.append('client_id', filters.clientId);
+  if (filters?.professionalId) params.append('professional_id', filters.professionalId.toString());
+  params.append('t', Date.now().toString());
     
-  const response = await fetch(url);
+  const response = await fetch(`${API_URL}/api/appointments/?${params.toString()}`);
   if (!response.ok) throw new Error('Erro ao buscar agendamentos.');
   return response.json();
 };

@@ -1,22 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useUser } from "@clerk/react";
 import { 
   fetchServices, 
-  fetchAppointments, 
+  fetchAppointments,
   fetchProfessionalProfile, 
   fetchOpeningHours,
   Service,
-  OpeningHour 
+  OpeningHour,
+  ProfessionalProfile
 } from "../../lib/api";
 
 export function ServiceSelectionPage() {
+  const { user, isLoaded } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const requestedUserId = searchParams.get('u');
   const preSelected = location.state?.preSelectedService;
 
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [openingHours, setOpeningHours] = useState<OpeningHour[]>([]);
@@ -31,38 +35,48 @@ export function ServiceSelectionPage() {
 
   useEffect(() => {
     async function loadData() {
+      if (!isLoaded && requestedUserId === null) return;
+      setLoading(true);
       try {
-        const [servicesData, appointmentsData, profileData] = await Promise.all([
-          fetchServices(),
-          fetchAppointments(),
-          requestedUserId ? fetchProfessionalProfile(requestedUserId).catch(() => null) : Promise.resolve(null)
-        ]);
+        const userIdToFetch = requestedUserId || user?.id;
+        if (!userIdToFetch) {
+          setLoading(false);
+          return;
+        }
 
-        if (profileData && requestedUserId) {
-          const { registerProfessionalVisit } = await import("../../lib/recentPros");
-          registerProfessionalVisit(undefined, profileData);
+        const profileData = await fetchProfessionalProfile(userIdToFetch);
+        if (profileData) {
+          setProfile(profileData);
           
-          // Fetch specific opening hours for this professional
-          const hoursData = await fetchOpeningHours(profileData.id);
+          // Register visit if viewing someone else
+          if (requestedUserId && requestedUserId !== user?.id) {
+             const { registerProfessionalVisit } = await import("../../lib/recentPros");
+             registerProfessionalVisit(user?.id, profileData);
+          }
+
+          const [servicesData, hoursData, appointmentsData] = await Promise.all([
+            fetchServices(profileData.id),
+            fetchOpeningHours(profileData.id),
+            fetchAppointments({ professionalId: profileData.id })
+          ]);
+          
+          setServices(servicesData);
           setOpeningHours(hoursData);
-        }
+          setAppointments(appointmentsData);
 
-        setServices(servicesData);
-        setAppointments(appointmentsData);
-        
-        const serviceIdParam = searchParams.get('service');
-        if (preSelected) {
-           setSelectedService(preSelected);
-        } else if (serviceIdParam) {
-           const s = servicesData.find(svc => svc.id.toString() === serviceIdParam);
-           if (s) setSelectedService({ id: s.id.toString(), name: s.name });
-           else if (servicesData.length > 0) {
+          const serviceIdParam = searchParams.get('service');
+          if (preSelected) {
+             setSelectedService(preSelected);
+          } else if (serviceIdParam) {
+             const s = servicesData.find((svc: Service) => svc.id.toString() === serviceIdParam);
+             if (s) setSelectedService({ id: s.id.toString(), name: s.name });
+             else if (servicesData.length > 0) {
+               setSelectedService({ id: servicesData[0].id.toString(), name: servicesData[0].name });
+             }
+          } else if (servicesData.length > 0) {
              setSelectedService({ id: servicesData[0].id.toString(), name: servicesData[0].name });
-           }
-        } else if (servicesData.length > 0) {
-           setSelectedService({ id: servicesData[0].id.toString(), name: servicesData[0].name });
+          }
         }
-
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
       } finally {
@@ -70,7 +84,7 @@ export function ServiceSelectionPage() {
       }
     }
     loadData();
-  }, [preSelected, requestedUserId]);
+  }, [preSelected, requestedUserId, user, isLoaded, searchParams]);
 
   const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const dayOfWeekNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -91,7 +105,13 @@ export function ServiceSelectionPage() {
       
       // Se não houver configuração, assume fechado por segurança
       // Ou se estiver configurado como fechado explicitamente
-      const isDisabled = dayConfig ? !dayConfig.is_open : true;
+      let isDisabled = true;
+      if (dayConfig) {
+        isDisabled = !dayConfig.is_open;
+      } else if (openingHours.length === 0) {
+        // Fallback: se não há registros de horário, assume padrão aberto seg-sáb
+        isDisabled = apiDay === 6; // Domingo fechado por padrão
+      }
 
       result.push({
         id: i.toString(),
@@ -231,7 +251,14 @@ export function ServiceSelectionPage() {
     <div className="flex-1 max-w-2xl mx-auto w-full pb-32 px-4 relative">
       {/* Header Info */}
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl font-bold text-brand-dark">Agendamento</h2>
+        <div>
+          <h2 className="text-xl font-bold text-brand-dark">Agendamento</h2>
+          {profile && (
+            <p className="text-sm font-medium text-slate-500">
+              Profissional: <span className="text-brand-gold font-bold">{profile.name}</span>
+            </p>
+          )}
+        </div>
         <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Passo 1 de 2</span>
       </div>
 
