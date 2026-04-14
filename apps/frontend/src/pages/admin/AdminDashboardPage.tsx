@@ -62,21 +62,22 @@ export function AdminDashboardPage() {
   // Derived state: Appointments in dashboard format
   const appointments = useMemo(() => {
     return apiAppointments.map(appt => {
-      const dateObj = new Date(appt.date_time);
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(dateObj.getDate()).padStart(2, '0');
-      const hour = String(dateObj.getHours()).padStart(2, '0');
-      const minute = String(dateObj.getMinutes()).padStart(2, '0');
+      // Parse date/time directly from ISO string to avoid browser timezone conversion
+      // Format: "2026-04-15T08:30:00-03:00" → extract "2026-04-15" and "08:30"
+      const isoString: string = appt.date_time;
+      const datePart = isoString.substring(0, 10);        // "2026-04-15"
+      const timePart = isoString.substring(11, 16);       // "08:30"
+      const hour = isoString.substring(11, 13);           // "08"
+      const minute = isoString.substring(14, 16);         // "30"
 
       const serviceObj = apiServices.find(s => s.id === appt.service);
-      
+
       return {
         id: appt.id.toString(),
-        date: `${year}-${month}-${day}`,
-        start: `${hour}:${minute}`,
+        date: datePart,
+        start: timePart,
         startTimeValue: parseInt(hour) * 60 + parseInt(minute),
-        duration: serviceObj ? serviceObj.duration_minutes : 30, // Fallback to 30 mins
+        duration: serviceObj ? serviceObj.duration_minutes : 30,
         service: serviceObj ? serviceObj.name : "Serviço",
         client: appt.client_name,
         price: serviceObj ? parseFloat(serviceObj.price) : 0,
@@ -84,6 +85,7 @@ export function AdminDashboardPage() {
       };
     });
   }, [apiAppointments, apiServices]);
+
 
   async function loadDashboardData() {
     if (!profile) return;
