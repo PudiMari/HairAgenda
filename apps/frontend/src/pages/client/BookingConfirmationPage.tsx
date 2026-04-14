@@ -111,8 +111,13 @@ export function BookingConfirmationPage() {
       const dayNum = dayToken.padStart(2, '0');
       
       const dateTimeIso = `${currentYear}-${monthNum}-${dayNum}T${time}:00-03:00`;
+      
+      // We pass the professional ID directly from the service object
+      // or from the search param if available
+      const professionalId = service.professional || (requestedUserId ? parseInt(requestedUserId, 10) : undefined);
 
       await createAppointment({
+        professional: professionalId,
         client_user_id: user?.id,
         client_name: clientName,
         client_whatsapp: rawPhone,

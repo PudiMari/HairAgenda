@@ -96,6 +96,7 @@ export function AdminDashboardPage() {
           fetchOpeningHours(profile.id)
         ]);
 
+        console.log(`[Dashboard] Fetched ${servicesData.length} services and ${appointmentsData.length} appointments for professional ${profile.id}`);
         setApiServices(servicesData);
         setApiAppointments(appointmentsData);
         setBlocks(blocksData);

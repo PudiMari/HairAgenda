@@ -6,6 +6,7 @@ export const fetchHealthStatus = async () => {
 };
 
 export interface AppointmentPayload {
+  professional?: number; // ID of the professional profile
   client_user_id?: string;
   client_name: string;
   client_whatsapp: string;
