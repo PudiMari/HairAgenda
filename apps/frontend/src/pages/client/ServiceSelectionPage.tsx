@@ -242,32 +242,35 @@ export function ServiceSelectionPage() {
 
     if (isBlockedByPartial) return 'blocked';
 
-    // 4. Existing appointments
+    // 4. Existing appointments — bidirectional overlap check
+    const selectedFullService = services.find(s => s.id.toString() === selectedService?.id);
+    const selectedDuration = selectedFullService ? selectedFullService.duration_minutes : 30;
+    const slotEndVal = timeVal + selectedDuration; // where new booking would end
+
     const hasAppt = appointments.some(app => {
       if (app.status?.toUpperCase() === 'CANCELLED') return false;
 
-      const appDate = new Date(app.date_time);
-      const appYear = appDate.getFullYear();
-      const appMonth = appDate.getMonth();
-      const appDay = appDate.getDate();
-      const appHour = appDate.getHours();
-      const appMinute = appDate.getMinutes();
-      
-      // Check for overlap based on duration
-      const appStartVal = appHour * 60 + appMinute;
-      
-      const appService = services.find(s => s.id === app.service);
-      const duration = appService ? appService.duration_minutes : 30;
-      const appEndVal = appStartVal + duration;
+      // Parse directly from ISO string to avoid timezone issues
+      const iso: string = app.date_time;
+      const appDatePart = iso.substring(0, 10); // "2026-04-20"
+      const appHour = parseInt(iso.substring(11, 13), 10);
+      const appMinute = parseInt(iso.substring(14, 16), 10);
 
-      const dateMatch = appYear === dateObjRec.year &&
-                        appMonth === monthNames.indexOf(dateObjRec.month) &&
-                        appDay === parseInt(dateObjRec.day, 10);
-      
-      // A slot is occupied if it falls within the appointment range [start, end)
-      const timeMatch = timeVal >= appStartVal && timeVal < appEndVal;
-      
-      return dateMatch && timeMatch;
+      const appService = services.find(s => s.id === app.service);
+      const appDuration = appService ? appService.duration_minutes : 30;
+      const appStartVal = appHour * 60 + appMinute;
+      const appEndVal = appStartVal + appDuration;
+
+      // Build slot date string for comparison
+      const slotMonth = String(monthNames.indexOf(dateObjRec.month) + 1).padStart(2, '0');
+      const slotDateStr = `${dateObjRec.year}-${slotMonth}-${dateObjRec.day.padStart(2, '0')}`;
+      const dateMatch = appDatePart === slotDateStr;
+
+      // Overlap: slot start < appt end AND appt start < slot end
+      // This blocks: slot inside existing appt, AND new booking conflicting with future appt
+      const overlaps = timeVal < appEndVal && appStartVal < slotEndVal;
+
+      return dateMatch && overlaps;
     });
 
     if (hasAppt) return 'occupied';

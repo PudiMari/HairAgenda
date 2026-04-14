@@ -75,6 +75,28 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     "O serviço termina após o horário de expediente."
                 )
 
+        # Check for conflicts with existing appointments
+        new_end_dt = date_time + timedelta(
+            minutes=service.duration_minutes if service else 30
+        )
+        instance = self.instance  # None on create, set on update
+        conflicts = Appointment.objects.filter(
+            professional=professional,
+            status__in=['confirmed', 'pending'],
+            date_time__date=date_time.date(),
+        ).exclude(pk=instance.pk if instance else None)
+
+        for existing in conflicts:
+            existing_end = existing.date_time + timedelta(
+                minutes=existing.service.duration_minutes
+            )
+            # Overlap: new_start < existing_end AND existing_start < new_end
+            if date_time < existing_end and existing.date_time < new_end_dt:
+                raise serializers.ValidationError(
+                    f"Horário em conflito com outro agendamento às "
+                    f"{existing.date_time.astimezone().strftime('%H:%M')}."
+                )
+
         return data
 
 
