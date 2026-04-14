@@ -1,7 +1,24 @@
 import { useUser } from "@clerk/react";
 import { Navigate, useLocation } from "react-router-dom";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, createContext, useContext } from "react";
 import { fetchProfessionalProfile, ProfessionalProfile } from "../../lib/api";
+
+interface ProfileContextType {
+  profile: ProfessionalProfile | null;
+  setProfile: (profile: ProfessionalProfile | null) => void;
+  loading: boolean;
+  refreshProfile: () => Promise<void>;
+}
+
+const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
+
+export function useProfessionalProfile() {
+  const context = useContext(ProfileContext);
+  if (context === undefined) {
+    throw new Error("useProfessionalProfile must be used within an AdminGuard");
+  }
+  return context;
+}
 
 interface AdminGuardProps {
   children: ReactNode;
@@ -14,6 +31,17 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(checkProfile);
+
+  const refreshProfile = async () => {
+    if (user && checkProfile) {
+      try {
+        const data = await fetchProfessionalProfile(user.id);
+        setProfile(data);
+      } catch (err: any) {
+        console.error("Error refreshing profile:", err);
+      }
+    }
+  };
 
   useEffect(() => {
     async function checkExistingProfile() {
@@ -36,7 +64,7 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
     checkExistingProfile();
   }, [isLoaded, user, checkProfile]);
 
-  if (!isLoaded || profileLoading) {
+  if (!isLoaded || (profileLoading && checkProfile)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="h-12 w-12 border-4 border-brand-gold/20 border-t-brand-gold rounded-full animate-spin" />
@@ -46,7 +74,7 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
 
   if (error && checkProfile) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center" >
         <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md border border-slate-100">
           <h2 className="text-xl font-bold text-red-600 mb-4">Erro de Perfil</h2>
           <p className="text-slate-600 mb-6">{error}</p>
@@ -99,5 +127,10 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
     return <Navigate to="/admin/setup" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <ProfileContext.Provider value={{ profile, setProfile, loading: profileLoading, refreshProfile }}>
+      {children}
+    </ProfileContext.Provider>
+  );
 }
+

@@ -9,19 +9,17 @@ import {
   Trash2, 
   Plus 
 } from "lucide-react";
-import { useUser } from "@clerk/react";
 import { 
-  fetchProfessionalProfile, 
   fetchOpeningHours, 
   updateOpeningHour, 
   createOpeningHour,
   fetchProfessionalBlocks,
   createProfessionalBlock,
   deleteProfessionalBlock,
-  ProfessionalProfile,
   ProfessionalBlock,
   OpeningHour
 } from "../../lib/api";
+import { useProfessionalProfile } from "../../components/auth/AdminGuard";
 
 const ALL_HOURS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 const HALF_HOURS = Array.from({ length: 48 }, (_, i) => {
@@ -53,11 +51,10 @@ const DEFAULT_SCHEDULE: Omit<ScheduleDay, 'dbId'>[] = [
 ];
 
 export function ScheduleConfigPage() {
-  const { user } = useUser();
+  const { profile } = useProfessionalProfile();
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [schedule, setSchedule] = useState<ScheduleDay[]>(DEFAULT_SCHEDULE as ScheduleDay[]);
   const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
   const [activeTab, setActiveTab] = useState<'schedule' | 'blocks'>('schedule');
@@ -69,38 +66,39 @@ export function ScheduleConfigPage() {
 
   useEffect(() => {
     async function loadData() {
-      if (!user) return;
+      if (!profile) {
+        setIsLoading(false);
+        return;
+      }
+      
       try {
-        const profProfile = await fetchProfessionalProfile(user.id);
-        if (profProfile) {
-          setProfile(profProfile);
-          const [hoursData, blocksData] = await Promise.all([
-            fetchOpeningHours(profProfile.id),
-            fetchProfessionalBlocks(profProfile.id)
-          ]);
-          
-          setBlocks(blocksData);
-          
-          if (hoursData.length > 0) {
-            const mapped = DEFAULT_SCHEDULE.map(day => {
-              const apiDay = hoursData.find((oh: OpeningHour) => oh.day_of_week === day.dayOfWeek);
-              if (apiDay) {
-                return {
-                  ...day as any,
-                  dbId: apiDay.id,
-                  isOpen: apiDay.is_open,
-                  workStart: apiDay.work_start.substring(0, 5),
-                  workEnd: apiDay.work_end.substring(0, 5),
-                  lunchStart: apiDay.lunch_start.substring(0, 5),
-                  lunchEnd: apiDay.lunch_end.substring(0, 5),
-                };
-              }
-              return day;
-            });
-            setSchedule(mapped as ScheduleDay[]);
-          } else {
-            setSchedule(DEFAULT_SCHEDULE as ScheduleDay[]);
-          }
+        setIsLoading(true);
+        const [hoursData, blocksData] = await Promise.all([
+          fetchOpeningHours(profile.id),
+          fetchProfessionalBlocks(profile.id)
+        ]);
+        
+        setBlocks(blocksData);
+        
+        if (hoursData.length > 0) {
+          const mapped = DEFAULT_SCHEDULE.map(day => {
+            const apiDay = hoursData.find((oh: OpeningHour) => oh.day_of_week === day.dayOfWeek);
+            if (apiDay) {
+              return {
+                ...day as any,
+                dbId: apiDay.id,
+                isOpen: apiDay.is_open,
+                workStart: apiDay.work_start.substring(0, 5),
+                workEnd: apiDay.work_end.substring(0, 5),
+                lunchStart: apiDay.lunch_start.substring(0, 5),
+                lunchEnd: apiDay.lunch_end.substring(0, 5),
+              };
+            }
+            return day;
+          });
+          setSchedule(mapped as ScheduleDay[]);
+        } else {
+          setSchedule(DEFAULT_SCHEDULE as ScheduleDay[]);
         }
       } catch (error) {
         console.error("Error loading schedule:", error);
@@ -109,7 +107,7 @@ export function ScheduleConfigPage() {
       }
     }
     loadData();
-  }, [user]);
+  }, [profile]);
 
   const toggleDay = (id: string) => {
     setSchedule(schedule.map(day => 

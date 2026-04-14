@@ -1,34 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Scissors, LayoutDashboard, Settings, Menu, Copy, X, LogOut, ExternalLink } from "lucide-react";
 import { useUser, useClerk } from "@clerk/react";
-import { fetchProfessionalProfile, ProfessionalProfile } from "../../lib/api";
+import { useProfessionalProfile } from "../auth/AdminGuard";
 
 
 export function AdminLayout() {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { profile } = useProfessionalProfile();
   const location = useLocation();
   const currentPath = location.pathname;
   const [copied, setCopied] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
-
-  useEffect(() => {
-    async function loadProfile() {
-      if (user) {
-        try {
-          const data = await fetchProfessionalProfile(user.id);
-          setProfile(data);
-        } catch (err) {
-          console.error("Error loading profile:", err);
-        }
-      }
-    }
-    loadProfile();
-  }, [user]);
 
   const profileUrl = `${window.location.origin}/profile?u=${profile?.user_id || user?.id}`;
+
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(profileUrl);

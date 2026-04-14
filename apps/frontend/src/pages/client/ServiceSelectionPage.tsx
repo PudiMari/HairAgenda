@@ -120,7 +120,9 @@ export function ServiceSelectionPage() {
 
       // Check if date is blocked by ProfessionalBlock
       const dateStr = d.toISOString().split('T')[0];
-      const isDateBlocked = blocks.some((b: ProfessionalBlock) => b.date === dateStr);
+      const fullDayBlock = blocks.find((b: ProfessionalBlock) => 
+        b.date === dateStr && b.start_time === null && b.end_time === null
+      );
 
       result.push({
         id: i.toString(),
@@ -130,7 +132,7 @@ export function ServiceSelectionPage() {
         year: d.getFullYear(),
         dateObj: new Date(d),
         fullDate: fullDateStr,
-        disabled: isDisabled || isDateBlocked
+        disabled: isDisabled || !!fullDayBlock
       });
     }
     return result;
@@ -192,6 +194,19 @@ export function ServiceSelectionPage() {
 
     // Must NOT be within lunch break
     if (timeVal >= lunchStartVal && timeVal < lunchEndVal) return false;
+
+    // Check ProfessionalBlocks (Partial blocks)
+    const dateStr = dateObjRec.dateObj.toISOString().split('T')[0];
+    const isBlockedByPartial = blocks.some(b => {
+      if (b.date !== dateStr || b.start_time === null || b.end_time === null) return false;
+      const [bsH, bsM] = b.start_time.split(":").map(Number);
+      const blockStartVal = bsH * 60 + bsM;
+      const [beH, beM] = b.end_time.split(":").map(Number);
+      const blockEndVal = beH * 60 + beM;
+      return timeVal >= blockStartVal && timeVal < blockEndVal;
+    });
+
+    if (isBlockedByPartial) return false;
 
     // Check existing appointments
     const [hours, minutes] = time.split(":").map(n => parseInt(n, 10));

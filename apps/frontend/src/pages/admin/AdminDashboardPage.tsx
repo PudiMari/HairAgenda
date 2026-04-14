@@ -11,17 +11,18 @@ import {
   Plus,
   Loader2
 } from "lucide-react";
-import { useUser } from "@clerk/react";
 import { 
   fetchServices, 
   fetchAppointments, 
-  fetchProfessionalProfile, 
   fetchProfessionalBlocks,
   createProfessionalBlock,
   deleteProfessionalBlock,
+  fetchOpeningHours,
   Service as APIService,
-  ProfessionalBlock
+  ProfessionalBlock,
+  OpeningHour
 } from "../../lib/api";
+import { useProfessionalProfile } from "../../components/auth/AdminGuard";
 
 interface ScheduleDay {
   id: string;
@@ -33,10 +34,9 @@ interface ScheduleDay {
   lunchEnd: string;
 }
 
-// Removed unused local Service interface
-
 export function AdminDashboardPage() {
-  const { user, isLoaded } = useUser();
+  const { profile } = useProfessionalProfile();
+
   // Helper to get YYYY-MM-DD in local time
   const getLocalDateString = (date: Date) => {
     const year = date.getFullYear();
@@ -46,7 +46,7 @@ export function AdminDashboardPage() {
   };
 
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
   
   // States for Modals
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
@@ -54,10 +54,9 @@ export function AdminDashboardPage() {
   
   // Data State
   const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
-  const [profile, setProfile] = useState<any>(null);
-
   const [apiAppointments, setApiAppointments] = useState<any[]>([]);
   const [apiServices, setApiServices] = useState<APIService[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
 
   // Derived state: Appointments in dashboard format
   const appointments = useMemo(() => {
@@ -83,39 +82,49 @@ export function AdminDashboardPage() {
   }, [apiAppointments, apiServices]);
 
   useEffect(() => {
-    async function loadData() {
-      if (!isLoaded || !user) return;
-      setLoading(true);
+    async function loadDashboardData() {
+      if (!profile) return;
+      
+      setDataLoading(true);
       try {
-        const profile = await fetchProfessionalProfile(user.id);
-        if (!profile) {
-           console.error("Profile not found for user", user.id);
-           setLoading(false);
-           return;
-        }
-
-        const [servicesData, appointmentsData, blocksData] = await Promise.all([
+        const [servicesData, appointmentsData, blocksData, openingHoursData] = await Promise.all([
           fetchServices(profile.id),
           fetchAppointments({ professionalId: profile.id }),
-          fetchProfessionalBlocks(profile.id)
+          fetchProfessionalBlocks(profile.id),
+          fetchOpeningHours(profile.id)
         ]);
-        setProfile(profile);
+
         setApiServices(servicesData);
         setApiAppointments(appointmentsData);
         setBlocks(blocksData);
+
+        // Map OpeningHour[] to ScheduleDay[]
+        // Backend: 0=Segunda, 1=Terça, ..., 6=Domingo
+        const dayNames = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+        const mappedSchedule: ScheduleDay[] = openingHoursData
+          .sort((a: OpeningHour, b: OpeningHour) => a.day_of_week - b.day_of_week)
+          .map((oh: OpeningHour) => ({
+            id: oh.id.toString(),
+            dayName: dayNames[oh.day_of_week],
+            isOpen: oh.is_open,
+            workStart: oh.work_start.substring(0, 5),
+            workEnd: oh.work_end.substring(0, 5),
+            lunchStart: oh.lunch_start.substring(0, 5),
+            lunchEnd: oh.lunch_end.substring(0, 5)
+          }));
+        
+        setSchedule(mappedSchedule);
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     }
-    loadData();
-  }, [user, isLoaded]);
 
-  const [schedule] = useState<ScheduleDay[]>(() => {
-    const saved = localStorage.getItem("hairagenda_schedule");
-    return saved ? JSON.parse(saved) : [];
-  });
+    if (profile) {
+      loadDashboardData();
+    }
+  }, [profile]);
 
   // Modal temporary data
   const [newBlock, setNewBlock] = useState({ 
@@ -127,11 +136,17 @@ export function AdminDashboardPage() {
   const [newAppt, setNewAppt] = useState({ 
     date: new Date().toISOString().split('T')[0], 
     start: '08:00', 
-    service: apiServices.length > 0 ? apiServices[0].name : 'Corte', 
+    service: '', 
     client: '' 
   });
 
-  // Persistence removed (now uses API)
+  // Update newAppt service when apiServices loads
+  useEffect(() => {
+    if (apiServices.length > 0 && !newAppt.service) {
+      setNewAppt(prev => ({ ...prev, service: apiServices[0].name }));
+    }
+  }, [apiServices, newAppt.service]);
+
 
   // Helper to get day of week and date for the current week starting from Monday
   const weekDates = useMemo(() => {
@@ -152,51 +167,43 @@ export function AdminDashboardPage() {
     return dates;
   }, [selectedDate]);
 
-  // Daily and Weekly stats calculation
-  const stats = useMemo(() => {
-    const todayStr = getLocalDateString(new Date());
-    
-    // Get all dates for the current week
-    const weekDateStrings = weekDates.map(d => getLocalDateString(d));
-
-    const todaysAppts = appointments.filter(a => a.date === todayStr);
-    const weeklyAppts = appointments.filter(a => weekDateStrings.includes(a.date));
-
-    const todayRevenue = todaysAppts.reduce((sum, a) => sum + (a.price || 0), 0);
-    const weeklyRevenue = weeklyAppts.reduce((sum, a) => sum + (a.price || 0), 0);
-    
-    console.log("Dashboard Stats Calculation:", {
-      today: todayStr,
-      todaysApptsCount: todaysAppts.length,
-      weeklyApptsCount: weeklyAppts.length,
-      totalApptsCount: appointments.length
-    });
-
-    return {
-      todayCount: todaysAppts.length,
-      todayRevenue: todayRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      weekCount: weeklyAppts.length,
-      weekRevenue: weeklyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-    };
-  }, [appointments, weekDates]);
-
-  const daysLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-  
+  // Handle navigations
   const handlePrevWeek = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() - 7);
-    setSelectedDate(newDate);
+    const prev = new Date(selectedDate);
+    prev.setDate(selectedDate.getDate() - 7);
+    setSelectedDate(prev);
   };
 
   const handleNextWeek = () => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(selectedDate.getDate() + 7);
-    setSelectedDate(newDate);
+    const next = new Date(selectedDate);
+    next.setDate(selectedDate.getDate() + 7);
+    setSelectedDate(next);
   };
 
   const handleToday = () => {
     setSelectedDate(new Date());
   };
+
+  // Stats calculation
+  const stats = useMemo(() => {
+    const todayStr = getLocalDateString(new Date());
+    const weekDateStrings = weekDates.map(d => getLocalDateString(d));
+
+    const todaysAppts = appointments.filter(a => a.date === todayStr);
+    const weeklyAppts = appointments.filter(a => weekDateStrings.includes(a.date));
+
+    const todayRevenueSum = todaysAppts.reduce((sum, a) => sum + (a.price || 0), 0);
+    const weeklyRevenueSum = weeklyAppts.reduce((sum, a) => sum + (a.price || 0), 0);
+    
+    return {
+      todayCount: todaysAppts.length,
+      todayRevenue: todayRevenueSum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      weekCount: weeklyAppts.length,
+      weekRevenue: weeklyRevenueSum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    };
+  }, [appointments, weekDates]);
+
+  const daysLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
   const handleConfirmBlock = async () => {
     if (!profile) return;
@@ -271,7 +278,7 @@ export function AdminDashboardPage() {
     return Array.from({ length }, (_, i) => `${String(i + minHour).padStart(2, '0')}:00`);
   }, [schedule]);
 
-  if (loading) {
+  if (dataLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-20">
         <Loader2 className="animate-spin text-brand-gold" size={48} />
