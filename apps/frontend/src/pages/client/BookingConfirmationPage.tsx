@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { X, CheckCircle, Calendar, Clock, User, Phone, ArrowRight, Lock, Info, AlertCircle } from "lucide-react";
 import { createAppointment } from "../../lib/api";
-import { useUser } from "@clerk/react";
+import { useUser, useClerk } from "@clerk/react";
 
 export function BookingConfirmationPage() {
-  const { user } = useUser();
-  const navigate = useNavigate();
+   const { user, isLoaded } = useUser();
+   const { redirectToSignIn } = useClerk();
+   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const requestedUserId = searchParams.get('u');
@@ -23,6 +24,14 @@ export function BookingConfirmationPage() {
 
   // Pre-fill user data
   useEffect(() => {
+    if (isLoaded && !user) {
+      redirectToSignIn({
+        signInFallbackRedirectUrl: window.location.href,
+        signUpFallbackRedirectUrl: window.location.href,
+      });
+      return;
+    }
+
     async function preFillData() {
       if (user) {
         if (!clientName) setClientName(user.fullName || "");

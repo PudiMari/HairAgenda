@@ -74,6 +74,8 @@ export function AdminDashboardPage() {
         id: appt.id.toString(),
         date: `${year}-${month}-${day}`,
         start: `${hour}:${minute}`,
+        startTimeValue: parseInt(hour) * 60 + parseInt(minute),
+        duration: serviceObj ? serviceObj.duration_minutes : 30, // Fallback to 30 mins
         service: serviceObj ? serviceObj.name : "Serviço",
         client: appt.client_name,
         price: serviceObj ? parseFloat(serviceObj.price) : 0
@@ -256,31 +258,50 @@ export function AdminDashboardPage() {
 
     if (!daySchedule || !daySchedule.isOpen) return true;
 
-    const [h] = hour.split(':').map(Number);
-    const [startH] = daySchedule.workStart.split(':').map(Number);
-    const [endH] = daySchedule.workEnd.split(':').map(Number);
-    const [lunchStartH] = daySchedule.lunchStart.split(':').map(Number);
-    const [lunchEndH] = daySchedule.lunchEnd.split(':').map(Number);
+    const [h, m] = hour.split(':').map(Number);
+    const timeVal = h * 60 + m;
+
+    const [startH, startM] = daySchedule.workStart.split(':').map(Number);
+    const startVal = startH * 60 + (startM || 0);
+
+    const [endH, endM] = daySchedule.workEnd.split(':').map(Number);
+    const endVal = endH * 60 + (endM || 0);
+
+    const [lunchStartH, lunchStartM] = daySchedule.lunchStart.split(':').map(Number);
+    const lunchStartVal = lunchStartH * 60 + (lunchStartM || 0);
+
+    const [lunchEndH, lunchEndM] = daySchedule.lunchEnd.split(':').map(Number);
+    const lunchEndVal = lunchEndH * 60 + (lunchEndM || 0);
 
     // Outside work hours
-    if (h < startH || h >= endH) return true;
+    if (timeVal < startVal || timeVal >= endVal) return true;
     
     // Lunch break
-    if (h >= lunchStartH && h < lunchEndH) return true;
+    if (timeVal >= lunchStartVal && timeVal < lunchEndVal) return true;
 
     return false;
   };
 
-  // Generate dynamic hours based on schedule
+  // Generate dynamic hours based on schedule with 30-minute intervals
   const hours = useMemo(() => {
     if (!schedule || schedule.length === 0) {
       // Fallback range if no schedule is found
-      return Array.from({ length: 12 }, (_, i) => `${String(i + 8).padStart(2, '0')}:00`);
+      const slots = [];
+      for (let h = 8; h <= 20; h++) {
+        slots.push(`${String(h).padStart(2, '0')}:00`);
+        slots.push(`${String(h).padStart(2, '0')}:30`);
+      }
+      return slots;
     }
 
     const activeDays = schedule.filter(day => day.isOpen);
     if (activeDays.length === 0) {
-      return Array.from({ length: 12 }, (_, i) => `${String(i + 8).padStart(2, '0')}:00`);
+      const slots = [];
+      for (let h = 8; h <= 20; h++) {
+        slots.push(`${String(h).padStart(2, '0')}:00`);
+        slots.push(`${String(h).padStart(2, '0')}:30`);
+      }
+      return slots;
     }
 
     // Find the min start hour and max end hour across all active days
@@ -298,8 +319,13 @@ export function AdminDashboardPage() {
     // Ensure at least a small range and valid hours
     if (maxHour <= minHour) maxHour = minHour + 1;
     
-    const length = maxHour - minHour + 1;
-    return Array.from({ length }, (_, i) => `${String(i + minHour).padStart(2, '0')}:00`);
+    const slots = [];
+    for (let h = minHour; h <= maxHour; h++) {
+      slots.push(`${String(h).padStart(2, '0')}:00`);
+      // Don't add :30 for the very last hour if it's the exact closing limit
+      slots.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    return slots;
   }, [schedule]);
 
   if (dataLoading) {
@@ -416,7 +442,7 @@ export function AdminDashboardPage() {
           <div className="divide-y divide-slate-100">
             {hours.map((hour) => (
               <div key={hour} className="grid grid-cols-[100px_repeat(7,1fr)] group">
-                <div className="p-6 text-center text-[11px] font-bold text-slate-400 self-center uppercase tracking-widest bg-slate-50/30">{hour}</div>
+                <div className="p-4 text-center text-[11px] font-bold text-slate-400 self-center uppercase tracking-widest bg-slate-50/30">{hour}</div>
                 {weekDates.map((date, dayIndex) => {
                   const dateStr = getLocalDateString(date);
                   
@@ -426,14 +452,20 @@ export function AdminDashboardPage() {
                     // Full day block
                     if (!b.start_time || !b.end_time) return true;
                     // Partial day block
-                    const start = b.start_time.substring(0, 5);
-                    const end = b.end_time.substring(0, 5);
-                    return hour >= start && hour < end;
+                    const [h, m] = hour.split(':').map(Number);
+                    const timeVal = h * 60 + m;
+                    
+                    const [bsH, bsM] = b.start_time.split(':').map(Number);
+                    const startVal = bsH * 60 + bsM;
+                    const [beH, beM] = b.end_time.split(':').map(Number);
+                    const endVal = beH * 60 + beM;
+
+                    return timeVal >= startVal && timeVal < endVal;
                   });
 
                   if (block) {
                     return (
-                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[120px] bg-slate-50/50 flex items-center justify-center relative group/block">
+                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[80px] bg-slate-50/50 flex items-center justify-center relative group/block">
                          <div className="border border-slate-200 text-slate-400 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border-dashed bg-white shadow-sm">
                             Bloqueado
                          </div>
@@ -451,17 +483,32 @@ export function AdminDashboardPage() {
                   }
 
                   // Check for appointments
-                  const appt = appointments.find(a => {
-                    const [h] = a.start.split(':');
-                    return a.date === dateStr && h === hour.split(':')[0];
+                  const slotAppointments = appointments.filter(a => {
+                    if (a.date !== dateStr) return false;
+                    const [sh, sm] = hour.split(':').map(Number);
+                    const sTime = sh * 60 + sm;
+                    // Match if appointment starts within this 30-minute window
+                    return a.startTimeValue >= sTime && a.startTimeValue < sTime + 30;
                   });
-                  if (appt) {
+
+                  if (slotAppointments.length > 0) {
                     return (
-                      <div key={dayIndex} className="p-3 border-l border-slate-100 min-h-[120px] bg-brand-dark/5">
-                        <div className="bg-brand-dark text-white p-4 rounded-2xl shadow-md h-full flex flex-col justify-center border border-brand-dark/10">
-                          <p className="font-bold text-sm tracking-tight text-brand-gold">{appt.service}</p>
-                          <p className="text-[11px] opacity-80 mt-1 uppercase font-medium">{appt.client}</p>
-                        </div>
+                      <div key={dayIndex} className="p-1 border-l border-slate-100 min-h-[80px] bg-brand-dark/5 relative">
+                        {slotAppointments.map((appt, i) => (
+                          <div 
+                            key={appt.id}
+                            className="absolute inset-x-1 bg-brand-dark text-white p-2 rounded-xl shadow-md flex flex-col justify-center border border-brand-dark/10 overflow-hidden"
+                            style={{ 
+                              top: `${i * 4 + 4}px`, // Slight offset if multiple appts start at the same time (rare but possible)
+                              height: `${(appt.duration / 30) * 80 - 8}px`,
+                              zIndex: 20
+                            }}
+                          >
+                            <p className="font-bold text-[10px] sm:text-xs leading-tight tracking-tight text-brand-gold truncate">{appt.service}</p>
+                            <p className="text-[9px] sm:text-[10px] opacity-80 mt-0.5 uppercase font-medium truncate">{appt.client}</p>
+                            <p className="text-[8px] opacity-60 mt-0.5 font-mono">{appt.start} ({appt.duration}min)</p>
+                          </div>
+                        ))}
                       </div>
                     );
                   }
@@ -470,7 +517,7 @@ export function AdminDashboardPage() {
                   const isOffHours = isClosed(date, hour);
                   if (isOffHours) {
                     return (
-                      <div key={dayIndex} className="p-3 border-l border-slate-100 min-h-[120px] bg-closed flex flex-col items-center justify-center opacity-60">
+                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[80px] transition-colors relative group/cell flex items-center justify-center opacity-60">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Fechado</span>
                       </div>
                     );

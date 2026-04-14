@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { useUser } from "@clerk/react";
+import { useUser, useClerk } from "@clerk/react";
 import { 
   fetchServices, 
   fetchAppointments,
@@ -16,6 +16,7 @@ import {
 
 export function ServiceSelectionPage() {
   const { user, isLoaded } = useUser();
+  const { redirectToSignIn } = useClerk();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -159,7 +160,41 @@ export function ServiceSelectionPage() {
     }
   }, [dates, selectedDate]);
 
-  const timeSlots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
+  // Generate 30-minute time slots dynamically based on opening hours
+  const timeSlots = useMemo(() => {
+    if (!profile || openingHours.length === 0) {
+      // Default fallback range
+      const slots = [];
+      for (let h = 9; h < 19; h++) {
+        slots.push(`${String(h).padStart(2, '0')}:00`);
+        slots.push(`${String(h).padStart(2, '0')}:30`);
+      }
+      return slots;
+    }
+
+    // Use the maximum range across all days
+    let minHour = 24;
+    let maxHour = 0;
+
+    openingHours.filter(oh => oh.is_open).forEach(oh => {
+      const startH = parseInt(oh.work_start.split(':')[0]);
+      const endH = parseInt(oh.work_end.split(':')[0]);
+      if (startH < minHour) minHour = startH;
+      if (endH > maxHour) maxHour = endH;
+    });
+
+    if (maxHour <= minHour) {
+      minHour = 9;
+      maxHour = 19;
+    }
+
+    const slots = [];
+    for (let h = minHour; h < maxHour; h++) {
+      slots.push(`${String(h).padStart(2, '0')}:00`);
+      slots.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    return slots;
+  }, [profile, openingHours]);
 
   const getTimeSlotStatus = (time: string): 'available' | 'closed' | 'blocked' | 'occupied' => {
     if (!selectedDate) return 'closed';
@@ -210,23 +245,26 @@ export function ServiceSelectionPage() {
     // 4. Existing appointments
     const hasAppt = appointments.some(app => {
       const appDate = new Date(app.date_time);
-      const formatter = new Intl.DateTimeFormat('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      });
+      const appYear = appDate.getFullYear();
+      const appMonth = appDate.getMonth();
+      const appDay = appDate.getDate();
+      const appHour = appDate.getHours();
+      const appMinute = appDate.getMinutes();
       
-      const parts = formatter.formatToParts(appDate);
-      const appYear = parseInt(parts.find(p => p.type === 'year')!.value, 10);
-      const appMonth = parseInt(parts.find(p => p.type === 'month')!.value, 10) - 1;
-      const appDay = parseInt(parts.find(p => p.type === 'day')!.value, 10);
-      const appHour = parseInt(parts.find(p => p.type === 'hour')!.value, 10);
-      const appMinute = parseInt(parts.find(p => p.type === 'minute')!.value, 10);
+      // Check for overlap based on duration
+      const appStartVal = appHour * 60 + appMinute;
       
+      const appService = services.find(s => s.id === app.service);
+      const duration = appService ? appService.duration_minutes : 30;
+      const appEndVal = appStartVal + duration;
+
       const dateMatch = appYear === dateObjRec.year &&
                         appMonth === monthNames.indexOf(dateObjRec.month) &&
                         appDay === parseInt(dateObjRec.day, 10);
-      const timeMatch = appHour === h && appMinute === m;
+      
+      // A slot is occupied if it falls within the appointment range [start, end)
+      const timeMatch = timeVal >= appStartVal && timeVal < appEndVal;
+      
       return dateMatch && timeMatch;
     });
 
@@ -236,6 +274,14 @@ export function ServiceSelectionPage() {
   };
 
   const handleNext = () => {
+    if (!user) {
+      redirectToSignIn({
+        signInFallbackRedirectUrl: window.location.href,
+        signUpFallbackRedirectUrl: window.location.href,
+      });
+      return;
+    }
+
     navigate(`/book/confirm${requestedUserId ? `?u=${requestedUserId}` : ""}`, { 
       state: { 
         service: selectedService, 
