@@ -13,4 +13,10 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
+try:
+    from core.telemetry import setup_telemetry
+    setup_telemetry()
+except ImportError:
+    pass
+
 application = get_wsgi_application()

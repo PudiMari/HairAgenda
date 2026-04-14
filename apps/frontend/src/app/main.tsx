@@ -1,6 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { initTelemetry } from '../lib/opentelemetry';
+
+initTelemetry();
+
 import { RootLayout } from '../components/layout/RootLayout';
 import '../index.css';
 

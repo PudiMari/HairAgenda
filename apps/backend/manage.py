@@ -15,6 +15,13 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+    
+    try:
+        from core.telemetry import setup_telemetry
+        setup_telemetry()
+    except ImportError:
+        pass
+        
     execute_from_command_line(sys.argv)
 
 

@@ -22,11 +22,20 @@ services:
       - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - SECRET_KEY=${DJANGO_SECRET_KEY}
       - DEBUG=True
+      - OTEL_PYTHON_DJANGO_INSTRUMENT=True
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     depends_on:
       - db
     volumes:
       - ./apps/backend:/app/apps/backend
       - /app/apps/backend/node_modules
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
 
   frontend:
     build:
@@ -38,6 +47,7 @@ services:
       - VITE_API_URL=http://localhost:${BACKEND_PORT}
     depends_on:
       - backend
+      - jaeger
     volumes:
       - ./apps/frontend:/app/apps/frontend
       - /app/apps/frontend/node_modules

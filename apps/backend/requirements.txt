@@ -13,3 +13,10 @@ whitenoise==6.12.0
 flake8==7.1.1
 dj-database-url==2.3.0
 psycopg2-binary==2.9.10
+opentelemetry-api==1.25.0
+opentelemetry-sdk==1.25.0
+opentelemetry-exporter-otlp==1.25.0
+opentelemetry-instrumentation-django==0.46b0
+opentelemetry-instrumentation-psycopg2==0.46b0
+opentelemetry-instrumentation-requests==0.46b0
+python-json-logger==2.0.7
