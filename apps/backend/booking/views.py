@@ -42,7 +42,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(professional__user_id=professional_id)
             else:
                 queryset = queryset.filter(professional_id=professional_id)
-        
+
         if client_id:
             queryset = queryset.filter(client_user_id=client_id)
 
