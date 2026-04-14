@@ -47,7 +47,13 @@ export function ProfilePage() {
       if (!isLoaded) return;
       setLoading(true);
       try {
-        const userIdToFetch = requestedUserId || user?.id;
+        const userRole = user?.unsafeMetadata?.role || user?.publicMetadata?.role;
+        const isProfessional = userRole === 'admin';
+        
+        // We only fetch professional data if:
+        // 1. We're explicitly viewing someone else's profile (requestedUserId is present)
+        // 2. We're an admin viewing our own profile (dashboard)
+        const userIdToFetch = requestedUserId || (isProfessional ? user?.id : null);
         
         // Parallel fetch for profile/services and client appointments if logged in
         const promises: Promise<any>[] = [];

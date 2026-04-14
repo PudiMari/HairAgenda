@@ -21,7 +21,10 @@ class ServiceViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         professional_id = self.request.query_params.get('professional_id')
         if professional_id:
-            queryset = queryset.filter(professional_id=professional_id)
+            if str(professional_id).startswith('user_'):
+                queryset = queryset.filter(professional__user_id=professional_id)
+            else:
+                queryset = queryset.filter(professional_id=professional_id)
         return queryset
 
 
@@ -35,7 +38,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         client_id = self.request.query_params.get('client_id')
 
         if professional_id:
-            queryset = queryset.filter(professional_id=professional_id)
+            if str(professional_id).startswith('user_'):
+                queryset = queryset.filter(professional__user_id=professional_id)
+            else:
+                queryset = queryset.filter(professional_id=professional_id)
+        
         if client_id:
             queryset = queryset.filter(client_user_id=client_id)
 
@@ -75,7 +82,10 @@ class OpeningHourViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         professional_id = self.request.query_params.get('professional_id')
         if professional_id:
-            queryset = queryset.filter(professional_id=professional_id)
+            if str(professional_id).startswith('user_'):
+                queryset = queryset.filter(professional__user_id=professional_id)
+            else:
+                queryset = queryset.filter(professional_id=professional_id)
         return queryset
 
 
@@ -87,5 +97,8 @@ class ProfessionalBlockViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         professional_id = self.request.query_params.get('professional_id')
         if professional_id:
-            queryset = queryset.filter(professional_id=professional_id)
+            if str(professional_id).startswith('user_'):
+                queryset = queryset.filter(professional__user_id=professional_id)
+            else:
+                queryset = queryset.filter(professional_id=professional_id)
         return queryset
