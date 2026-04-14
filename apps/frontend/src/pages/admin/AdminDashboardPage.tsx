@@ -9,7 +9,11 @@ import {
   X, 
   CheckCircle2, 
   Plus,
-  Loader2
+  Loader2,
+  Phone,
+  Scissors,
+  User,
+  DollarSign
 } from "lucide-react";
 import { 
   fetchServices, 
@@ -52,6 +56,10 @@ export function AdminDashboardPage() {
   // States for Modals
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [selectedAppointmentDetail, setSelectedAppointmentDetail] = useState<{
+    id: string; date: string; start: string; duration: number;
+    service: string; client: string; whatsapp: string; price: number; status: string;
+  } | null>(null);
   
   // Data State
   const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
@@ -80,6 +88,7 @@ export function AdminDashboardPage() {
         duration: serviceObj ? serviceObj.duration_minutes : 30,
         service: serviceObj ? serviceObj.name : "Serviço",
         client: appt.client_name,
+        whatsapp: appt.client_whatsapp || '',
         price: serviceObj ? parseFloat(serviceObj.price) : 0,
         status: appt.status
       };
@@ -515,9 +524,10 @@ export function AdminDashboardPage() {
                         {slotAppointments.map((appt, i) => (
                           <div 
                             key={appt.id}
-                            className="absolute inset-x-1 bg-brand-dark text-white p-2 rounded-xl shadow-md flex flex-col justify-center border border-brand-dark/10 overflow-hidden"
+                            onClick={() => setSelectedAppointmentDetail(appt)}
+                            className="absolute inset-x-1 bg-brand-dark text-white p-2 rounded-xl shadow-md flex flex-col justify-center border border-brand-dark/10 overflow-hidden cursor-pointer hover:bg-brand-dark/80 transition-colors"
                             style={{ 
-                              top: `${i * 4 + 4}px`, // Slight offset if multiple appts start at the same time (rare but possible)
+                              top: `${i * 4 + 4}px`,
                               height: `${(appt.duration / 30) * 100 - 8}px`,
                               zIndex: 20
                             }}
@@ -571,6 +581,139 @@ export function AdminDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Appointment Detail Modal */}
+      {selectedAppointmentDetail && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-brand-dark/70 backdrop-blur-sm p-4"
+          onClick={() => setSelectedAppointmentDetail(null)}
+        >
+          <div 
+            className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-brand-dark px-6 py-5 flex justify-between items-start">
+              <div>
+                <p className="text-brand-gold text-[10px] font-bold uppercase tracking-widest mb-1">Agendamento</p>
+                <h2 className="text-white text-lg font-bold leading-tight">{selectedAppointmentDetail.service}</h2>
+              </div>
+              <button 
+                onClick={() => setSelectedAppointmentDetail(null)}
+                className="text-white/50 hover:text-white transition-colors mt-0.5"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {/* Status Badge */}
+              <div className="flex items-center justify-between">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+                  selectedAppointmentDetail.status === 'confirmed'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : selectedAppointmentDetail.status === 'cancelled'
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-amber-100 text-amber-700'
+                }`}>
+                  <Circle size={6} fill="currentColor" />
+                  {selectedAppointmentDetail.status === 'confirmed' ? 'Confirmado'
+                    : selectedAppointmentDetail.status === 'cancelled' ? 'Cancelado'
+                    : 'Pendente'}
+                </span>
+                <span className="text-slate-400 text-xs font-mono">{selectedAppointmentDetail.date}</span>
+              </div>
+
+              {/* Info rows */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
+                  <div className="p-2 bg-white rounded-xl shadow-sm text-brand-dark">
+                    <User size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Cliente</p>
+                    <p className="text-sm font-bold text-brand-dark">{selectedAppointmentDetail.client}</p>
+                  </div>
+                </div>
+
+                {selectedAppointmentDetail.whatsapp && (
+                  <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
+                    <div className="p-2 bg-white rounded-xl shadow-sm text-emerald-600">
+                      <Phone size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">WhatsApp</p>
+                      <a 
+                        href={`https://wa.me/55${selectedAppointmentDetail.whatsapp.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-bold text-emerald-600 hover:underline"
+                      >
+                        {selectedAppointmentDetail.whatsapp}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
+                  <div className="p-2 bg-white rounded-xl shadow-sm text-brand-dark">
+                    <Clock size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Horário</p>
+                    <p className="text-sm font-bold text-brand-dark">
+                      {selectedAppointmentDetail.start} &mdash; {(() => {
+                        const [h, m] = selectedAppointmentDetail.start.split(':').map(Number);
+                        const endMin = h * 60 + m + selectedAppointmentDetail.duration;
+                        return `${String(Math.floor(endMin / 60)).padStart(2,'0')}:${String(endMin % 60).padStart(2,'0')}`;
+                      })()} <span className="text-slate-400 font-normal">({selectedAppointmentDetail.duration}min)</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
+                  <div className="p-2 bg-white rounded-xl shadow-sm text-brand-gold">
+                    <Scissors size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Serviço</p>
+                    <p className="text-sm font-bold text-brand-dark">{selectedAppointmentDetail.service}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
+                  <div className="p-2 bg-white rounded-xl shadow-sm text-emerald-600">
+                    <DollarSign size={16} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Valor</p>
+                    <p className="text-sm font-bold text-brand-dark">
+                      R$ {selectedAppointmentDetail.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer actions */}
+            {selectedAppointmentDetail.status !== 'cancelled' && (
+              <div className="px-6 pb-6">
+                <button
+                  onClick={() => {
+                    handleCancelAppointment(parseInt(selectedAppointmentDetail.id));
+                    setSelectedAppointmentDetail(null);
+                  }}
+                  className="w-full py-3 rounded-2xl border-2 border-red-200 text-red-500 font-bold text-sm hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <X size={16} />
+                  Cancelar Agendamento
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Block Modal */}
       {isBlockModalOpen && (
