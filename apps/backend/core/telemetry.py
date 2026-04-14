@@ -9,6 +9,7 @@ from opentelemetry.instrumentation.django import DjangoInstrumentor
 from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
+
 class OpenTelemetryLogFilter(logging.Filter):
     def filter(self, record):
         span = trace.get_current_span()
@@ -21,6 +22,7 @@ class OpenTelemetryLogFilter(logging.Filter):
             record.span_id = ""
         return True
 
+
 def setup_telemetry():
     if os.environ.get("OTEL_PYTHON_DJANGO_INSTRUMENT", "False") != "True":
         return
@@ -32,7 +34,7 @@ def setup_telemetry():
 
     resource = Resource.create({"service.name": "hairagenda-backend"})
     provider = TracerProvider(resource=resource)
-    
+
     endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://jaeger:4317")
     exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
     processor = BatchSpanProcessor(exporter)
