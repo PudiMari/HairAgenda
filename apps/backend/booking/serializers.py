@@ -1,3 +1,4 @@
+from django.utils import timezone
 from datetime import timedelta
 from rest_framework import serializers
 from .models import (
@@ -33,7 +34,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
             return data
 
         day_index = date_time.weekday()
-        appointment_time = date_time.time()
+        
+        # Convert to local time (America/Sao_Paulo) before extracting the time component
+        local_date_time = timezone.localtime(date_time)
+        appointment_time = local_date_time.time()
 
         try:
             opening_hour = OpeningHour.objects.get(
