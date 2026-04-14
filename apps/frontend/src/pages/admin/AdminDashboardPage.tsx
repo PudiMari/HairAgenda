@@ -247,6 +247,30 @@ export function AdminDashboardPage() {
     setIsAppointmentModalOpen(true);
   };
 
+  const isClosed = (date: Date, hour: string) => {
+    const jsDay = date.getDay(); // 0 (Sun) to 6 (Sat)
+    const apiDay = jsDay === 0 ? 6 : jsDay - 1; // 0 (Mon) to 6 (Sun)
+    
+    // schedule is sorted by day_of_week at line 105
+    const daySchedule = schedule[apiDay];
+
+    if (!daySchedule || !daySchedule.isOpen) return true;
+
+    const [h] = hour.split(':').map(Number);
+    const [startH] = daySchedule.workStart.split(':').map(Number);
+    const [endH] = daySchedule.workEnd.split(':').map(Number);
+    const [lunchStartH] = daySchedule.lunchStart.split(':').map(Number);
+    const [lunchEndH] = daySchedule.lunchEnd.split(':').map(Number);
+
+    // Outside work hours
+    if (h < startH || h >= endH) return true;
+    
+    // Lunch break
+    if (h >= lunchStartH && h < lunchEndH) return true;
+
+    return false;
+  };
+
   // Generate dynamic hours based on schedule
   const hours = useMemo(() => {
     if (!schedule || schedule.length === 0) {
@@ -438,6 +462,16 @@ export function AdminDashboardPage() {
                           <p className="font-bold text-sm tracking-tight text-brand-gold">{appt.service}</p>
                           <p className="text-[11px] opacity-80 mt-1 uppercase font-medium">{appt.client}</p>
                         </div>
+                      </div>
+                    );
+                  }
+
+                  // Check if it's outside work hours or lunch
+                  const isOffHours = isClosed(date, hour);
+                  if (isOffHours) {
+                    return (
+                      <div key={dayIndex} className="p-3 border-l border-slate-100 min-h-[120px] bg-closed flex flex-col items-center justify-center opacity-60">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Fechado</span>
                       </div>
                     );
                   }

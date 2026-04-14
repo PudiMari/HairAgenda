@@ -12,3 +12,14 @@
     @apply bg-brand-light text-brand-dark font-sans antialiased;
   }
 }
+
+.bg-closed {
+  background-color: #f8fafc;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 10px,
+    rgba(226, 232, 240, 0.4) 10px,
+    rgba(226, 232, 240, 0.4) 20px
+  );
+}

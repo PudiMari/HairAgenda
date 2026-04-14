@@ -161,19 +161,18 @@ export function ServiceSelectionPage() {
 
   const timeSlots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
 
-  const isTimeSlotAvailable = (time: string) => {
-    if (!selectedDate) return false;
+  const getTimeSlotStatus = (time: string): 'available' | 'closed' | 'blocked' | 'occupied' => {
+    if (!selectedDate) return 'closed';
     
     const dateObjRec = dates.find(d => d.fullDate === selectedDate);
-    if (!dateObjRec) return false;
+    if (!dateObjRec) return 'closed';
     
     const jsDay = dateObjRec.dateObj.getDay();
     const apiDay = jsDay === 0 ? 6 : jsDay - 1;
     const dayConfig = openingHours.find(oh => oh.day_of_week === apiDay);
     
-    if (!dayConfig || !dayConfig.is_open) return false;
+    if (!dayConfig || !dayConfig.is_open) return 'closed';
 
-    // Check if time is within work hours and NOT in lunch break
     const [h, m] = time.split(":").map(Number);
     const timeVal = h * 60 + m;
 
@@ -189,13 +188,13 @@ export function ServiceSelectionPage() {
     const [leH, leM] = dayConfig.lunch_end.split(":").map(Number);
     const lunchEndVal = leH * 60 + leM;
 
-    // Must be within work hours
-    if (timeVal < workStartVal || timeVal >= workEndVal) return false;
+    // 1. Outside work hours
+    if (timeVal < workStartVal || timeVal >= workEndVal) return 'closed';
 
-    // Must NOT be within lunch break
-    if (timeVal >= lunchStartVal && timeVal < lunchEndVal) return false;
+    // 2. Lunch break
+    if (timeVal >= lunchStartVal && timeVal < lunchEndVal) return 'closed';
 
-    // Check ProfessionalBlocks (Partial blocks)
+    // 3. ProfessionalBlocks (Partial blocks)
     const dateStr = dateObjRec.dateObj.toISOString().split('T')[0];
     const isBlockedByPartial = blocks.some(b => {
       if (b.date !== dateStr || b.start_time === null || b.end_time === null) return false;
@@ -206,27 +205,20 @@ export function ServiceSelectionPage() {
       return timeVal >= blockStartVal && timeVal < blockEndVal;
     });
 
-    if (isBlockedByPartial) return false;
+    if (isBlockedByPartial) return 'blocked';
 
-    // Check existing appointments
-    const [hours, minutes] = time.split(":").map(n => parseInt(n, 10));
-    
-    return !appointments.some(app => {
+    // 4. Existing appointments
+    const hasAppt = appointments.some(app => {
       const appDate = new Date(app.date_time);
-      
       const formatter = new Intl.DateTimeFormat('pt-BR', {
         timeZone: 'America/Sao_Paulo',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false
       });
       
       const parts = formatter.formatToParts(appDate);
       const appYear = parseInt(parts.find(p => p.type === 'year')!.value, 10);
-      const appMonth = parseInt(parts.find(p => p.type === 'month')!.value, 10) - 1; // 0-indexed
+      const appMonth = parseInt(parts.find(p => p.type === 'month')!.value, 10) - 1;
       const appDay = parseInt(parts.find(p => p.type === 'day')!.value, 10);
       const appHour = parseInt(parts.find(p => p.type === 'hour')!.value, 10);
       const appMinute = parseInt(parts.find(p => p.type === 'minute')!.value, 10);
@@ -234,11 +226,13 @@ export function ServiceSelectionPage() {
       const dateMatch = appYear === dateObjRec.year &&
                         appMonth === monthNames.indexOf(dateObjRec.month) &&
                         appDay === parseInt(dateObjRec.day, 10);
-                        
-      const timeMatch = appHour === hours && appMinute === minutes;
-      
+      const timeMatch = appHour === h && appMinute === m;
       return dateMatch && timeMatch;
     });
+
+    if (hasAppt) return 'occupied';
+
+    return 'available';
   };
 
   const handleNext = () => {
@@ -399,12 +393,20 @@ export function ServiceSelectionPage() {
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {timeSlots.map((time, idx) => {
               const isSelected = selectedTime === time;
-              const available = isTimeSlotAvailable(time);
+              const status = getTimeSlotStatus(time);
               
-              if (!available) {
+              if (status !== 'available') {
+                const label = status === 'closed' ? 'Fechado' : 'Ocupado';
                 return (
-                  <button key={idx} disabled className="py-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 font-bold text-sm opacity-50 cursor-not-allowed">
-                    {time}
+                  <button 
+                    key={idx} 
+                    disabled 
+                    className={`py-3 rounded-lg border border-slate-200 font-bold text-xs opacity-50 cursor-not-allowed flex flex-col items-center justify-center transition-all ${
+                      status === 'closed' ? "bg-closed" : "bg-slate-50 text-slate-400"
+                    }`}
+                  >
+                    <span>{time}</span>
+                    <span className="text-[8px] uppercase tracking-tighter mt-0.5">{label}</span>
                   </button>
                 );
               }
