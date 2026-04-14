@@ -34,7 +34,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             return data
 
         day_index = date_time.weekday()
-        
+
         # Convert to local time (America/Sao_Paulo) before extracting the time component
         local_date_time = timezone.localtime(date_time)
         appointment_time = local_date_time.time()
