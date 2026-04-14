@@ -106,36 +106,41 @@ export function BookingConfirmationPage() {
         'Jan': '01', 'Fev': '02', 'Mar': '03', 'Abr': '04', 'Mai': '05', 'Jun': '06',
         'Jul': '07', 'Ago': '08', 'Set': '09', 'Out': '10', 'Nov': '11', 'Dez': '12'
       };
-      
+
       const [dayToken, monthToken] = date.split(" ");
       const monthNum = monthMap[monthToken] || "01";
       const dayNum = dayToken.padStart(2, '0');
-      
+
       const dateTimeIso = `${currentYear}-${monthNum}-${dayNum}T${time}:00-03:00`;
-      
+
       // Resolve Professional ID (Database Primary Key)
-      let finalProfessionalId: number | undefined = passedProfessionalId;
+      // Primary: fetch profile from URL param (most reliable, doesn't depend on navigation state)
+      let finalProfessionalId: number | undefined = undefined;
 
-      // Fallback 1: Check if service object has it (unlikely with recent changes but good for safety)
-      if (!finalProfessionalId && service?.professional) {
-        finalProfessionalId = typeof service.professional === 'number' 
-          ? service.professional 
-          : parseInt(service.professional, 10);
-      }
-
-      // Fallback 2: If we have a requestedUserId (Clerk ID), fetch the profile to get the DB ID
-      if (!finalProfessionalId && requestedUserId) {
-        console.log("[Booking] Missing DB ID, attempting lookup for Clerk ID:", requestedUserId);
+      if (requestedUserId) {
+        console.log("[Booking] Resolving professional from URL param:", requestedUserId);
         const { fetchProfessionalProfile } = await import("../../lib/api");
-        const profile = await fetchProfessionalProfile(requestedUserId);
-        if (profile?.id) {
-          finalProfessionalId = profile.id;
+        const fetchedProfile = await fetchProfessionalProfile(requestedUserId);
+        if (fetchedProfile?.id) {
+          finalProfessionalId = fetchedProfile.id;
+          console.log("[Booking] Resolved professional DB ID:", finalProfessionalId);
         }
       }
 
-      if (!finalProfessionalId || isNaN(finalProfessionalId)) {
+      // Fallback: use the DB ID passed via navigation state
+      if (!finalProfessionalId && passedProfessionalId) {
+        const numericId = typeof passedProfessionalId === 'number'
+          ? passedProfessionalId
+          : parseInt(String(passedProfessionalId), 10);
+        if (!isNaN(numericId)) {
+          finalProfessionalId = numericId;
+          console.log("[Booking] Using passed professional DB ID:", finalProfessionalId);
+        }
+      }
+
+      if (!finalProfessionalId) {
         console.error("[Booking] Could not resolve a valid Professional ID. State:", { passedProfessionalId, requestedUserId, service });
-        throw new Error("Não foi possível identificar o profissional para este agendamento.");
+        throw new Error("Não foi possível identificar o profissional para este agendamento. Volte e tente novamente.");
       }
 
       await createAppointment({
@@ -157,6 +162,7 @@ export function BookingConfirmationPage() {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="flex-1 max-w-[520px] mx-auto w-full pb-20">
