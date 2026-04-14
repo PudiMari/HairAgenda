@@ -76,6 +76,20 @@ export const createAppointment = async (payload: AppointmentPayload) => {
   console.log("[API] Appointment created successfully:", data);
   return data;
 };
+
+export const updateAppointmentStatus = async (id: number, status: string) => {
+  const response = await fetch(`${API_URL}/api/appointments/${id}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.detail || 'Erro ao atualizar status');
+  }
+  return response.json();
+};
+
 export const createService = async (service: Omit<Service, 'id'>) => {
   const response = await fetch(`${API_URL}/api/services/`, {
     method: 'POST',

@@ -18,6 +18,7 @@ import {
   createProfessionalBlock,
   deleteProfessionalBlock,
   fetchOpeningHours,
+  updateAppointmentStatus,
   Service as APIService,
   ProfessionalBlock,
   OpeningHour
@@ -78,52 +79,53 @@ export function AdminDashboardPage() {
         duration: serviceObj ? serviceObj.duration_minutes : 30, // Fallback to 30 mins
         service: serviceObj ? serviceObj.name : "Serviço",
         client: appt.client_name,
-        price: serviceObj ? parseFloat(serviceObj.price) : 0
+        price: serviceObj ? parseFloat(serviceObj.price) : 0,
+        status: appt.status
       };
     });
   }, [apiAppointments, apiServices]);
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      if (!profile) return;
+  async function loadDashboardData() {
+    if (!profile) return;
+    
+    setDataLoading(true);
+    try {
+      const [servicesData, appointmentsData, blocksData, openingHoursData] = await Promise.all([
+        fetchServices(profile.id),
+        fetchAppointments({ professionalId: profile.id }),
+        fetchProfessionalBlocks(profile.id),
+        fetchOpeningHours(profile.id)
+      ]);
+
+      console.log(`[Dashboard] Fetched ${servicesData.length} services and ${appointmentsData.length} appointments for professional ${profile.id}`);
+      setApiServices(servicesData);
+      setApiAppointments(appointmentsData);
+      setBlocks(blocksData);
+
+      // Map OpeningHour[] to ScheduleDay[]
+      // Backend: 0=Segunda, 1=Terça, ..., 6=Domingo
+      const dayNames = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+      const mappedSchedule: ScheduleDay[] = openingHoursData
+        .sort((a: OpeningHour, b: OpeningHour) => a.day_of_week - b.day_of_week)
+        .map((oh: OpeningHour) => ({
+          id: oh.id.toString(),
+          dayName: dayNames[oh.day_of_week],
+          isOpen: oh.is_open,
+          workStart: oh.work_start.substring(0, 5),
+          workEnd: oh.work_end.substring(0, 5),
+          lunchStart: oh.lunch_start.substring(0, 5),
+          lunchEnd: oh.lunch_end.substring(0, 5)
+        }));
       
-      setDataLoading(true);
-      try {
-        const [servicesData, appointmentsData, blocksData, openingHoursData] = await Promise.all([
-          fetchServices(profile.id),
-          fetchAppointments({ professionalId: profile.id }),
-          fetchProfessionalBlocks(profile.id),
-          fetchOpeningHours(profile.id)
-        ]);
-
-        console.log(`[Dashboard] Fetched ${servicesData.length} services and ${appointmentsData.length} appointments for professional ${profile.id}`);
-        setApiServices(servicesData);
-        setApiAppointments(appointmentsData);
-        setBlocks(blocksData);
-
-        // Map OpeningHour[] to ScheduleDay[]
-        // Backend: 0=Segunda, 1=Terça, ..., 6=Domingo
-        const dayNames = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
-        const mappedSchedule: ScheduleDay[] = openingHoursData
-          .sort((a: OpeningHour, b: OpeningHour) => a.day_of_week - b.day_of_week)
-          .map((oh: OpeningHour) => ({
-            id: oh.id.toString(),
-            dayName: dayNames[oh.day_of_week],
-            isOpen: oh.is_open,
-            workStart: oh.work_start.substring(0, 5),
-            workEnd: oh.work_end.substring(0, 5),
-            lunchStart: oh.lunch_start.substring(0, 5),
-            lunchEnd: oh.lunch_end.substring(0, 5)
-          }));
-        
-        setSchedule(mappedSchedule);
-      } catch (err) {
-        console.error("Erro ao carregar dados do dashboard:", err);
-      } finally {
-        setDataLoading(false);
-      }
+      setSchedule(mappedSchedule);
+    } catch (err) {
+      console.error("Erro ao carregar dados do dashboard:", err);
+    } finally {
+      setDataLoading(false);
     }
+  }
 
+  useEffect(() => {
     if (profile) {
       loadDashboardData();
     }
@@ -227,11 +229,23 @@ export function AdminDashboardPage() {
   };
 
   const handleDeleteBlock = async (id: number) => {
+    if (!window.confirm("Remover este bloqueio?")) return;
     try {
       await deleteProfessionalBlock(id);
-      setBlocks(blocks.filter(b => b.id !== id));
-    } catch (error) {
-      console.error("Erro ao deletar bloqueio:", error);
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCancelAppointment = async (id: number) => {
+    if (!window.confirm("Deseja cancelar este agendamento?")) return;
+    try {
+      await updateAppointmentStatus(id, 'cancelled');
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao cancelar agendamento.");
     }
   };
 
@@ -466,7 +480,7 @@ export function AdminDashboardPage() {
 
                   if (block) {
                     return (
-                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[80px] bg-slate-50/50 flex items-center justify-center relative group/block">
+                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[100px] bg-slate-50/50 flex items-center justify-center relative group/block">
                          <div className="border border-slate-200 text-slate-400 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border-dashed bg-white shadow-sm">
                             Bloqueado
                          </div>
@@ -486,6 +500,7 @@ export function AdminDashboardPage() {
                   // Check for appointments
                   const slotAppointments = appointments.filter(a => {
                     if (a.date !== dateStr) return false;
+                    if (a.status?.toLowerCase() === 'cancelled') return false;
                     const [sh, sm] = hour.split(':').map(Number);
                     const sTime = sh * 60 + sm;
                     // Match if appointment starts within this 30-minute window
@@ -494,20 +509,31 @@ export function AdminDashboardPage() {
 
                   if (slotAppointments.length > 0) {
                     return (
-                      <div key={dayIndex} className="p-1 border-l border-slate-100 min-h-[80px] bg-brand-dark/5 relative">
+                      <div key={dayIndex} className="p-1 border-l border-slate-100 min-h-[100px] bg-brand-dark/5 relative">
                         {slotAppointments.map((appt, i) => (
                           <div 
                             key={appt.id}
                             className="absolute inset-x-1 bg-brand-dark text-white p-2 rounded-xl shadow-md flex flex-col justify-center border border-brand-dark/10 overflow-hidden"
                             style={{ 
                               top: `${i * 4 + 4}px`, // Slight offset if multiple appts start at the same time (rare but possible)
-                              height: `${(appt.duration / 30) * 80 - 8}px`,
+                              height: `${(appt.duration / 30) * 100 - 8}px`,
                               zIndex: 20
                             }}
                           >
                             <p className="font-bold text-[10px] sm:text-xs leading-tight tracking-tight text-brand-gold truncate">{appt.service}</p>
                             <p className="text-[9px] sm:text-[10px] opacity-80 mt-0.5 uppercase font-medium truncate">{appt.client}</p>
                             <p className="text-[8px] opacity-60 mt-0.5 font-mono">{appt.start} ({appt.duration}min)</p>
+                            
+                            {/* Cancel Button */}
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCancelAppointment(parseInt(appt.id));
+                              }}
+                              className="absolute top-1 right-1 p-1 text-white/50 hover:text-white transition-colors"
+                            >
+                              <X size={12} />
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -518,17 +544,17 @@ export function AdminDashboardPage() {
                   const isOffHours = isClosed(date, hour);
                   if (isOffHours) {
                     return (
-                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[80px] transition-colors relative group/cell flex items-center justify-center opacity-60">
+                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[100px] transition-colors relative group/cell flex items-center justify-center opacity-60">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Fechado</span>
                       </div>
                     );
                   }
 
                   return (
-                    <div 
-                      key={dayIndex} 
-                      className="p-3 border-l border-slate-100 min-h-[120px] hover:bg-slate-50/50 transition-colors cursor-pointer group/cell relative"
-                    >
+                      <div 
+                        key={dayIndex} 
+                        className="p-3 border-l border-slate-100 min-h-[100px] hover:bg-slate-50/50 transition-colors cursor-pointer group/cell relative"
+                      >
                       <button 
                         onClick={() => handlePlusClick(date, hour)}
                         className="absolute inset-0 w-full h-full flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-opacity"

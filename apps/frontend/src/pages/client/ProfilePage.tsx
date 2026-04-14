@@ -190,9 +190,7 @@ export function ProfilePage() {
                 alt={user.fullName || "Perfil"}
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold border-2 border-brand-gold/20">
-                <User size={32} />
-              </div>
+              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 border-2 border-white shadow-inner shrink-0" />
             )}
             <div>
               <h1 className="text-xl font-bold text-brand-dark">Olá, {user?.firstName || 'visitante'}! 👋</h1>

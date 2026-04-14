@@ -48,10 +48,10 @@ export function RootLayout() {
             {isLoaded && user ? (
               <div className="flex items-center gap-4">
                 <button 
-                  onClick={() => navigate('/my-bookings')}
+                  onClick={() => navigate(user?.unsafeMetadata?.role === 'admin' || user?.publicMetadata?.role === 'admin' ? '/admin' : '/my-bookings')}
                   className="hidden sm:block text-sm font-bold text-slate-600 hover:text-brand-dark transition-colors"
                 >
-                  Meus Agendamentos
+                  {user?.unsafeMetadata?.role === 'admin' || user?.publicMetadata?.role === 'admin' ? 'Dashboard' : 'Meus Agendamentos'}
                 </button>
                 <div className="h-8 w-px bg-slate-200 hidden sm:block" />
                 <UserButton 

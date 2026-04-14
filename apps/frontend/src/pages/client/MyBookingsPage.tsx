@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Calendar, Clock, Scissors, ChevronRight, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/react";
-import { fetchAppointments } from "../../lib/api";
+import { fetchAppointments, updateAppointmentStatus } from "../../lib/api";
 
 export function MyBookingsPage() {
   const navigate = useNavigate();
@@ -12,25 +12,39 @@ export function MyBookingsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function loadBookings() {
-      if (!isLoaded || !user) {
-        setLoading(false);
-        return;
-      }
-      
-      setLoading(true);
-      try {
-        const data = await fetchAppointments({ clientId: user.id });
-        setBookings(data);
-      } catch (err) {
-        setError("Não foi possível carregar seus agendamentos.");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadBookings();
   }, [user, isLoaded]);
+
+  async function loadBookings() {
+    if (!isLoaded || !user) {
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const data = await fetchAppointments({ clientId: user.id });
+      setBookings(data);
+    } catch (err) {
+      setError("Não foi possível carregar seus agendamentos.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleCancel = async (bookingId: number) => {
+    if (!window.confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+    
+    try {
+      await updateAppointmentStatus(bookingId, 'cancelled');
+      await loadBookings();
+      alert("Agendamento cancelado com sucesso.");
+    } catch (err) {
+      alert("Erro ao cancelar agendamento. Tente novamente.");
+      console.error(err);
+    }
+  };
 
   return (
     <div className="w-full max-w-[600px] mx-auto flex flex-col min-h-[calc(100vh-80px)] bg-slate-50/50">
@@ -100,13 +114,37 @@ export function MyBookingsPage() {
                   
                   <div className="flex flex-col items-end gap-2">
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                      booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                      booking.status === 'CONFIRMED' || booking.status === 'confirmed' ? 'bg-green-100 text-green-700' : 
+                      booking.status === 'CANCELLED' || booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                      'bg-amber-100 text-amber-700'
                     }`}>
-                      {booking.status === 'PENDING' ? 'Pendente' : 'Confirmado'}
+                      {booking.status?.toLowerCase() === 'pending' ? 'Pendente' : 
+                       booking.status?.toLowerCase() === 'cancelled' ? 'Cancelado' :
+                       'Confirmado'}
                     </span>
                     <span className="text-sm font-bold text-brand-dark">R$ {booking.service_price || '0,00'}</span>
                   </div>
                 </div>
+
+                {/* Cancel Button */}
+                {(booking.status?.toLowerCase() === 'pending' || booking.status?.toLowerCase() === 'confirmed') && (
+                  <div className="mt-4 pt-4 border-t border-slate-50 flex justify-end">
+                    <button
+                      onClick={() => handleCancel(booking.id)}
+                      className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-widest transition-colors py-1 px-2 rounded-lg hover:bg-red-50"
+                    >
+                      Cancelar Agendamento
+                    </button>
+                  </div>
+                )}
+
+                {booking.status?.toLowerCase() === 'cancelled' && (
+                  <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
+                    <span className="bg-slate-100 text-slate-500 px-4 py-2 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-slate-200 shadow-sm rotate-[-5deg]">
+                      Cancelado
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
