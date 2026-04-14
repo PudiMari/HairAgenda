@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizontal, Check, ShieldAlert, FileText, Info, X, User, Clock, ChevronRight, History } from "lucide-react";
+import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizontal, Check, ShieldAlert, FileText, Info, X, Clock, ChevronRight, History } from "lucide-react";
 import { useUser } from "@clerk/react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { ContactModal } from "../../components/ContactModal";
@@ -320,15 +320,7 @@ export function ProfilePage() {
 
       {/* Top Banner / Actions */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-        {isAdmin && isOwner ? (
-          <Link
-            to="/admin"
-            className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-50 text-slate-700 transition-all hover:bg-brand-gold/10 hover:text-brand-gold active:scale-95"
-            title="Acesso do Profissional"
-          >
-            <User size={20} />
-          </Link>
-        ) : <div className="w-10 h-10" />}
+        <div className="w-10 h-10" />
 
         <div className="flex gap-2 relative">
           <button
