@@ -60,12 +60,22 @@ class Appointment(models.Model):
         if not self.date_time or not self.service:
             return
 
+        # 1. Verifica se a data está bloqueada pelo profissional
+        blocked = ProfessionalBlock.objects.filter(
+            professional=self.professional,
+            date=self.date_time.date()
+        ).exists()
+
+        if blocked:
+            raise ValidationError(f"A data {self.date_time.strftime('%d/%m/%Y')} está bloqueada pelo profissional.")
+
+        # 2. Verifica conflito de horários (Overlap)
         end_time = self.date_time + timedelta(minutes=self.service.duration_minutes)
 
         # Busca agendamentos do mesmo profissional que se sobrepõem
         conflicts = Appointment.objects.filter(
             professional=self.professional,
-            status='confirmed'  # Apenas confirmados ou pendentes impactam a agenda
+            status__in=['confirmed', 'pending']  # Ambos impactam a agenda
         ).exclude(pk=self.pk)
 
         for conflict in conflicts:
