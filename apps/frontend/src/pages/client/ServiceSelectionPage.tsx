@@ -244,6 +244,8 @@ export function ServiceSelectionPage() {
 
     // 4. Existing appointments
     const hasAppt = appointments.some(app => {
+      if (app.status?.toUpperCase() === 'CANCELLED') return false;
+
       const appDate = new Date(app.date_time);
       const appYear = appDate.getFullYear();
       const appMonth = appDate.getMonth();
