@@ -6,7 +6,7 @@ export const fetchHealthStatus = async () => {
 };
 
 export interface AppointmentPayload {
-  professional?: number; // ID of the professional profile
+  professional: number; // ID of the professional profile (database ID)
   client_user_id?: string;
   client_name: string;
   client_whatsapp: string;
@@ -55,20 +55,26 @@ export const fetchAppointments = async (filters?: { clientId?: string, professio
 };
 
 export const createAppointment = async (payload: AppointmentPayload) => {
+  console.log("[API] Creating appointment with payload:", {
+    ...payload,
+    // Hide parts of phone for privacy in logs if needed, but for now full log is better for debugging
+  });
+
   const response = await fetch(`${API_URL}/api/appointments/`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
   });
-  
+
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || 'Erro ao realizar agendamento.');
+    const errorData = await response.json().catch(() => ({}));
+    console.error("[API] Create appointment failed:", response.status, errorData);
+    throw new Error(errorData.detail || errorData.non_field_errors?.[0] || 'Erro ao criar agendamento.');
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log("[API] Appointment created successfully:", data);
+  return data;
 };
 export const createService = async (service: Omit<Service, 'id'>) => {
   const response = await fetch(`${API_URL}/api/services/`, {

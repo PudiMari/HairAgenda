@@ -13,9 +13,10 @@ export function BookingConfirmationPage() {
   const [searchParams] = useSearchParams();
   const requestedUserId = searchParams.get('u');
   
-  const service = location.state?.service || { id: "1", name: "Corte Feminino" };
+  const service = location.state?.service;
   const date = location.state?.date || "24 Mai";
   const time = location.state?.time || "10:00";
+  const passedProfessionalId = location.state?.professionalId;
 
   const [clientName, setClientName] = useState("");
   const [clientWhatsapp, setClientWhatsapp] = useState("");
@@ -112,22 +113,45 @@ export function BookingConfirmationPage() {
       
       const dateTimeIso = `${currentYear}-${monthNum}-${dayNum}T${time}:00-03:00`;
       
-      // We pass the professional ID directly from the service object
-      // or from the search param if available
-      const professionalId = service.professional || (requestedUserId ? parseInt(requestedUserId, 10) : undefined);
+      // Resolve Professional ID (Database Primary Key)
+      let finalProfessionalId: number | undefined = passedProfessionalId;
+
+      // Fallback 1: Check if service object has it (unlikely with recent changes but good for safety)
+      if (!finalProfessionalId && service?.professional) {
+        finalProfessionalId = typeof service.professional === 'number' 
+          ? service.professional 
+          : parseInt(service.professional, 10);
+      }
+
+      // Fallback 2: If we have a requestedUserId (Clerk ID), fetch the profile to get the DB ID
+      if (!finalProfessionalId && requestedUserId) {
+        console.log("[Booking] Missing DB ID, attempting lookup for Clerk ID:", requestedUserId);
+        const { fetchProfessionalProfile } = await import("../../lib/api");
+        const profile = await fetchProfessionalProfile(requestedUserId);
+        if (profile?.id) {
+          finalProfessionalId = profile.id;
+        }
+      }
+
+      if (!finalProfessionalId || isNaN(finalProfessionalId)) {
+        console.error("[Booking] Could not resolve a valid Professional ID. State:", { passedProfessionalId, requestedUserId, service });
+        throw new Error("Não foi possível identificar o profissional para este agendamento.");
+      }
 
       await createAppointment({
-        professional: professionalId,
+        professional: finalProfessionalId,
         client_user_id: user?.id,
         client_name: clientName,
         client_whatsapp: rawPhone,
-        service: parseInt(service.id, 10),
+        service: parseInt(service?.id || "0", 10),
         date_time: dateTimeIso,
       });
 
+      console.log("[Booking] Success! Appointment created for professional:", finalProfessionalId);
       alert("Agendamento confirmado com sucesso!");
       navigate(`/profile${requestedUserId ? `?u=${requestedUserId}` : ""}`);
     } catch (err: any) {
+      console.error("[Booking] Error in handleConfirm:", err);
       setError(err.message || "Ocorreu um erro ao salvar o agendamento.");
     } finally {
       setIsSubmitting(false);

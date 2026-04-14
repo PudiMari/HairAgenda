@@ -286,7 +286,8 @@ export function ServiceSelectionPage() {
       state: { 
         service: selectedService, 
         date: selectedDate, 
-        time: selectedTime 
+        time: selectedTime,
+        professionalId: profile?.id // Passing the database numeric ID
       } 
     });
   };
