@@ -59,9 +59,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
         if service:
             end_dt = date_time + timedelta(minutes=service.duration_minutes)
-            if end_dt.time() > opening_hour.work_end:
+            end_time = end_dt.time()
+            if end_time > opening_hour.work_end:
                 raise serializers.ValidationError(
                     "O serviço termina após o horário de expediente."
+                )
+            if appointment_time < opening_hour.lunch_start and \
+                    end_time > opening_hour.lunch_start:
+                raise serializers.ValidationError(
+                    "O serviço ultrapassaria o início do horário de almoço."
                 )
 
     def _validate_conflicts(self, professional, date_time, service):

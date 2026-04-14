@@ -223,11 +223,18 @@ export function ServiceSelectionPage() {
     const [leH, leM] = dayConfig.lunch_end.split(":").map(Number);
     const lunchEndVal = leH * 60 + leM;
 
-    // 1. Outside work hours
-    if (timeVal < workStartVal || timeVal >= workEndVal) return 'closed';
+    // Calculate where the selected service would end from this slot
+    const selectedFullService = services.find(s => s.id.toString() === selectedService?.id);
+    const selectedDuration = selectedFullService ? selectedFullService.duration_minutes : 30;
+    const slotEndVal = timeVal + selectedDuration;
 
-    // 2. Lunch break
+    // 1. Outside work hours (slot start OR service end exceeds closing time)
+    if (timeVal < workStartVal || timeVal >= workEndVal) return 'closed';
+    if (slotEndVal > workEndVal) return 'closed';
+
+    // 2. Lunch break: slot starts during lunch OR service runs into lunch
     if (timeVal >= lunchStartVal && timeVal < lunchEndVal) return 'closed';
+    if (timeVal < lunchStartVal && slotEndVal > lunchStartVal) return 'closed';
 
     // 3. ProfessionalBlocks (Partial blocks)
     const dateStr = dateObjRec.dateObj.toISOString().split('T')[0];
@@ -243,9 +250,6 @@ export function ServiceSelectionPage() {
     if (isBlockedByPartial) return 'blocked';
 
     // 4. Existing appointments — bidirectional overlap check
-    const selectedFullService = services.find(s => s.id.toString() === selectedService?.id);
-    const selectedDuration = selectedFullService ? selectedFullService.duration_minutes : 30;
-    const slotEndVal = timeVal + selectedDuration; // where new booking would end
 
     const hasAppt = appointments.some(app => {
       if (app.status?.toUpperCase() === 'CANCELLED') return false;
