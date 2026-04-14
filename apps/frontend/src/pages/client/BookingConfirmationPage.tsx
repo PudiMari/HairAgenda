@@ -49,19 +49,6 @@ export function BookingConfirmationPage() {
           phone = user.phoneNumbers[0].phoneNumber || "";
         }
 
-        // 3. Fallback to Professional Profile if available
-        if (!phone) {
-          try {
-            const { fetchProfessionalProfile } = await import("../../lib/api");
-            const profile = await fetchProfessionalProfile(user.id);
-            if (profile?.whatsapp) {
-              phone = profile.whatsapp;
-            }
-          } catch (e) {
-            // No profile or error, silently fail
-          }
-        }
-
         if (!clientWhatsapp && phone) {
           setClientWhatsapp(phone);
         }
