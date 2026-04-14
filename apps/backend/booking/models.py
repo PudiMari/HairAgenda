@@ -76,7 +76,7 @@ class Appointment(models.Model):
             # Se for bloqueio de dia inteiro (sem horários)
             if not block.start_time or not block.end_time:
                 raise ValidationError(f"A data {appt_date.strftime('%d/%m/%Y')} está bloqueada (Dia Inteiro) pelo profissional.")
-            
+
             # Se for bloqueio parcial, verifica interseção [start, end)
             if (appt_start_time < block.end_time) and (block.start_time < appt_end_time):
                 raise ValidationError(
