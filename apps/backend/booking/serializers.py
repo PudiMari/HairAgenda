@@ -25,45 +25,34 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'date_time', 'client_user_id', 'status', 'created_at'
         ]
 
-    def validate(self, data):
-        professional = data.get('professional')
-        date_time = data.get('date_time')
-        service = data.get('service')
-
-        if not professional or not date_time:
-            return data
-
-        day_index = date_time.weekday()
-
-        # Convert to local time (America/Sao_Paulo) before extracting the time component
-        local_date_time = timezone.localtime(date_time)
-        appointment_time = local_date_time.time()
-
+    def _get_opening_hour(self, professional, date_time):
+        """Return the OpeningHour for the given professional and weekday."""
         try:
-            opening_hour = OpeningHour.objects.get(
+            return OpeningHour.objects.get(
                 professional=professional,
-                day_of_week=day_index
+                day_of_week=date_time.weekday()
             )
         except OpeningHour.DoesNotExist:
             raise serializers.ValidationError(
                 "O profissional não atende neste dia da semana."
             )
 
+    def _validate_schedule(self, opening_hour, appointment_time, date_time, service):
+        """Validate time against opening hours, lunch break and service end."""
         if not opening_hour.is_open:
             raise serializers.ValidationError(
                 "O profissional está fechado neste dia."
             )
 
-        if (appointment_time < opening_hour.work_start
-                or appointment_time >= opening_hour.work_end):
+        if appointment_time < opening_hour.work_start or \
+                appointment_time >= opening_hour.work_end:
             raise serializers.ValidationError(
                 f"Horário fora do expediente. O profissional atende das "
                 f"{opening_hour.work_start.strftime('%H:%M')} às "
                 f"{opening_hour.work_end.strftime('%H:%M')}."
             )
 
-        if (opening_hour.lunch_start <= appointment_time
-                < opening_hour.lunch_end):
+        if opening_hour.lunch_start <= appointment_time < opening_hour.lunch_end:
             raise serializers.ValidationError(
                 "O profissional está em horário de almoço neste momento."
             )
@@ -75,11 +64,12 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     "O serviço termina após o horário de expediente."
                 )
 
-        # Check for conflicts with existing appointments
-        new_end_dt = date_time + timedelta(
-            minutes=service.duration_minutes if service else 30
-        )
-        instance = self.instance  # None on create, set on update
+    def _validate_conflicts(self, professional, date_time, service):
+        """Check that the new appointment does not overlap existing ones."""
+        duration = service.duration_minutes if service else 30
+        new_end_dt = date_time + timedelta(minutes=duration)
+        instance = self.instance
+
         conflicts = Appointment.objects.filter(
             professional=professional,
             status__in=['confirmed', 'pending'],
@@ -90,12 +80,24 @@ class AppointmentSerializer(serializers.ModelSerializer):
             existing_end = existing.date_time + timedelta(
                 minutes=existing.service.duration_minutes
             )
-            # Overlap: new_start < existing_end AND existing_start < new_end
             if date_time < existing_end and existing.date_time < new_end_dt:
                 raise serializers.ValidationError(
                     f"Horário em conflito com outro agendamento às "
                     f"{existing.date_time.astimezone().strftime('%H:%M')}."
                 )
+
+    def validate(self, data):
+        professional = data.get('professional')
+        date_time = data.get('date_time')
+        service = data.get('service')
+
+        if not professional or not date_time:
+            return data
+
+        local_dt = timezone.localtime(date_time)
+        opening_hour = self._get_opening_hour(professional, date_time)
+        self._validate_schedule(opening_hour, local_dt.time(), date_time, service)
+        self._validate_conflicts(professional, date_time, service)
 
         return data
 
