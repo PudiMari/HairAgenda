@@ -82,9 +82,9 @@ export function MyBookingsPage() {
             <AlertCircle size={20} />
             <p className="text-sm font-medium">{error}</p>
           </div>
-        ) : bookings.length > 0 ? (
+        ) : bookings.filter(b => b.status?.toUpperCase() !== 'CANCELLED').length > 0 ? (
           <div className="space-y-4">
-            {bookings.map((booking) => (
+            {bookings.filter(b => b.status?.toUpperCase() !== 'CANCELLED').map((booking) => (
               <div 
                 key={booking.id}
                 className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"

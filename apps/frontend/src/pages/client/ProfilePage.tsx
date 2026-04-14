@@ -215,9 +215,9 @@ export function ProfilePage() {
             <Link to="/my-bookings" className="text-brand-gold text-sm font-bold hover:underline">Ver todos</Link>
           </div>
           
-          {clientAppointments.length > 0 ? (
+          {clientAppointments.filter((app: any) => app.status?.toUpperCase() !== 'CANCELLED').length > 0 ? (
             <div className="space-y-3">
-              {clientAppointments.slice(0, 3).map((app: any) => (
+              {clientAppointments.filter((app: any) => app.status?.toUpperCase() !== 'CANCELLED').slice(0, 3).map((app: any) => (
                 <div key={app.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-brand-gold">
