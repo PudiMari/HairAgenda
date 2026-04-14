@@ -60,29 +60,42 @@ class Appointment(models.Model):
         if not self.date_time or not self.service:
             return
 
-        # 1. Verifica se a data está bloqueada pelo profissional
-        blocked = ProfessionalBlock.objects.filter(
+        # 1. Verifica se a data/hora está bloqueada pelo profissional
+        appt_date = self.date_time.date()
+        appt_start_time = self.date_time.time()
+        appt_end_dt = self.date_time + timedelta(minutes=self.service.duration_minutes)
+        appt_end_time = appt_end_dt.time()
+
+        # Busca bloqueios para este dia
+        blocks = ProfessionalBlock.objects.filter(
             professional=self.professional,
-            date=self.date_time.date()
-        ).exists()
+            date=appt_date
+        )
 
-        if blocked:
-            raise ValidationError(f"A data {self.date_time.strftime('%d/%m/%Y')} está bloqueada pelo profissional.")
+        for block in blocks:
+            # Se for bloqueio de dia inteiro (sem horários)
+            if not block.start_time or not block.end_time:
+                raise ValidationError(f"A data {appt_date.strftime('%d/%m/%Y')} está bloqueada (Dia Inteiro) pelo profissional.")
+            
+            # Se for bloqueio parcial, verifica interseção [start, end)
+            if (appt_start_time < block.end_time) and (block.start_time < appt_end_time):
+                raise ValidationError(
+                    f"Este horário conflita com um bloqueio manual do profissional "
+                    f"({block.start_time.strftime('%H:%M')} - {block.end_time.strftime('%H:%M')})."
+                )
 
-        # 2. Verifica conflito de horários (Overlap)
-        end_time = self.date_time + timedelta(minutes=self.service.duration_minutes)
-
+        # 2. Verifica conflito de horários com outros agendamentos (Overlap)
         # Busca agendamentos do mesmo profissional que se sobrepõem
         conflicts = Appointment.objects.filter(
             professional=self.professional,
-            status__in=['confirmed', 'pending']  # Ambos impactam a agenda
+            status__in=['confirmed', 'pending']
         ).exclude(pk=self.pk)
 
         for conflict in conflicts:
             conflict_end = conflict.date_time + timedelta(minutes=conflict.service.duration_minutes)
 
             # Checa se há interseção de intervalos [start, end)
-            if (self.date_time < conflict_end) and (conflict.date_time < end_time):
+            if (self.date_time < conflict_end) and (conflict.date_time < appt_end_dt):
                 raise ValidationError(f"Conflito de horário: {conflict.client_name} já agendou entre {conflict.date_time.strftime('%H:%M')} e {conflict_end.strftime('%H:%M')}.")
 
     def __str__(self):
@@ -127,12 +140,13 @@ class ProfessionalBlock(models.Model):
         related_name='blocks'
     )
     date = models.DateField("Data Bloqueada")
+    start_time = models.TimeField("Hora Início", null=True, blank=True)
+    end_time = models.TimeField("Hora Fim", null=True, blank=True)
     reason = models.CharField("Motivo", max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('professional', 'date')
-        ordering = ['date']
+        ordering = ['date', 'start_time']
 
     def __str__(self):
         return f"{self.professional.name} - Bloqueio {self.date}"

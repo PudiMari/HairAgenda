@@ -26,6 +26,8 @@ export interface ProfessionalBlock {
   id: number;
   professional: number;
   date: string; // YYYY-MM-DD
+  start_time: string | null; // HH:MM:SS
+  end_time: string | null; // HH:MM:SS
   reason: string;
   created_at: string;
 }
@@ -175,7 +177,13 @@ export const fetchProfessionalBlocks = async (professionalId: number | string): 
   return response.json();
 };
 
-export const createProfessionalBlock = async (data: { professional: number; date: string; reason?: string }) => {
+export const createProfessionalBlock = async (data: { 
+  professional: number; 
+  date: string; 
+  start_time?: string | null;
+  end_time?: string | null;
+  reason?: string 
+}) => {
   const response = await fetch(`${API_URL}/api/professional-blocks/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

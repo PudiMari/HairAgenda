@@ -12,7 +12,16 @@ import {
   Loader2
 } from "lucide-react";
 import { useUser } from "@clerk/react";
-import { fetchServices, fetchAppointments, fetchProfessionalProfile, Service as APIService } from "../../lib/api";
+import { 
+  fetchServices, 
+  fetchAppointments, 
+  fetchProfessionalProfile, 
+  fetchProfessionalBlocks,
+  createProfessionalBlock,
+  deleteProfessionalBlock,
+  Service as APIService,
+  ProfessionalBlock
+} from "../../lib/api";
 
 interface ScheduleDay {
   id: string;
@@ -44,10 +53,8 @@ export function AdminDashboardPage() {
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   
   // Data State
-  const [blocks, setBlocks] = useState<{id: string, date: string, start: string, end: string}[]>(() => {
-    const saved = localStorage.getItem('admin_blocks');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
+  const [profile, setProfile] = useState<any>(null);
 
   const [apiAppointments, setApiAppointments] = useState<any[]>([]);
   const [apiServices, setApiServices] = useState<APIService[]>([]);
@@ -87,12 +94,15 @@ export function AdminDashboardPage() {
            return;
         }
 
-        const [servicesData, appointmentsData] = await Promise.all([
+        const [servicesData, appointmentsData, blocksData] = await Promise.all([
           fetchServices(profile.id),
-          fetchAppointments({ professionalId: profile.id })
+          fetchAppointments({ professionalId: profile.id }),
+          fetchProfessionalBlocks(profile.id)
         ]);
+        setProfile(profile);
         setApiServices(servicesData);
         setApiAppointments(appointmentsData);
+        setBlocks(blocksData);
       } catch (err) {
         console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
@@ -108,7 +118,12 @@ export function AdminDashboardPage() {
   });
 
   // Modal temporary data
-  const [newBlock, setNewBlock] = useState({ date: new Date().toISOString().split('T')[0], start: '08:00', end: '09:00' });
+  const [newBlock, setNewBlock] = useState({ 
+    date: new Date().toISOString().split('T')[0], 
+    start: '08:00', 
+    end: '09:00',
+    isFullDay: false
+  });
   const [newAppt, setNewAppt] = useState({ 
     date: new Date().toISOString().split('T')[0], 
     start: '08:00', 
@@ -116,10 +131,7 @@ export function AdminDashboardPage() {
     client: '' 
   });
 
-  // Persistence for blocks only (backend missing)
-  useEffect(() => {
-    localStorage.setItem('admin_blocks', JSON.stringify(blocks));
-  }, [blocks]);
+  // Persistence removed (now uses API)
 
   // Helper to get day of week and date for the current week starting from Monday
   const weekDates = useMemo(() => {
@@ -186,9 +198,31 @@ export function AdminDashboardPage() {
     setSelectedDate(new Date());
   };
 
-  const handleConfirmBlock = () => {
-    setBlocks([...blocks, { ...newBlock, id: Date.now().toString() }]);
-    setIsBlockModalOpen(false);
+  const handleConfirmBlock = async () => {
+    if (!profile) return;
+    try {
+      const created = await createProfessionalBlock({
+        professional: profile.id,
+        date: newBlock.date,
+        start_time: newBlock.isFullDay ? null : newBlock.start + ":00",
+        end_time: newBlock.isFullDay ? null : newBlock.end + ":00",
+        reason: "Bloqueio Manual"
+      });
+      setBlocks([...blocks, created]);
+      setIsBlockModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao criar bloqueio:", error);
+      alert("Erro ao criar bloqueio.");
+    }
+  };
+
+  const handleDeleteBlock = async (id: number) => {
+    try {
+      await deleteProfessionalBlock(id);
+      setBlocks(blocks.filter(b => b.id !== id));
+    } catch (error) {
+      console.error("Erro ao deletar bloqueio:", error);
+    }
   };
 
   const handleConfirmAppt = () => {
@@ -356,13 +390,31 @@ export function AdminDashboardPage() {
                   const dateStr = getLocalDateString(date);
                   
                   // Check for blocks
-                  const block = blocks.find(b => b.date === dateStr && b.start <= hour && b.end > hour);
+                  const block = blocks.find(b => {
+                    if (b.date !== dateStr) return false;
+                    // Full day block
+                    if (!b.start_time || !b.end_time) return true;
+                    // Partial day block
+                    const start = b.start_time.substring(0, 5);
+                    const end = b.end_time.substring(0, 5);
+                    return hour >= start && hour < end;
+                  });
+
                   if (block) {
                     return (
-                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[120px] bg-slate-50/50 flex items-center justify-center">
+                      <div key={dayIndex} className="p-2 border-l border-slate-100 min-h-[120px] bg-slate-50/50 flex items-center justify-center relative group/block">
                          <div className="border border-slate-200 text-slate-400 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest border-dashed bg-white shadow-sm">
                             Bloqueado
                          </div>
+                         <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteBlock(block.id);
+                            }}
+                            className="absolute top-1 right-1 p-1 text-red-400 opacity-0 group-hover/block:opacity-100 transition-opacity"
+                         >
+                            <X size={12} />
+                         </button>
                       </div>
                     );
                   }
@@ -424,6 +476,19 @@ export function AdminDashboardPage() {
               <p className="text-sm text-slate-500">Bloqueie horários específicos para pausas, almoço ou compromissos pessoais.</p>
               
               <div className="space-y-4">
+                <div className="flex items-center space-x-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <input 
+                    type="checkbox" 
+                    id="isFullDay"
+                    checked={newBlock.isFullDay}
+                    onChange={(e) => setNewBlock({...newBlock, isFullDay: e.target.checked})}
+                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <label htmlFor="isFullDay" className="text-sm font-medium text-slate-700 cursor-pointer">
+                    Bloquear dia inteiro
+                  </label>
+                </div>
+
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-2">
                     <CalendarIcon size={14} /> Data
@@ -435,30 +500,33 @@ export function AdminDashboardPage() {
                     className="w-full rounded-lg border-2 border-slate-200 bg-white text-brand-dark focus:border-brand-gold py-2.5 px-3 text-sm outline-none transition-all"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-2">
-                      <Clock size={14} /> Início
-                    </label>
-                    <input 
-                      type="time" 
-                      value={newBlock.start}
-                      onChange={(e) => setNewBlock({...newBlock, start: e.target.value})}
-                      className="w-full rounded-lg border-2 border-slate-200 bg-white text-brand-dark focus:border-brand-gold py-2.5 px-3 text-sm outline-none transition-all"
-                    />
+
+                {!newBlock.isFullDay && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-2">
+                        <Clock size={14} /> Início
+                      </label>
+                      <input 
+                        type="time" 
+                        value={newBlock.start}
+                        onChange={(e) => setNewBlock({...newBlock, start: e.target.value})}
+                        className="w-full rounded-lg border-2 border-slate-200 bg-white text-brand-dark focus:border-brand-gold py-2.5 px-3 text-sm outline-none transition-all font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-2">
+                        <Clock size={14} /> Fim
+                      </label>
+                      <input 
+                        type="time" 
+                        value={newBlock.end}
+                        onChange={(e) => setNewBlock({...newBlock, end: e.target.value})}
+                        className="w-full rounded-lg border-2 border-slate-200 bg-white text-brand-dark focus:border-brand-gold py-2.5 px-3 text-sm outline-none transition-all font-mono"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center gap-2">
-                      <Clock size={14} /> Fim
-                    </label>
-                    <input 
-                      type="time" 
-                      value={newBlock.end}
-                      onChange={(e) => setNewBlock({...newBlock, end: e.target.value})}
-                      className="w-full rounded-lg border-2 border-slate-200 bg-white text-brand-dark focus:border-brand-gold py-2.5 px-3 text-sm outline-none transition-all"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-4">

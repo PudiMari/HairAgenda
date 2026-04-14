@@ -63,6 +63,9 @@ export function ScheduleConfigPage() {
   const [activeTab, setActiveTab] = useState<'schedule' | 'blocks'>('schedule');
   const [blockDate, setBlockDate] = useState("");
   const [blockReason, setBlockReason] = useState("");
+  const [isFullDay, setIsFullDay] = useState(true);
+  const [blockStart, setBlockStart] = useState("08:00");
+  const [blockEnd, setBlockEnd] = useState("18:00");
 
   useEffect(() => {
     async function loadData() {
@@ -138,11 +141,14 @@ export function ScheduleConfigPage() {
       const newBlock = await createProfessionalBlock({
         professional: profile.id,
         date: blockDate,
+        start_time: isFullDay ? null : blockStart + ":00",
+        end_time: isFullDay ? null : blockEnd + ":00",
         reason: blockReason
       });
       setBlocks([...blocks, newBlock]);
       setBlockDate("");
       setBlockReason("");
+      setIsFullDay(true);
     } catch (error) {
       console.error("Erro ao criar bloqueio:", error);
       alert("Este dia já está bloqueado ou ocorreu um erro.");
@@ -371,33 +377,75 @@ export function ScheduleConfigPage() {
             <h3 className="text-lg font-bold text-brand-dark flex items-center gap-2 mb-4">
               <Plus className="text-brand-gold" size={20} /> Bloquear Nova Data
             </h3>
-            <form onSubmit={handleCreateBlock} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-500">Data</label>
-                <input 
-                  type="date" 
-                  required
-                  value={blockDate}
-                  onChange={(e) => setBlockDate(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm font-medium focus:border-brand-gold focus:ring-0 outline-none"
-                />
+            <form onSubmit={handleCreateBlock} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-500">Data</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={blockDate}
+                    onChange={(e) => setBlockDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm font-medium focus:border-brand-gold focus:ring-0 outline-none"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-500">Motivo (Opcional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Feriado, Férias"
+                    value={blockReason}
+                    onChange={(e) => setBlockReason(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm font-medium focus:border-brand-gold focus:ring-0 outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pb-3">
+                  <input 
+                    type="checkbox" 
+                    id="pageIsFullDay"
+                    checked={isFullDay}
+                    onChange={(e) => setIsFullDay(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-brand-gold focus:ring-brand-gold"
+                  />
+                  <label htmlFor="pageIsFullDay" className="text-sm font-bold text-slate-700 cursor-pointer">
+                    Dia Inteiro
+                  </label>
+                </div>
+
+                <div className="flex justify-end">
+                  <button 
+                    type="submit"
+                    className="w-full bg-brand-dark text-white rounded-xl py-2.5 px-6 font-bold text-sm hover:bg-slate-800 transition-colors shadow-lg shadow-brand-dark/10"
+                  >
+                    Bloquear
+                  </button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-500">Motivo (Opcional)</label>
-                <input 
-                  type="text" 
-                  placeholder="Ex: Feriado, Férias"
-                  value={blockReason}
-                  onChange={(e) => setBlockReason(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 py-2.5 px-4 text-sm font-medium focus:border-brand-gold focus:ring-0 outline-none"
-                />
-              </div>
-              <button 
-                type="submit"
-                className="bg-brand-dark text-white rounded-xl py-2.5 px-6 font-bold text-sm hover:bg-slate-800 transition-colors"
-              >
-                Bloquear Dia
-              </button>
+
+              {!isFullDay && (
+                <div className="grid grid-cols-2 gap-4 max-w-sm animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Início</label>
+                    <input 
+                      type="time" 
+                      value={blockStart}
+                      onChange={(e) => setBlockStart(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 py-2 px-3 text-sm font-mono focus:border-brand-gold focus:ring-0 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Fim</label>
+                    <input 
+                      type="time" 
+                      value={blockEnd}
+                      onChange={(e) => setBlockEnd(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 py-2 px-3 text-sm font-mono focus:border-brand-gold focus:ring-0 outline-none"
+                    />
+                  </div>
+                </div>
+              )}
             </form>
           </div>
 
@@ -429,13 +477,20 @@ export function ScheduleConfigPage() {
                         <CalendarIcon size={20} />
                       </div>
                       <div>
-                        <span className="text-brand-dark font-bold">
-                          {new Date(block.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                        </span>
-                        {block.reason && (
-                          <span className="ml-3 text-sm text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                            {block.reason}
+                        <div className="flex items-center gap-3">
+                          <span className="text-brand-dark font-bold">
+                            {new Date(block.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                           </span>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${
+                            !block.start_time ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                          }`}>
+                            {!block.start_time ? "Dia Inteiro" : `${block.start_time.substring(0,5)} - ${block.end_time?.substring(0,5)}`}
+                          </span>
+                        </div>
+                        {block.reason && (
+                          <p className="text-xs text-slate-400 mt-1 font-medium">
+                            {block.reason}
+                          </p>
                         )}
                       </div>
                     </div>
