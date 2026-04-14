@@ -138,6 +138,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'traceparent',
+    'tracestate',
+]
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

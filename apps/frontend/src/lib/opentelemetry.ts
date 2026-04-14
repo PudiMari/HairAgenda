@@ -8,15 +8,16 @@ import { ZoneContextManager } from '@opentelemetry/context-zone';
 
 export const initTelemetry = () => {
   // OTLP Exporter over HTTP
-  const exporter = new OTLPTraceExporter({
-    // Jaeger exposes HTTP OTLP on 4318
-    url: 'http://localhost:4318/v1/traces',
-  });
+  const otlpUrl = import.meta.env.VITE_OTLP_URL || (import.meta.env.DEV ? 'http://localhost:4318/v1/traces' : '');
+  
+  const spanProcessors = [];
+  if (otlpUrl) {
+    const exporter = new OTLPTraceExporter({ url: otlpUrl });
+    spanProcessors.push(new BatchSpanProcessor(exporter));
+  }
 
   const provider = new WebTracerProvider({
-    spanProcessors: [
-      new BatchSpanProcessor(exporter)
-    ]
+    spanProcessors
   });
 
   provider.register({
