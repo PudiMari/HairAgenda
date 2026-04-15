@@ -28,7 +28,6 @@ interface AdminGuardProps {
 export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   const { user, isLoaded } = useUser();
   const location = useLocation();
-  const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(checkProfile);
 
@@ -51,8 +50,9 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
           const data = await fetchProfessionalProfile(user.id);
           setProfile(data);
         } catch (err: any) {
-          console.error("Error checking profile:", err);
-          setError(err.message || "Erro ao buscar perfil.");
+          // Network/server error: treat as no profile found — redirect to setup
+          console.warn("Could not fetch profile, treating as not set up:", err);
+          setProfile(null);
         } finally {
           setProfileLoading(false);
         }
@@ -72,22 +72,6 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
     );
   }
 
-  if (error && checkProfile) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center" >
-        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md border border-slate-100">
-          <h2 className="text-xl font-bold text-red-600 mb-4">Erro de Perfil</h2>
-          <p className="text-slate-600 mb-6">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="w-full bg-brand-dark text-white px-6 py-3 rounded-2xl font-bold transition-all"
-          >
-            Tentar Novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // Hybrid approach for evaluation and production
   const adminEmails = [
