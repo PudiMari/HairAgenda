@@ -3,32 +3,9 @@ import { CalendarDays, ClipboardList, MessageCircle, MapPin, Share2, MoreHorizon
 import { useUser } from "@clerk/react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { ContactModal } from "../../components/ContactModal";
-import { fetchProfessionalProfile, fetchServices, fetchAppointments, ProfessionalProfile, Service as APIService } from "../../lib/api";
+import { fetchProfessionalProfile, fetchServices, fetchAppointments, fetchPortfolioItems, ProfessionalProfile, Service as APIService, PortfolioItem } from "../../lib/api";
 import { registerProfessionalVisit } from "../../lib/recentPros";
 
-interface WorkItem {
-  id: number;
-  url: string;
-  title: string;
-}
-
-const RECENT_WORKS: WorkItem[] = [
-  {
-    id: 1,
-    url: "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=300",
-    title: "Loiro Perolado"
-  },
-  {
-    id: 2,
-    url: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=300",
-    title: "Corte Moderno"
-  },
-  {
-    id: 3,
-    url: "https://images.unsplash.com/photo-1620331311520-246422fd82f9?auto=format&fit=crop&q=80&w=300",
-    title: "Tratamento Capilar"
-  }
-];
 
 export function ProfilePage() {
   const { user, isLoaded } = useUser();
@@ -37,6 +14,7 @@ export function ProfilePage() {
   const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [services, setServices] = useState<APIService[]>([]);
   const [clientAppointments, setClientAppointments] = useState<any[]>([]);
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Profile ID logic: 1. From URL (?u=...), 2. Fallback to current user if admin
@@ -78,6 +56,12 @@ export function ProfilePage() {
         setServices(servicesData);
         setClientAppointments(appointmentsData);
 
+        // Fetch portfolio for the professional being viewed
+        const idForPortfolio = requestedUserId || (profileData?.user_id);
+        if (idForPortfolio) {
+          fetchPortfolioItems(idForPortfolio).then(setPortfolioItems).catch(() => {});
+        }
+
         // Save to Recent Professionals if we're viewing someone else's profile
         if (profileData && requestedUserId && requestedUserId !== user?.id) {
           registerProfessionalVisit(user?.id, profileData);
@@ -110,7 +94,7 @@ export function ProfilePage() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [showCopiedFeedback, setShowCopiedFeedback] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{id: number, url: string, title: string} | null>(null);
+  const [selectedImage, setSelectedImage] = useState<PortfolioItem | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user is the owner of this profile
@@ -503,23 +487,23 @@ export function ProfilePage() {
       )}
 
       {/* Recent Works Grid */}
-      {profile && (
+      {profile && portfolioItems.length > 0 && (
         <div className="px-6 pb-12">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-brand-dark text-lg font-bold">Trabalhos Recentes</h3>
-            <Link to="/portfolio" className="text-brand-gold text-sm font-bold hover:underline">Ver todos</Link>
+            <Link to={`/portfolio${requestedUserId ? `?u=${requestedUserId}` : ''}`} className="text-brand-gold text-sm font-bold hover:underline">Ver todos</Link>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {RECENT_WORKS.map((work) => (
+            {portfolioItems.slice(0, 3).map((item) => (
               <button
-                key={work.id}
-                onClick={() => setSelectedImage(work)}
+                key={item.id}
+                onClick={() => setSelectedImage(item)}
                 className="aspect-square rounded-lg bg-slate-100 overflow-hidden group relative"
               >
                 <div
                   className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110 duration-500"
-                  style={{ backgroundImage: `url("${work.url}")` }}
-                ></div>
+                  style={{ backgroundImage: `url("${item.image_url}")` }}
+                />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <Info size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
@@ -541,7 +525,7 @@ export function ProfilePage() {
 
           <div className="relative max-w-full max-h-[80vh] flex flex-col items-center">
             <img
-              src={selectedImage.url.replace('w=300', 'w=1200')}
+              src={selectedImage.image_url}
               alt={selectedImage.title}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
             />

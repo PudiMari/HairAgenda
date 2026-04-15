@@ -2,7 +2,8 @@ from django.utils import timezone
 from datetime import timedelta
 from rest_framework import serializers
 from .models import (
-    Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock
+    Service, Appointment, ProfessionalProfile,
+    OpeningHour, ProfessionalBlock, PortfolioItem
 )
 
 
@@ -123,4 +124,14 @@ class OpeningHourSerializer(serializers.ModelSerializer):
 class ProfessionalBlockSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfessionalBlock
+        fields = '__all__'
+
+
+class PortfolioItemSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(
+        source='get_category_display', read_only=True
+    )
+
+    class Meta:
+        model = PortfolioItem
         fields = '__all__'

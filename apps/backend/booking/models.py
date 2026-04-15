@@ -150,3 +150,35 @@ class ProfessionalBlock(models.Model):
 
     def __str__(self):
         return f"{self.professional.name} - Bloqueio {self.date}"
+
+
+class PortfolioItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('corte', 'Corte'),
+        ('coloracao', 'Coloração'),
+        ('tratamento', 'Tratamento'),
+        ('penteado', 'Penteado'),
+        ('unhas', 'Unhas'),
+        ('maquiagem', 'Maquiagem'),
+        ('outro', 'Outro'),
+    ]
+
+    professional = models.ForeignKey(
+        ProfessionalProfile,
+        on_delete=models.CASCADE,
+        related_name='portfolio_items'
+    )
+    image_url = models.URLField("URL da Imagem")
+    title = models.CharField("Título", max_length=100)
+    category = models.CharField(
+        "Categoria", max_length=20,
+        choices=CATEGORY_CHOICES, default='outro'
+    )
+    order = models.PositiveIntegerField("Ordem", default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return f"{self.professional.name} - {self.title}"

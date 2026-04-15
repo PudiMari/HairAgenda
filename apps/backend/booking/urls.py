@@ -5,7 +5,8 @@ from .views import (
     AppointmentViewSet,
     ProfessionalProfileViewSet,
     OpeningHourViewSet,
-    ProfessionalBlockViewSet
+    ProfessionalBlockViewSet,
+    PortfolioItemViewSet,
 )
 
 router = DefaultRouter()
@@ -14,6 +15,7 @@ router.register(r'appointments', AppointmentViewSet)
 router.register(r'professional-profile', ProfessionalProfileViewSet)
 router.register(r'opening-hours', OpeningHourViewSet)
 router.register(r'professional-blocks', ProfessionalBlockViewSet)
+router.register(r'portfolio-items', PortfolioItemViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

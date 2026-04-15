@@ -19,6 +19,8 @@ import { ServicesConfigPage } from '../pages/admin/ServicesConfigPage';
 import { ScheduleConfigPage } from '../pages/admin/ScheduleConfigPage';
 import { AdminGuard } from '../components/auth/AdminGuard';
 import { SetupProfilePage } from '../pages/admin/SetupProfilePage';
+import { PortfolioConfigPage } from '../pages/admin/PortfolioConfigPage';
+
 
 
 import { RoleSelectionPage } from '../pages/RoleSelectionPage';
@@ -145,6 +147,7 @@ if (!rootElement) {
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/services" element={<ServicesConfigPage />} />
                   <Route path="/admin/schedule" element={<ScheduleConfigPage />} />
+                  <Route path="/admin/portfolio" element={<PortfolioConfigPage />} />
                 </Route>
 
                 {/* TELA 404 */}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { Scissors, LayoutDashboard, Settings, Menu, Copy, X, LogOut, ExternalLink } from "lucide-react";
+import { Scissors, LayoutDashboard, Settings, Menu, Copy, X, LogOut, ExternalLink, Image } from "lucide-react";
 import { useUser, useClerk } from "@clerk/react";
 import { useProfessionalProfile } from "../auth/AdminGuard";
 
@@ -37,6 +37,7 @@ export function AdminLayout() {
   const navLinks = [
     { to: "/admin", icon: LayoutDashboard, label: "Visão Geral" },
     { to: "/admin/services", icon: Scissors, label: "Serviços" },
+    { to: "/admin/portfolio", icon: Image, label: "Portfólio" },
     { to: "/admin/schedule", icon: Settings, label: "Configurações" },
   ];
 

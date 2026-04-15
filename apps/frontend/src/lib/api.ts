@@ -220,3 +220,60 @@ export const deleteProfessionalBlock = async (id: number) => {
   });
   if (!response.ok) throw new Error('Erro ao excluir bloqueio de data.');
 };
+
+// ─── Portfolio ────────────────────────────────────────────────────────────────
+
+export interface PortfolioItem {
+  id: number;
+  professional: number;
+  image_url: string;
+  title: string;
+  category: string;
+  category_display: string;
+  order: number;
+  created_at: string;
+}
+
+export const PORTFOLIO_CATEGORIES = [
+  { value: 'corte',      label: 'Corte' },
+  { value: 'coloracao',  label: 'Coloração' },
+  { value: 'tratamento', label: 'Tratamento' },
+  { value: 'penteado',   label: 'Penteado' },
+  { value: 'unhas',      label: 'Unhas' },
+  { value: 'maquiagem',  label: 'Maquiagem' },
+  { value: 'outro',      label: 'Outro' },
+];
+
+export const fetchPortfolioItems = async (
+  professionalId: number | string
+): Promise<PortfolioItem[]> => {
+  const response = await fetch(
+    `${API_URL}/api/portfolio-items/?professional_id=${professionalId}&t=${Date.now()}`
+  );
+  if (!response.ok) throw new Error('Erro ao buscar portfólio.');
+  return response.json();
+};
+
+export const createPortfolioItem = async (data: {
+  professional: number;
+  image_url: string;
+  title: string;
+  category: string;
+  order?: number;
+}): Promise<PortfolioItem> => {
+  const response = await fetch(`${API_URL}/api/portfolio-items/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Erro ao adicionar item ao portfólio.');
+  return response.json();
+};
+
+export const deletePortfolioItem = async (id: number): Promise<void> => {
+  const response = await fetch(`${API_URL}/api/portfolio-items/${id}/`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Erro ao remover item do portfólio.');
+};
+

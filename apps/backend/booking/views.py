@@ -9,7 +9,12 @@ from .serializers import (
     AppointmentSerializer,
     ProfessionalProfileSerializer,
     OpeningHourSerializer,
-    ProfessionalBlockSerializer
+    ProfessionalBlockSerializer,
+    PortfolioItemSerializer,
+)
+from .models import (
+    Service, Appointment, ProfessionalProfile, OpeningHour,
+    ProfessionalBlock, PortfolioItem
 )
 
 
@@ -92,6 +97,21 @@ class OpeningHourViewSet(viewsets.ModelViewSet):
 class ProfessionalBlockViewSet(viewsets.ModelViewSet):
     queryset = ProfessionalBlock.objects.all()
     serializer_class = ProfessionalBlockSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        professional_id = self.request.query_params.get('professional_id')
+        if professional_id:
+            if str(professional_id).startswith('user_'):
+                queryset = queryset.filter(professional__user_id=professional_id)
+            else:
+                queryset = queryset.filter(professional_id=professional_id)
+        return queryset
+
+
+class PortfolioItemViewSet(viewsets.ModelViewSet):
+    queryset = PortfolioItem.objects.all()
+    serializer_class = PortfolioItemSerializer
 
     def get_queryset(self):
         queryset = super().get_queryset()
