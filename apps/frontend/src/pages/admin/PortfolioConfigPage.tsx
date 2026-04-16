@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink, HelpCircle, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProfessionalProfile } from "../../components/auth/AdminGuard";
 import {
@@ -17,6 +17,7 @@ export function PortfolioConfigPage() {
   const [saving, setSaving] = useState(false);
   const [previewItem, setPreviewItem] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [form, setForm] = useState({
     image_url: "",
     title: "",
@@ -196,6 +197,7 @@ export function PortfolioConfigPage() {
               <button
                 onClick={() => {
                   setShowForm(false);
+                  setShowHelp(false);
                   setUrlError("");
                 }}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
@@ -214,7 +216,7 @@ export function PortfolioConfigPage() {
                     className="w-full h-full object-cover"
                     onError={() =>
                       setUrlError(
-                        "URL inválida ou imagem não pôde ser carregada."
+                        "Link inválido. Certifique-se de que é o link DIRETO da imagem."
                       )
                     }
                     onLoad={() => setUrlError("")}
@@ -224,9 +226,50 @@ export function PortfolioConfigPage() {
 
               {/* URL */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                  URL da Imagem
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    URL da Imagem
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowHelp(!showHelp)}
+                    className="flex items-center gap-1 text-[10px] font-bold text-brand-gold hover:text-brand-dark transition-colors uppercase tracking-tight"
+                  >
+                    <HelpCircle size={12} />
+                    Como conseguir o link?
+                  </button>
+                </div>
+
+                {showHelp && (
+                  <div className="mb-4 p-4 bg-brand-gold/5 border border-brand-gold/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                    <h4 className="text-xs font-bold text-brand-dark mb-2 flex items-center gap-2">
+                      <AlertCircle size={14} className="text-brand-gold" />
+                      Instruções para o link correto:
+                    </h4>
+                    <ul className="text-[11px] text-slate-600 space-y-2">
+                      <li className="flex gap-2">
+                        <span className="font-bold text-brand-gold">1.</span>
+                        Abra a foto original no seu navegador.
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold text-brand-gold">2.</span>
+                        Clique com o <strong>botão direito</strong> em cima da
+                        foto.
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold text-brand-gold">3.</span>
+                        Selecione <strong>"Copiar endereço da imagem"</strong>.
+                      </li>
+                    </ul>
+                    <div className="mt-3 pt-3 border-t border-brand-gold/10">
+                      <p className="text-[10px] text-slate-400 italic">
+                        Nota: Links de páginas (Instagram, Facebook, Drive) não
+                        funcionam. O link deve terminar em .jpg, .png ou .webp.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <input
                   type="url"
                   value={form.image_url}
@@ -242,11 +285,25 @@ export function PortfolioConfigPage() {
                   }`}
                 />
                 {urlError && (
-                  <p className="text-red-500 text-xs mt-1">{urlError}</p>
+                  <div className="flex items-start gap-1.5 mt-2 text-red-500">
+                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                    <p className="text-xs font-medium">
+                      {urlError}.{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowHelp(true)}
+                        className="underline font-bold"
+                      >
+                        Veja como resolver
+                      </button>
+                    </p>
+                  </div>
                 )}
-                <p className="text-slate-400 text-xs mt-1">
-                  Cole o link direto de uma imagem (termina em .jpg, .png, etc.)
-                </p>
+                {!urlError && (
+                  <p className="text-slate-400 text-[10px] mt-1.5">
+                    O link deve começar com https:// e terminar com a extensão da imagem.
+                  </p>
+                )}
               </div>
 
               {/* Title */}
