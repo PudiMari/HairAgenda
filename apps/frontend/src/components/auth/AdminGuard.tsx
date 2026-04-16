@@ -33,11 +33,13 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
 
   const refreshProfile = async () => {
     if (user && checkProfile) {
+      console.log("[AdminGuard] Refreshing profile for user:", user.id);
       try {
         const data = await fetchProfessionalProfile(user.id);
+        console.log("[AdminGuard] Profile refreshed:", data);
         setProfile(data);
       } catch (err: any) {
-        console.error("Error refreshing profile:", err);
+        console.error("[AdminGuard] Error refreshing profile:", err);
       }
     }
   };
@@ -45,18 +47,24 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   useEffect(() => {
     async function checkExistingProfile() {
       if (isLoaded && user && checkProfile) {
+        console.log("[AdminGuard] Initial load: Checking profile for user:", user.id);
         setProfileLoading(true);
         try {
           const data = await fetchProfessionalProfile(user.id);
+          console.log("[AdminGuard] Profile fetch successful:", data);
           setProfile(data);
         } catch (err: any) {
           // Network/server error: treat as no profile found — redirect to setup
-          console.warn("Could not fetch profile, treating as not set up:", err);
+          console.warn("[AdminGuard] Could not fetch profile, treating as not set up:", err);
           setProfile(null);
         } finally {
+          console.log("[AdminGuard] Initial load complete. profileLoading -> false");
           setProfileLoading(false);
         }
       } else {
+        if (isLoaded && !user) {
+          console.log("[AdminGuard] No user found, profileLoading -> false");
+        }
         setProfileLoading(false);
       }
     }
@@ -108,6 +116,7 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
   // Redirect to setup if profile is missing OR incomplete, and we are not already on setup
   const isProfileComplete = profile && profile.is_setup_completed;
   if (checkProfile && !isProfileComplete && location.pathname !== "/admin/setup") {
+    console.log("[AdminGuard] Profile incomplete or missing, redirecting to /admin/setup. profile:", profile);
     return <Navigate to="/admin/setup" replace />;
   }
 

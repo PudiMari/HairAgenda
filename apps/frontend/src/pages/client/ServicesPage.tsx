@@ -123,17 +123,25 @@ export function ServicesPage() {
                 {service.description || "Descrição não disponível para este serviço."}
               </p>
 
-              <button
-                onClick={() => isOwner ? navigate('/admin/setup') : handleBookService(service)}
-                className={`w-full h-12 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 group/btn ${
-                  isOwner 
-                    ? "bg-slate-100 text-slate-500 hover:bg-slate-200" 
-                    : "bg-brand-dark text-white hover:bg-brand-gold"
-                }`}
-              >
-                {isOwner ? "Editar este serviço" : "Agendar este serviço"}
-                <ArrowLeft className={`rotate-180 group-hover/btn:translate-x-1 transition-transform ${isOwner ? "text-slate-400" : ""}`} size={18} />
-              </button>
+              {isOwner ? (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center gap-2">
+                  <p className="text-slate-500 font-bold text-sm">Visualização de Administrador</p>
+                  <button
+                    onClick={() => navigate('/admin/setup')}
+                    className="w-full h-10 bg-white border border-slate-300 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm"
+                  >
+                    Editar este serviço
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleBookService(service)}
+                  className="w-full h-12 bg-brand-dark text-white rounded-xl font-bold hover:bg-brand-gold transition-colors flex items-center justify-center gap-2 group/btn"
+                >
+                  Agendar este serviço
+                  <ArrowLeft className="rotate-180 group-hover/btn:translate-x-1 transition-transform" size={18} />
+                </button>
+              )}
             </div>
           ))
         )}
