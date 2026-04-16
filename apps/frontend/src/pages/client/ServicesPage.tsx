@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "@clerk/react";
-import { fetchServices, fetchProfessionalProfile, Service, ProfessionalProfile } from "../../lib/api";
+import { ArrowLeft, Info, Clock, CheckCircle2 } from "lucide-react";
+import { fetchServices, fetchProfessionalProfile, Service } from "../../lib/api";
 
 export function ServicesPage() {
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { user } = useUser();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedUserId = searchParams.get('u');
   const [services, setServices] = useState<Service[]>([]);
-  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const isOwner = !!(user?.id && requestedUserId === user.id);
@@ -23,7 +23,6 @@ export function ServicesPage() {
         ]);
 
         if (profileData && requestedUserId) {
-          setProfile(profileData);
           const { registerProfessionalVisit } = await import("../../lib/recentPros");
           registerProfessionalVisit(user?.id, profileData);
         }
