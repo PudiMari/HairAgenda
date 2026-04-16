@@ -6,7 +6,14 @@ import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-docu
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 
+let isTelemetryInitialized = false;
+
 export const initTelemetry = () => {
+  if (isTelemetryInitialized) {
+    console.log("[Observability] OpenTelemetry already initialized. Skipping.");
+    return;
+  }
+
   // OTLP Exporter over HTTP
   const otlpUrl = import.meta.env.VITE_OTLP_URL || (import.meta.env.DEV ? 'http://localhost:4318/v1/traces' : '');
   
@@ -37,5 +44,6 @@ export const initTelemetry = () => {
     ],
   });
 
-  console.log("[Observability] OpenTelemetry instrumentations configured.");
+  isTelemetryInitialized = true;
+  console.log("[Observability] OpenTelemetry instrumentations configured (singleton).");
 };

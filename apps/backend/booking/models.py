@@ -7,7 +7,7 @@ class ProfessionalProfile(models.Model):
     user_id = models.CharField("ID do Usuário (Clerk)", max_length=100, unique=True)
     name = models.CharField("Nome Profissional", max_length=100)
     description = models.TextField("Bio/Descrição", blank=True)
-    photo_url = models.URLField("URL da Foto", blank=True, null=True)
+    photo_url = models.URLField("URL da Foto", max_length=2000, blank=True, null=True)
     location = models.CharField("Localização", max_length=200, blank=True)
     whatsapp = models.CharField("WhatsApp", max_length=20, blank=True)
     instagram = models.CharField("Instagram", max_length=100, blank=True)
@@ -168,7 +168,7 @@ class PortfolioItem(models.Model):
         on_delete=models.CASCADE,
         related_name='portfolio_items'
     )
-    image_url = models.URLField("URL da Imagem")
+    image_url = models.URLField("URL da Imagem", max_length=2000)
     title = models.CharField("Título", max_length=100)
     category = models.CharField(
         "Categoria", max_length=20,
