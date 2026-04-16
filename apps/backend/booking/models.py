@@ -23,9 +23,7 @@ class Service(models.Model):
     professional = models.ForeignKey(
         ProfessionalProfile,
         on_delete=models.CASCADE,
-        related_name='services',
-        null=True,
-        blank=True
+        related_name='services'
     )
     name = models.CharField("Nome do Serviço", max_length=100)
     description = models.TextField("Descrição", blank=True)
@@ -42,9 +40,7 @@ class Appointment(models.Model):
     professional = models.ForeignKey(
         ProfessionalProfile,
         on_delete=models.CASCADE,
-        related_name='appointments',
-        null=True,
-        blank=True
+        related_name='appointments'
     )
     client_name = models.CharField("Nome da Cliente", max_length=100)
     client_whatsapp = models.CharField("WhatsApp", max_length=20)

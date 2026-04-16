@@ -26,6 +26,9 @@ class ServiceViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(professional__user_id=professional_id)
             else:
                 queryset = queryset.filter(professional_id=professional_id)
+        else:
+            # Prevent returning all services if no ID is specified
+            queryset = queryset.none()
         return queryset
 
 

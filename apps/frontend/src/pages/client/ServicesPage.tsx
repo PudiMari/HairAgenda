@@ -18,7 +18,7 @@ export function ServicesPage() {
     async function load() {
       try {
         const [servicesData, profileData] = await Promise.all([
-          fetchServices(),
+          fetchServices(requestedUserId || ""),
           requestedUserId ? fetchProfessionalProfile(requestedUserId).catch(() => null) : Promise.resolve(null)
         ]);
 
