@@ -403,13 +403,23 @@ export function ProfilePage() {
         {/* Action Buttons */}
         {profile && (
           <div className="flex flex-col w-full gap-3 mt-4">
-            <Link
-              to={`/book/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
-              className="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-brand-gold text-white text-lg font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-opacity"
-            >
-              <CalendarDays className="mr-2" size={24} />
-              Agendar Horário
-            </Link>
+            {isOwner ? (
+              <Link
+                to="/admin"
+                className="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-brand-dark text-white text-lg font-bold shadow-lg hover:bg-brand-dark/90 transition-all"
+              >
+                <ChevronRight className="mr-2" size={24} />
+                Gerenciar Meu Perfil
+              </Link>
+            ) : (
+              <Link
+                to={`/book/services${requestedUserId ? `?u=${requestedUserId}` : ""}`}
+                className="flex w-full items-center justify-center rounded-2xl h-14 px-6 bg-brand-gold text-white text-lg font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-opacity"
+              >
+                <CalendarDays className="mr-2" size={24} />
+                Agendar Horário
+              </Link>
+            )}
 
             <div className="flex gap-3 w-full">
               <Link
@@ -468,8 +478,10 @@ export function ProfilePage() {
             {popularServices.map((service) => (
               <Link 
                 key={service.id}
-                to={`/book/services?service=${service.id}${requestedUserId ? `&u=${requestedUserId}` : ""}`}
-
+                to={isOwner 
+                  ? `/admin/setup` // Professionals go to management
+                  : `/book/services?service=${service.id}${requestedUserId ? `&u=${requestedUserId}` : ""}`
+                }
                 className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-brand-gold/30 hover:bg-brand-gold/5 transition-all group"
               >
                 <div>
@@ -478,7 +490,9 @@ export function ProfilePage() {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-brand-dark">R$ {service.price}</p>
-                  <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-0.5">Agendar</p>
+                  <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-0.5">
+                    {isOwner ? "Editar" : "Agendar"}
+                  </p>
                 </div>
               </Link>
             ))}

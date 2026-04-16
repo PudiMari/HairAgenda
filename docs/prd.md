@@ -79,6 +79,8 @@ Critérios de Aceitação:
 - RNF-01 - Desempenho
 - RNF-02 - Disponibilidade
 - RNF-03 - Usabilidade (Acessibilidade e Fricção)
+- RNF-04 - Segurança e Privacidade (LGPD)
+- RNF-05 - Escalabilidade
 
 ### RNF-01 - Desempenho
 
@@ -92,6 +94,14 @@ A arquitetura e infraestrutura (SLA) deve mirar 99.9% de uptime, operando estrit
 
 O sistema de front-end do cliente deve focar em acessibilidade e zero curva de aprendizado, dispensando "logins e senhas complexos" (priorizando autenticação via redes sociais, tokens OTP via WhatsApp ou e-mail na v1 simplificada).
 
+### RNF-04 - Segurança e Privacidade (LGPD)
+
+O sistema deve isolar os dados transacionais de clientes e proteger as agencias dos profissionais garantindo conformidade com a LGPD. Inclui limites estruturais transacionais contra vazamentos e implementações contra DoS/DDoS para proteção contra esgotamento forçado (bots) da agenda.
+
+### RNF-05 - Escalabilidade
+
+A arquitetura de infraestrutura deve ser capaz de sustentar escalabilidade instantânea em borda (utilizando features como Edge Networks) no lado de clientes finais e garantir integridade atômica nas reservas simultâneas sob o Banco de Dados.
+
 ---
 
 ## Métricas de Sucesso
@@ -99,7 +109,7 @@ O sistema de front-end do cliente deve focar em acessibilidade e zero curva de a
 - **Taxa de "No-Shows" (Faltas)**: Redução quantificável em relação à linha de base do profissional pré-software (meta ficar abaixo de 5-7%).
 - **Adoção do Autoagendamento**: % de consultas geradas autonomamente pelo cliente pelo Link Público X agendadas manualmente pelo profissional no mesmo negócio.
 - **NPS (Net Promoter Score) do Profissional**: Meta acima de 70.
-- **Tempo de Sessão para Agendamento do Cliente**: Finalização do fluxo em menos de 60 segundos por cliente (via Desktop ou Mobile).
+- **Tempo de Sessão para Agendamento do Cliente**: Finalização do fluxo em menos de 60 segundos por cliente (via Desktop ou Mobile). *Esta métrica deve ser extraída e rastreadada rigorosamente por meio do nosso framework de observabilidade nativo (usando OpenTelemetry) injetado no Frontend.*
 
 ---
 

@@ -79,3 +79,42 @@
 - Como podemos ajudar: Oferecendo uma página de agendamento que é tem a identidade do salão dela e que funciona sozinha.
 - Funcionalidades que mais agregam valor: Catálogo de serviços visível e escolha de horário em tempo real.
 - Mensagem-chave para comunicação: "Recupere o seu tempo e foque no que realmente importa: o seu talento."
+
+---
+
+## 🧑 Sketch e Nome Secundário (Cliente)
+
+**Nome fictício: Marina Costa (Cliente Final)**  
+**Frase que define a persona:**  
+> "Eu adoro me cuidar, mas detesto perder tempo mandando mensagem e mendigando horário no WhatsApp enquanto eles estão ocupados."
+
+---
+
+## 📊 Dados Demográficos
+
+- Idade: 20 a 45 anos.
+- Gênero: Predominantemente feminino nos espaços de salão, porém agnóstico.
+- Ocupação: Dinâmica e acelerada (profissionais ou estudantes com agendas lotadas).
+- Nível de familiaridade com tecnologia: Alto. Acostumados com conveniência (e-commerce, iFood, Uber).
+- Dispositivos mais utilizados: Smartphone (99% do tempo).
+
+---
+
+## 😣 Principais Dores
+
+1. **Espera Indefinida:** Mandar mensagem pedindo horário e demorar horas para ter o retorno do salão.
+2. **Atrito de Negociação:** Ter que perguntar repetidamente os preços e durações de cada serviço diferente.
+3. **Falta de Certeza:** Medo de chegar no espaço e a cabeleireira ter "esquecido" de anotar o seu horário no caderninho.
+
+**Soluções que já tentou:**
+- Ligar para o salão (não costumam atender durante a realização de serviços).
+- Mandar directs infinitas no Instagram.
+
+---
+
+## 🎯 Principais Objetivos
+
+- Ver a grade de horários livres em tempo real de onde estiver.
+- Agendar o mais rápido possível através do celular sem interações sociais forçadas.
+- Confirmar de forma segura o preço total antes de sair de casa.
+- Receber um aviso formal validando que a vaga dela está garantida.

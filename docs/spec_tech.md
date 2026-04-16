@@ -8,14 +8,14 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 
 ## 2. Arquitetura de Referência
 
-- **Estilo Arquitetural:** Monolito MVC/MVT (voltado ao Backend) integrado com API isolada para clientes. A aplicação principal fornece views administrativas e lida com o consumo assíncrono.
+- **Estilo Arquitetural:** Client-Server Desacoplado (RESTful API + SPA). O Frontend isolado em React/Vite lida com a apresentação e o Backend em Django/DRF processa unicamente regras de negócio expostas via endpoints JSON.
 - **Componentes Principais:** 
-  - **Web Client (Frontend Público):** Interface Single Page Application (SPA) responsiva para autoagendamento, funcionando perfeitamente em Desktop e Mobile.
-  - **Admin e Backend Server:** Servidor que processa as lógicas de negócio dos profissionais (bloqueio de agendas) usando Django (Python).
-  - **Serviço de Background (Opcional/V2):** Módulo planejado para disparar mensagens sem congestionar a rede web. Na V1, os disparos são feitos de forma síncrona via API.
-- **Autenticação e Autorização:** Autenticação padrão baseada em Sessão para os profissionais administradores. Uso de JWT apenas se o front-end for desacoplado estritamente.
+  - **Web Client (Frontend Público/Admin):** Interface Single Page Application (SPA) responsiva para autoagendamento e gestão do salão.
+  - **Backend Server (API):** Servidor construído em Django (Python) que atua exclusivamente como API, processando validações de exclusividade de tempo e lógicas de negócio.
+  - **Serviço de Notificações (Background Tasks):** Para evitar congelamento nas requisições HTTP (arquitetura síncrona), recomenda-se o uso de filas leves (ex: Django-Q ou Background Tasks) ou Webhooks diretamente do Banco de Dados delegando para funções serverless (Edge Functions) para os disparos externos.
+- **Autenticação e Autorização:** Autenticação delegada ao SaaS (Clerk), exigindo que o backend em Django aplique verificação de JWT localmente em cada rota protegida (via Middleware ou Decorators).
 - **Protocolos de Comunicação:** HTTPS padrão com APIs comunicando-se em `application/json`.
-- **Infraestrutura de Deployment:** Render atrelado à hospedagem do servidor da API e do banco de dados relacional. Vercel utilizada para o deploy e hospedagem do Web Client (Frontend), garantindo carregamento rápido em borda (edge).
+- **Infraestrutura de Deployment:** API provida no Render vinculada a um banco de dados hospedado em nuvem especializada (Supabase - PostgreSQL). Vercel utilizada para o deploy do Web Client (Frontend) em infraestrutura Edge, minimizando a latência global de carregamento estático.
 
 ---
 
@@ -62,7 +62,7 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 - **Estratégia:** Shared Database, Shared Schema (Estratégia mais barata e simplificada de Multi-Tenant).
 - **Isolamento:** Uso contínuo do campo/Foreign Key de `profissional_id` para todas as tabelas adjacentes do domínio (Serviços e Reservas).
 - **Identificação:** Resolvido no Front end pelo Link Único (ex: `app.com/{profissional-slug}`), em que o parâmetro serve de base para o filtro primário de todas os GETs.
-- **Migrações e Segurança:** Filtros automáticos no ORM (Querysets com injeção base do usuário da requisição) não sendo delegados ao limite da "Atenção" manual do desenvolvedor sob o perigo de vazar de clientes concorrentes.
+- **Migrações e Segurança:** Para evitar o alto risco de vazar dados entre locatários pelo puro esquecimento do desenvolvedor ("atenção manual"), a arquitetura obriga a injeção de Filtros Globais automáticos via Middleware no Django ORM ou, preferencialmente, o uso das políticas de segurança baseadas em linha (Row Level Security - RLS) diretamente no Banco de Dados (Supabase), travando vazamentos na raiz transacional.
 
 ---
 
@@ -75,7 +75,23 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 
 ---
 
-## 9. Evolução Futura
+## 9. Ambiente, Ferramentas e Esteira de Integração (CI/CD)
+
+- **Gerenciamento de Pacotes:**
+  - *Frontend:* Padronização no uso do `npm` para gestão de dependências.
+  - *Backend:* Uso de `pip` com isolamento por ambiente virtual (`venv`) para o controle seguro de pacotes via `requirements.txt`.
+- **Ambiente de Desenvolvimento Local:**
+  - Uso central e mandatório de **Docker Compose** para orquestrar e levantar todos os serviços (Frontend, Django API, PostgreSQL DB), assegurando paridade com o ambiente de produção e reduzindo atritos de infraestrutura nos setups locais.
+- **CI/CD (Integração e Entrega Contínuas):**
+  - Adoção preferencial do **GitHub Actions** para as esteiras automatizadas.
+  - **CI:** Regras de PR (Pull Request) atreladas à execução e aprovação obrigatória de Linters (`flake8`, `eslint` etc.) e da suíte de testes.
+  - **CD:** Após integração (merge) bem-sucedida, o deploy será orquestrado e assumido de forma transparente pelas esteiras nativas de monitoramento de branch fornecidas pelos serviços gerenciados (Vercel para Frontend; Render para Backend).
+- **IaC (Infraestrutura como Código):**
+  - No escopo de desenvolvimento ágil (MVP/V1), a adoção de orquestradores pesados de IaC (ex: Terraform, Ansible) é sobre-dimensionada. Recomenda-se a alocação e provisionamento guiado por interface (PaaS Dashboard) e o uso de configurações-como-código nativas e simplificadas (ex: `render.yaml` ou `vercel.json` na raiz da aplicação) para registrar instâncias de hospedagem.
+
+---
+
+## 10. Evolução Futura
 
 - Transição gradual para uma arquitetura onde ele suporta o Tenancy Hierárquico (Um "Dono de Salão" visualizando as agendas autônomas dos Profissionais contratados).
 - Criação de algoritmos inteligentes de otimização de agenda (ex: reagrupar horários para evitar "buracos").

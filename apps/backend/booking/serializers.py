@@ -97,9 +97,17 @@ class AppointmentSerializer(serializers.ModelSerializer):
         professional = data.get('professional')
         date_time = data.get('date_time')
         service = data.get('service')
+        client_user_id = data.get('client_user_id')
 
         if not professional or not date_time:
             return data
+
+        # Check if professional is booking for themselves
+        if client_user_id and professional.user_id == client_user_id:
+            raise serializers.ValidationError(
+                "Profissionais não podem agendar serviços para si mesmos. "
+                "Utilize o painel administrativo para controles internos."
+            )
 
         local_dt = timezone.localtime(date_time)
         opening_hour = self._get_opening_hour(professional, date_time)

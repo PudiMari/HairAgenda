@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Clock, Info, CheckCircle2 } from "lucide-react";
-import { fetchServices, fetchProfessionalProfile, Service } from "../../lib/api";
+import { useUser } from "@clerk/react";
+import { fetchServices, fetchProfessionalProfile, Service, ProfessionalProfile } from "../../lib/api";
 
 export function ServicesPage() {
+  const { user, isLoaded: isUserLoaded } = useUser();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedUserId = searchParams.get('u');
   const [services, setServices] = useState<Service[]>([]);
+  const [profile, setProfile] = useState<ProfessionalProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const isOwner = !!(user?.id && requestedUserId === user.id);
 
   useEffect(() => {
     async function load() {
@@ -19,8 +23,9 @@ export function ServicesPage() {
         ]);
 
         if (profileData && requestedUserId) {
+          setProfile(profileData);
           const { registerProfessionalVisit } = await import("../../lib/recentPros");
-          registerProfessionalVisit(undefined, profileData); // Using undefined for guest fallback
+          registerProfessionalVisit(user?.id, profileData);
         }
 
         setServices(servicesData.map(s => ({
@@ -120,11 +125,15 @@ export function ServicesPage() {
               </p>
 
               <button
-                onClick={() => handleBookService(service)}
-                className="w-full h-12 rounded-xl bg-brand-dark text-white font-bold hover:bg-brand-gold transition-colors flex items-center justify-center gap-2 group/btn"
+                onClick={() => isOwner ? navigate('/admin/setup') : handleBookService(service)}
+                className={`w-full h-12 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 group/btn ${
+                  isOwner 
+                    ? "bg-slate-100 text-slate-500 hover:bg-slate-200" 
+                    : "bg-brand-dark text-white hover:bg-brand-gold"
+                }`}
               >
-                Agendar este serviço
-                <ArrowLeft className="rotate-180 group-hover/btn:translate-x-1 transition-transform" size={18} />
+                {isOwner ? "Editar este serviço" : "Agendar este serviço"}
+                <ArrowLeft className={`rotate-180 group-hover/btn:translate-x-1 transition-transform ${isOwner ? "text-slate-400" : ""}`} size={18} />
               </button>
             </div>
           ))

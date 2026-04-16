@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import (
-    Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock
+    Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock, PortfolioItem
 )
 from .serializers import (
     ServiceSerializer,
@@ -11,10 +11,6 @@ from .serializers import (
     OpeningHourSerializer,
     ProfessionalBlockSerializer,
     PortfolioItemSerializer,
-)
-from .models import (
-    Service, Appointment, ProfessionalProfile, OpeningHour,
-    ProfessionalBlock, PortfolioItem
 )
 
 

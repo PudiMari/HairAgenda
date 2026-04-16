@@ -30,9 +30,9 @@ Os documentos detalhados gerados ao longo do projeto incluem:
 - **[ADRs (Architecture Decision Records)](file:///c:/Users/maria/Documents/HairAgenda/docs/adr.md)**: Registro histórico de decisões críticas (Auth com Clerk, Monorepo, DB Supabase).
 
 ### Acesso ao Ambiente Produtivo (Deploy)
-A plataforma gerada encontra-se publicamente avaliável através da infraestrutura Vercel:
-- **Frontend / Dashboard Web:** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
-- **Backend / API GET Test:** [https://hair-agenda-backend.vercel.app/api/services/](https://hair-agenda-backend.vercel.app/api/services/)
+A plataforma gerada encontra-se publicamente avaliável através da infraestrutura:
+- **Frontend / Dashboard Web (Vercel):** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
+- **Backend / API GET Test (Render):** [https://hair-agenda-api.onrender.com/api/v1/services/](https://hair-agenda-api.onrender.com/api/v1/services/)
 > *(Nota: O bloqueio administrativo padrão foi desativado na Vercel para permitir avaliação das telas de gerência sem cadastro prévio no banco).*
 
 ---

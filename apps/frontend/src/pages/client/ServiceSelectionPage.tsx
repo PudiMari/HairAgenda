@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Circle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, Circle, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { useUser, useClerk } from "@clerk/react";
 import { 
   fetchServices, 
@@ -29,6 +29,8 @@ export function ServiceSelectionPage() {
   const [openingHours, setOpeningHours] = useState<OpeningHour[]>([]);
   const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isOwner = !!(user?.id && (requestedUserId === user.id || profile?.user_id === user.id));
 
   // State for selections
   const [selectedService, setSelectedService] = useState<{id: string, name: string} | null>(null);
@@ -291,6 +293,12 @@ export function ServiceSelectionPage() {
       return;
     }
 
+    if (isOwner) {
+       alert("Como profissional, você não pode agendar para si mesmo através deste fluxo. Utilize o painel de administração.");
+       navigate('/admin');
+       return;
+    }
+
     navigate(`/book/confirm${requestedUserId ? `?u=${requestedUserId}` : ""}`, { 
       state: { 
         service: selectedService, 
@@ -335,6 +343,16 @@ export function ServiceSelectionPage() {
         </div>
         <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Passo 1 de 2</span>
       </div>
+
+      {isOwner && (
+        <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 text-amber-800">
+           <AlertCircle size={24} className="shrink-0" />
+           <div>
+             <p className="font-bold text-sm">Visualização de Profissional</p>
+             <p className="text-xs">Você está vendo sua própria agenda. Clientes verão as opções de agendamento aqui.</p>
+           </div>
+        </div>
+      )}
 
       {/* Section A: Service Selection */}
       <section className="mb-10">
@@ -497,10 +515,10 @@ export function ServiceSelectionPage() {
           </Link>
           <button 
             onClick={handleNext}
-            disabled={!selectedService || !selectedDate || !selectedTime}
+            disabled={!selectedService || !selectedDate || !selectedTime || isOwner}
             className="flex-[2_2_0px] flex items-center justify-center gap-2 h-14 rounded-xl bg-brand-gold text-white font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Avançar
+            {isOwner ? "Indisponível para você" : "Avançar"}
             <ArrowRight size={20} />
           </button>
         </div>

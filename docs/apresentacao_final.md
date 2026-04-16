@@ -28,8 +28,8 @@ O HairAgenda é uma plataforma premium de agendamento online focada em profissio
 
 O projeto encontra-se em ambiente produtivo com as seguintes especificações:
 
-- **Frontend (URL):** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
-- **Backend (API Health):** [https://hair-agenda-backend.vercel.app/api/health/](https://hair-agenda-backend.vercel.app/api/health/)
+- **Frontend (Vercel):** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
+- **Backend (Render):** [https://hair-agenda-api.onrender.com/api/v1/health/](https://hair-agenda-api.onrender.com/api/v1/health/)
 
 ### Modo de Avaliação (Acesso Admin)
 Para facilitar a auditoria e testes das funcionalidades administrativas, o sistema está configurado com a restrição de administrador **desativada** (`VITE_ENABLE_ADMIN_RESTRICTION=false`). 

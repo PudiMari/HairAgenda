@@ -23,6 +23,8 @@ export function BookingConfirmationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const isOwner = user?.id === requestedUserId;
+
   // Pre-fill user data
   useEffect(() => {
     if (isLoaded && !user) {
@@ -130,6 +132,10 @@ export function BookingConfirmationPage() {
         throw new Error("Não foi possível identificar o profissional para este agendamento. Volte e tente novamente.");
       }
 
+      if (isOwner) {
+        throw new Error("Você não pode agendar para si mesmo. Utilize o Painel Admin para gerenciar seus horários.");
+      }
+
       await createAppointment({
         professional: finalProfessionalId,
         client_user_id: user?.id,
@@ -224,6 +230,29 @@ export function BookingConfirmationPage() {
           </div>
         )}
 
+        {isOwner && (
+          <div className="flex flex-col gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="flex gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                <Lock size={20} />
+              </div>
+              <div>
+                <h3 className="text-amber-900 font-bold text-sm">Visualização de Proprietário</h3>
+                <p className="text-amber-800 text-xs mt-0.5 leading-relaxed">
+                  Você está visualizando sua própria página de confirmação. 
+                  O agendamento de serviços próprios é <strong>desativado</strong> para garantir a integridade dos dados.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/admin')}
+              className="text-[11px] font-bold text-amber-700 uppercase tracking-wider hover:underline text-left mt-1"
+            >
+              Ir para o Painel de Controle →
+            </button>
+          </div>
+        )}
+
         <div className="flex flex-col gap-1.5">
           <label className="text-slate-700 text-sm font-bold px-1" htmlFor="name">Nome Completo</label>
           <div className="relative">
@@ -261,14 +290,24 @@ export function BookingConfirmationPage() {
 
       {/* Final CTA */}
       <div className="mt-10 pb-10">
-        <button 
-          onClick={handleConfirm}
-          disabled={isSubmitting}
-          className="w-full font-bold h-14 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] bg-brand-gold text-white shadow-brand-gold/20 hover:opacity-90 disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? "Confirmando..." : "Confirmar Agendamento"}
-          {!isSubmitting && <ArrowRight size={20} />}
-        </button>
+        {isOwner ? (
+          <button 
+            onClick={() => navigate('/admin')}
+            className="w-full font-bold h-14 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] bg-slate-800 text-white hover:bg-slate-900"
+          >
+            Acessar Meu Painel Admin
+            <ArrowRight size={20} />
+          </button>
+        ) : (
+          <button 
+            onClick={handleConfirm}
+            disabled={isSubmitting}
+            className="w-full font-bold h-14 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] bg-brand-gold text-white shadow-brand-gold/20 hover:opacity-90 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Confirmando..." : "Confirmar Agendamento"}
+            {!isSubmitting && <ArrowRight size={20} />}
+          </button>
+        )}
         
         <div className="mt-6 flex flex-col items-center gap-4">
           <div className="flex items-center gap-2 text-slate-400">
