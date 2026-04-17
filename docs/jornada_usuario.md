@@ -86,8 +86,8 @@
 - Satisfação: Plena. O processo foi indolor e silencioso.
 
 #### Oportunidades de Melhoria
-- Enviar um disparo automático no WhatsApp da cliente com o resumo do agendamento.
 - Oferecer um botão "Adicionar ao Google Agenda" na tela de sucesso.
+- Permitir que o cliente salve um PDF ou imagem com o resumo do agendamento.
 
 ---
 

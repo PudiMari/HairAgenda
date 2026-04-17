@@ -21,8 +21,9 @@ hairagenda/
 ├── apps/
 │   ├── frontend/     # Aplicação SPA (React + Vite + TypeScript)
 │   └── backend/      # API e painel de controle (Django + Python)
-├── docs/             # Documentação de projeto (PRD, Spacs, UI)
-├── infra/            # Scripts e configurações de infraestrutura
+├── docs/             # Documentação (PRD, Specs, UI Mockups)
+├── .agent/           # Skills e artefatos para agentes de IA
+├── AGENTS.md         # Guia de colaboração para agentes de IA
 ├── docker-compose.yml# Orquestração do ambiente de desenvolvimento
 └── package.json      # Scripts globais do monorepo
 ```
@@ -52,15 +53,19 @@ git clone https://github.com/seu-usuario/hairagenda.git
 cd hairagenda
 ```
 
-2. Crie e configure o arquivo `.env` na raiz do projeto contendo as variáveis de ambiente necessárias (banco de dados, portas, chaves).
+2. Configure o ambiente:
+```bash
+cp .env.example .env
+```
 
-3. Inicie a infraestrutura inteira via Docker Compose:
+3. Inicie a infraestrutura via Docker Compose:
 ```bash
 docker-compose up -d
 ```
-Ou, usando o script do `package.json` raiz:
+
+4. Execute as migrações do banco de dados:
 ```bash
-npm start
+docker-compose exec backend python manage.py migrate
 ```
 
 Após o build e a inicialização dos contêineres:

@@ -12,7 +12,6 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 - **Componentes Principais:** 
   - **Web Client (Frontend Público/Admin):** Interface Single Page Application (SPA) responsiva para autoagendamento e gestão do salão.
   - **Backend Server (API):** Servidor construído em Django (Python) que atua exclusivamente como API, processando validações de exclusividade de tempo e lógicas de negócio.
-  - **Serviço de Notificações (Background Tasks):** Para evitar congelamento nas requisições HTTP (arquitetura síncrona), recomenda-se o uso de filas leves (ex: Django-Q ou Background Tasks) ou Webhooks diretamente do Banco de Dados delegando para funções serverless (Edge Functions) para os disparos externos.
 - **Autenticação e Autorização:** Autenticação delegada ao SaaS (Clerk), exigindo que o backend em Django aplique verificação de JWT localmente em cada rota protegida (via Middleware ou Decorators).
 - **Protocolos de Comunicação:** HTTPS padrão com APIs comunicando-se em `application/json`.
 - **Infraestrutura de Deployment:** API provida no Render vinculada a um banco de dados hospedado em nuvem especializada (Supabase - PostgreSQL). Vercel utilizada para o deploy do Web Client (Frontend) em infraestrutura Edge, minimizando a latência global de carregamento estático.
@@ -25,8 +24,8 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 - **Backend Core:** Python 3.x utilizando o framework Django. O Django Rest Framework (DRF) será aplicado para construção da API, aproveitando a robustez e o sistema administrativo nativo.
 - **Persistência de Dados (DB):** PostgreSQL. Altamente recomendado para evitar falhas de concorrência (*overbooking* no mesmo slot de hora) através de bloqueios transacionais (ACID).
 - **ORM:** Django ORM padrão.
-- **Integrações (Mensageria Automática):** Consumo de Webhooks ou APIs de disparo de WhatsApp (ex: Z-API para custo-benefício, ou API Oficial Meta) / SMS (Twilio).
-- **Filas e Agendadores (V2):** Planejado o uso de Redis e Celery para gerir tarefas em background (ex: "Enviar lembrete 12 horas antes"). Na V1, a lógica de lembrete é simplificada ou delegada a gatilhos de API.
+- **Integrações (V2):** Planejado o consumo de Webhooks ou APIs de disparo de WhatsApp (ex: Z-API ou API Oficial Meta) / SMS (Twilio).
+- **Filas e Agendadores (V2):** Planejado o uso de Redis e Celery para gerir tarefas em background (ex: "Enviar lembrete 12 horas antes").
 - **Estáticos e Segurança (Middlewares):** Uso do pacote WhiteNoise para a entrega otimizada de arquivos estáticos em ambiente de produção no Django, e configuração estrita de CORS (Cross-Origin Resource Sharing) para garantir a segurança das requisições entre o frontend (Vercel) e a API (Render).
 
 ---
@@ -42,14 +41,14 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 ### 5. Auditoria
 
 - **Histórico Básicos:** Garantir injeção padrão de variáveis temporais em todas as chaves transacionais do sistema (`created_at`, `updated_at`).
-- **Rastros do Sistema:** Emissão de LOGs limpos direcionados à Standard-Out para posterior análise nas plataformas PaaS (erros em Integrações de WhatsApp ou quedas do Banco precisam alarmar em consola o mais rápido possível).
+- **Rastros do Sistema:** Emissão de LOGs limpos direcionados à Standard-Out para posterior análise nas plataformas PaaS (erros em requisições ou quedas do Banco precisam alarmar em consola o mais rápido possível).
 
 ---
 
 ## 6. APIs
 
-- **Endpoints Principais:** Separados lógicamente, possuindo prefíxo semântico explícito como `/api/v1/agenda`, `/api/v1/services`.
-- **Versionamento:** Versionamento declarado na URI para garantir que o FrontEnd da "v1" continue operante mesmo se um "v2" drástico (CRM Complexo) for instaurado (*ex: /api/v1/...*).
+- **Endpoints Principais:** Separados lógicamente, possuindo prefíxo semântico explícito como `/api/agenda`, `/api/services`, `/api/portfolio`.
+- **Versionamento:** Embora planejado o uso de `/api/v1/...`, a versão atual utiliza o prefixo `/api/` para simplificação inicial.
 - **Padrão de Nomenclatura:** Design totalmente RESTful, favorecendo plurais (`/services`, `/bookings`) em Inglês, com payloads *json* padronizados em *snake_case*.
 - **Divisão Lógica de Autenticação:**
   - ***Endpoints Públicos (Public read-write)***: Leitura passiva da grade de horários via ID ou "Slug" do profissional. Inserção cega do agendamento mediante regras preestabelecidas.
@@ -68,10 +67,9 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 
 ## 8. Diretrizes para Desenvolvimento Assistido por IA
 
-- O código produzido pela IA no projeto HairAgenda (Django para back, React/TS para front) deve concentrar a lógica longe das Views/Endpoints, concentrando as validações de exclusividade de tempo nos Services ou Models usando a diretriz do "Fat Model, Skinny View".
-- Sempre prover tratamentos Try/Catch aos disparos externos do WhatsApp evitando que a reserva fique pendente ou falte apenas porque o "carteiro do celular" falhou; o serviço deve ser sempre robusto e fail-safe localmente.
+- O código produzido pela IA no projeto HairAgenda (Django para back, React/TS para front) deve concentrar a lógica longe das Views/Endpoints, focando nas validações de exclusividade de tempo nos Services ou Models usando a diretriz do "Fat Model, Skinny View".
 - Seguir fielmente o mapa visual do Documento de *Especificação UI (spec_ui.md)* na elaboração das respostas de interface.
-- Focar estritamente na estabilidade do motor de notificação (Workers) e no CRUD eficiente de reserva de agenda, evitando adicionar escopos complexos como pagamentos e conciliações financeiras orgânicas.
+- Focar estritamente na estabilidade das transações de reserva e no CRUD eficiente de serviços e portfólio visual, evitando adicionar escopos complexos como pagamentos e conciliações financeiras orgânicas.
 
 ---
 

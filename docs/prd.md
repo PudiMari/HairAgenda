@@ -9,8 +9,8 @@
 Para o **profissional autônomo do mercado de beleza**, a solução centraliza e automatiza a gestão da agenda garantindo economia de tempo de negociação, redução significativa de faltas pelo cliente e um aumento do potencial de faturamento.
 
 Nossos Diferenciais:
-- Lembretes automáticos de agendamento integrados via WhatsApp.
 - Experiência de agendamento para o cliente `responsivo` (funciona fluidamente em Desktop e Mobile sem precisar baixar aplicativo).
+- Portfólio de Trabalhos: Vitrine visual para demonstração de especialidades e resultados reais.
 - Funciona 24/7: Agendamentos acontecem enquanto a profissional dorme ou trabalha.
 - Link único para biografia do Instagram/WhatsApp, simplificando a captação.
 
@@ -43,7 +43,7 @@ Nossos Diferenciais:
 
 1. Agenda Gestão do Profissional
 2. Página de Autoagendamento do Cliente
-3. Motor de Notificações
+3. Portfólio Digital de Trabalhos
 
 ### RFN-01 Gerenciamento da Agenda e Serviços Disponíveis
 
@@ -63,14 +63,14 @@ Critérios de Aceitação:
 - Fluxo rápido: seleção de serviço -> seleção de data/hora -> input de dados de contato -> confirmação.
 - Transparência obrigatória do valor total e do tempo do serviço antes da confirmação final do agendamento.
 
-### RFN-03 Motor de Lembretes Automáticos
+### RFN-03 Portfólio Digital de Trabalhos
 
-- Funcionalidade invisível que cuida da jornada de notificação do agendamento a fim de mitigar ausências (no-shows).
+- Seção integrada à vitrine do profissional que permite exibir fotos de trabalhos realizados, categorizados por tipo de serviço, ajudando o cliente na decisão de compra.
 
 Critérios de Aceitação:
-- O motor deve enviar lembrete proativo X horas antes do atendimento via canal confiável (WhatsApp ou SMS).
-- Deve incluir um link facilitado caso o cliente queira desmarcar.
-- Quando o cliente cancela via link, a agenda do profissional é automaticamente liberada, evitando travas indevidas de slots de hora.
+- O profissional deve conseguir subir imagens e organizar a ordem de exibição.
+- Cada item deve possuir um título e uma categoria (ex: Corte, Coloração, Unhas).
+- As imagens devem ser otimizadas para carregamento rápido em dispositivos móveis.
 
 ---
 
@@ -129,7 +129,7 @@ A arquitetura de infraestrutura deve ser capaz de sustentar escalabilidade insta
 - **Perfil do Profissional**: Gestão de serviços, preços e horários.
 - **Vitrine Digital**: Geração de link único para bio de redes sociais.
 - **Autoagendamento**: Interface web rápida para clientes sem necessidade de login complexo.
-- **Motor de Lembretes**: Disparo de mensagens proativas (Síncronas na V1).
+- **Portfólio**: Galeria de fotos de trabalhos para conversão visual.
 - **Dashboard Admin**: Visualização consolidada de ocupação e faturamento diário.
 
 ### O que está FORA de Escopo (Out of Scope)
@@ -139,6 +139,7 @@ A arquitetura de infraestrutura deve ser capaz de sustentar escalabilidade insta
 - **Relatórios Avançados**: Gráficos de performance e CRM detalhado (Planejado para V2).
 
 ### Roadmap (V2)
+- Motor de Lembretes Automáticos via WhatsApp/SMS.
 - Relatórios de agendamentos e exportação de dados.
 - Histórico completo de clientes (CRM simplificado).
 - Controle de status detalhado (Cancelado, Concluído, No-show).
