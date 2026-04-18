@@ -5,7 +5,8 @@ import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
 let isTelemetryInitialized = false;
 
@@ -33,19 +34,18 @@ export const initTelemetry = () => {
     });
   }
 
-  const provider = new WebTracerProvider({
-    resource: new Resource({
-      'service.name': import.meta.env.VITE_OTEL_SERVICE_NAME || 'hairagenda-frontend',
-      'deployment.environment': import.meta.env.MODE || 'development',
-    }),
-  });
-
   const exporter = new OTLPTraceExporter({
     url: endpoint,
     headers: headers,
   });
 
-  provider.addSpanProcessor(new BatchSpanProcessor(exporter));
+  const provider = new WebTracerProvider({
+    resource: resourceFromAttributes({
+      [ATTR_SERVICE_NAME]: import.meta.env.VITE_OTEL_SERVICE_NAME || 'hairagenda-frontend',
+      'deployment.environment': import.meta.env.MODE || 'development',
+    }),
+    spanProcessors: [new BatchSpanProcessor(exporter)],
+  });
 
   provider.register({
     contextManager: new ZoneContextManager(),
