@@ -9,10 +9,9 @@ export const initTelemetry = () => {
   }
 
   const faroUrl = import.meta.env.VITE_FARO_URL;
-  const faroAppId = import.meta.env.VITE_FARO_APP_ID;
 
-  if (!faroUrl || !faroAppId) {
-    console.warn("[Observability] Faro URL or App ID not found. Frontend observability disabled.");
+  if (!faroUrl) {
+    console.warn("[Observability] Faro URL not found. Frontend observability disabled.");
     return;
   }
 
@@ -20,7 +19,6 @@ export const initTelemetry = () => {
     url: faroUrl,
     app: {
       name: import.meta.env.VITE_FARO_APP_NAME || 'HairAgenda',
-      id: faroAppId,
       version: '1.0.0',
       environment: import.meta.env.MODE || 'development',
     },
