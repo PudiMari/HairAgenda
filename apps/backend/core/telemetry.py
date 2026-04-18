@@ -50,14 +50,14 @@ def setup_telemetry():
         # The OTLPSpanExporter will automatically use environment variables:
         # OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS, etc.
         # For Grafana Cloud, we use the HTTP exporter which is more compatible with their gateway.
-        
+
         resource = Resource.create({
             "service.name": os.environ.get("OTEL_SERVICE_NAME", "hairagenda-backend"),
             "deployment.environment": os.environ.get("ENVIRONMENT", "development")
         })
-        
+
         provider = TracerProvider(resource=resource)
-        
+
         # When endpoint is None, it defaults to the environment variable or localhost:4318
         exporter = OTLPSpanExporter()
         processor = BatchSpanProcessor(exporter)
@@ -67,7 +67,7 @@ def setup_telemetry():
         DjangoInstrumentor().instrument()
         Psycopg2Instrumentor().instrument()
         RequestsInstrumentor().instrument()
-        
+
         logging.getLogger(__name__).info("OpenTelemetry successfully instrumented.")
     except Exception as e:
         logging.getLogger(__name__).warning(
