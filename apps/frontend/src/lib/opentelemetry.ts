@@ -1,12 +1,5 @@
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { ZoneContextManager } from '@opentelemetry/context-zone';
-import { resourceFromAttributes } from '@opentelemetry/resources';
-import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
+import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 
 let isTelemetryInitialized = false;
 
@@ -15,56 +8,41 @@ export const initTelemetry = () => {
     return;
   }
 
-  const endpoint = import.meta.env.VITE_OTEL_EXPORTER_OTLP_ENDPOINT;
-  const headersStr = import.meta.env.VITE_OTEL_EXPORTER_OTLP_HEADERS || '';
+  const faroUrl = import.meta.env.VITE_FARO_URL;
+  const faroAppId = import.meta.env.VITE_FARO_APP_ID;
 
-  if (!endpoint) {
-    console.warn("[Observability] OTLP endpoint not found. Telemetry disabled.");
+  if (!faroUrl || !faroAppId) {
+    console.warn("[Observability] Faro URL or App ID not found. Frontend observability disabled.");
     return;
   }
 
-  // Parse headers from "Key=Value,Key2=Value2" format
-  const headers: Record<string, string> = {};
-  if (headersStr) {
-    headersStr.split(',').forEach((h: string) => {
-      const [key, value] = h.split('=');
-      if (key && value) {
-        headers[key.trim()] = value.trim();
-      }
-    });
-  }
-
-  const exporter = new OTLPTraceExporter({
-    url: endpoint,
-    headers: headers,
-  });
-
-  const provider = new WebTracerProvider({
-    resource: resourceFromAttributes({
-      [ATTR_SERVICE_NAME]: import.meta.env.VITE_OTEL_SERVICE_NAME || 'hairagenda-frontend',
-      'deployment.environment': import.meta.env.MODE || 'development',
-    }),
-    spanProcessors: [new BatchSpanProcessor(exporter)],
-  });
-
-  provider.register({
-    contextManager: new ZoneContextManager(),
-  });
-
-  registerInstrumentations({
+  initializeFaro({
+    url: faroUrl,
+    app: {
+      name: import.meta.env.VITE_FARO_APP_NAME || 'HairAgenda',
+      id: faroAppId,
+      version: '1.0.0',
+      environment: import.meta.env.MODE || 'development',
+    },
     instrumentations: [
-      new DocumentLoadInstrumentation(),
-      new FetchInstrumentation({
-        clearTimingResources: true,
-        propagateTraceHeaderCorsUrls: [
-          /.*localhost:8000.*/,
-          /.*hair-agenda-backend\.vercel\.app.*/,
-          /.*\.supabase\.co.*/
-        ]
+      // Mandatory, omits default instrumentations otherwise.
+      ...getWebInstrumentations(),
+
+      // Initialization of the tracing package.
+      // This will automatically connect to the OpenTelemetry SDK.
+      new TracingInstrumentation({
+        instrumentationOptions: {
+          // Pass the list of URLs that should receive trace headers
+          propagateTraceHeaderCorsUrls: [
+            /.*localhost:8000.*/,
+            /.*hair-agenda-backend\.vercel\.app.*/,
+            /.*\.supabase\.co.*/
+          ],
+        },
       }),
     ],
   });
 
   isTelemetryInitialized = true;
-  console.log("[Observability] OpenTelemetry initialized with endpoint:", endpoint);
+  console.log("[Observability] Grafana Faro initialized.");
 };
