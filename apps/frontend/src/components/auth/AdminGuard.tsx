@@ -118,19 +118,8 @@ export function AdminGuard({ children, checkProfile = true }: AdminGuardProps) {
     );
   }
 
-  // Hybrid approach for evaluation and production
-  const adminEmails = [
-    ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
-  ];
-
-  const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
-  const userRole = user?.unsafeMetadata?.role || user?.publicMetadata?.role;
-  const isEmailAdmin = user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress);
-
-  const isAdmin =
-    !adminRestrictionEnabled ||
-    userRole === 'admin' ||
-    (isEmailAdmin && !userRole);
+  const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+  const isAdmin = userRole === 'admin';
 
   const hasRole = 
     user?.publicMetadata?.role === 'admin' || 

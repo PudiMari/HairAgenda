@@ -32,9 +32,8 @@ O projeto encontra-se em ambiente produtivo com as seguintes especificações:
 - **Backend (Render):** [https://hair-agenda-api.onrender.com/api/v1/health/](https://hair-agenda-api.onrender.com/api/v1/health/)
 
 ### Modo de Avaliação (Acesso Admin)
-Para facilitar a auditoria e testes das funcionalidades administrativas, o sistema está configurado com a restrição de administrador **desativada** (`VITE_ENABLE_ADMIN_RESTRICTION=false`). 
-- **Como testar:** Qualquer usuário que realizar login (via Google ou e-mail) terá acesso imediato à área administrativa (`/admin`) e ao dashboard profissional. 
-- **Vantagem:** O avaliador não precisa ser previamente cadastrado em listas de permissão para visualizar as funcionalidades de gestão de agenda e serviços.
+O sistema utiliza controle de acesso baseado em papéis (RBAC). Para testar as funcionalidades administrativas, utilize as credenciais de profissional fornecidas ou crie uma nova conta e selecione o papel "Profissional" na tela inicial de configuração.
+- **Acesso:** Área administrativa (`/admin`) e dashboard profissional.
 
 ## 3. Principais Achados e Observações
 

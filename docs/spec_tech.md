@@ -14,7 +14,7 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
   - **Backend Server (API):** Servidor construído em Django (Python) que atua exclusivamente como API, processando validações de exclusividade de tempo e lógicas de negócio.
 - **Autenticação e Autorização:** Autenticação delegada ao SaaS (Clerk), exigindo que o backend em Django aplique verificação de JWT localmente em cada rota protegida (via Middleware ou Decorators).
 - **Protocolos de Comunicação:** HTTPS padrão com APIs comunicando-se em `application/json`.
-- **Infraestrutura de Deployment:** API provida no Render vinculada a um banco de dados hospedado em nuvem especializada (Supabase - PostgreSQL). Vercel utilizada para o deploy do Web Client (Frontend) em infraestrutura Edge, minimizando a latência global de carregamento estático.
+- **Infraestrutura de Deployment:** API provida na Vercel vinculada a um banco de dados hospedado em nuvem especializada (Supabase - PostgreSQL). Vercel também é utilizada para o deploy do Web Client (Frontend) em infraestrutura Edge, minimizando a latência global de carregamento estático.
 
 ---
 
@@ -26,7 +26,7 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 - **ORM:** Django ORM padrão.
 - **Integrações (V2):** Planejado o consumo de Webhooks ou APIs de disparo de WhatsApp (ex: Z-API ou API Oficial Meta) / SMS (Twilio).
 - **Filas e Agendadores (V2):** Planejado o uso de Redis e Celery para gerir tarefas em background (ex: "Enviar lembrete 12 horas antes").
-- **Estáticos e Segurança (Middlewares):** Uso do pacote WhiteNoise para a entrega otimizada de arquivos estáticos em ambiente de produção no Django, e configuração estrita de CORS (Cross-Origin Resource Sharing) para garantir a segurança das requisições entre o frontend (Vercel) e a API (Render).
+- **Estáticos e Segurança (Middlewares):** Uso do pacote WhiteNoise para a entrega otimizada de arquivos estáticos em ambiente de produção no Django, e configuração estrita de CORS (Cross-Origin Resource Sharing) para garantir a segurança das requisições entre o frontend e a API (ambos na Vercel).
 
 ---
 
@@ -83,7 +83,7 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 - **CI/CD (Integração e Entrega Contínuas):**
   - Adoção preferencial do **GitHub Actions** para as esteiras automatizadas.
   - **CI:** Regras de PR (Pull Request) atreladas à execução e aprovação obrigatória de Linters (`flake8`, `eslint` etc.) e da suíte de testes.
-  - **CD:** Após integração (merge) bem-sucedida, o deploy será orquestrado e assumido de forma transparente pelas esteiras nativas de monitoramento de branch fornecidas pelos serviços gerenciados (Vercel para Frontend; Render para Backend).
+  - **CD:** Após integração (merge) bem-sucedida, o deploy será orquestrado e assumido de forma transparente pelas esteiras nativas de monitoramento de branch fornecidas pelo Vercel (Frontend e Backend).
 - **IaC (Infraestrutura como Código):**
   - No escopo de desenvolvimento ágil (MVP/V1), a adoção de orquestradores pesados de IaC (ex: Terraform, Ansible) é sobre-dimensionada. Recomenda-se a alocação e provisionamento guiado por interface (PaaS Dashboard) e o uso de configurações-como-código nativas e simplificadas (ex: `render.yaml` ou `vercel.json` na raiz da aplicação) para registrar instâncias de hospedagem.
 

@@ -11,23 +11,9 @@ export function LandingPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (isLoaded && user) {
-      // Check if user is an admin
-      const adminEmails = [
-        ...(import.meta.env.VITE_ADMIN_EMAILS?.split(',') || [])
-      ];
-      const adminRestrictionEnabled = import.meta.env.VITE_ENABLE_ADMIN_RESTRICTION !== 'false';
-      const isAdmin = (
-        !adminRestrictionEnabled ||
-        user?.publicMetadata?.role === 'admin' ||
-        user?.unsafeMetadata?.role === 'admin' ||
-        (user?.primaryEmailAddress?.emailAddress && adminEmails.includes(user.primaryEmailAddress.emailAddress))
-      );
-
-      const hasRole = 
-        user?.publicMetadata?.role === 'admin' || 
-        user?.publicMetadata?.role === 'client' ||
-        user?.unsafeMetadata?.role === 'admin' || 
-        user?.unsafeMetadata?.role === 'client';
+      const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+      const isAdmin = userRole === 'admin';
+      const hasRole = userRole === 'admin' || userRole === 'client';
 
       if (!hasRole) {
         navigate('/role-selection');

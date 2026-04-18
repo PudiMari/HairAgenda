@@ -39,7 +39,7 @@ def setup_telemetry():
 
     try:
         from opentelemetry import trace
-        from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.resources import Resource
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -47,11 +47,19 @@ def setup_telemetry():
         from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
         from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
-        resource = Resource.create({"service.name": "hairagenda-backend"})
+        # The OTLPSpanExporter will automatically use environment variables:
+        # OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS, etc.
+        # For Grafana Cloud, we use the HTTP exporter which is more compatible with their gateway.
+        
+        resource = Resource.create({
+            "service.name": os.environ.get("OTEL_SERVICE_NAME", "hairagenda-backend"),
+            "deployment.environment": os.environ.get("ENVIRONMENT", "development")
+        })
+        
         provider = TracerProvider(resource=resource)
-
-        endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://jaeger:4317")
-        exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
+        
+        # When endpoint is None, it defaults to the environment variable or localhost:4318
+        exporter = OTLPSpanExporter()
         processor = BatchSpanProcessor(exporter)
         provider.add_span_processor(processor)
         trace.set_tracer_provider(provider)
@@ -59,7 +67,9 @@ def setup_telemetry():
         DjangoInstrumentor().instrument()
         Psycopg2Instrumentor().instrument()
         RequestsInstrumentor().instrument()
-    except ImportError as e:
+        
+        logging.getLogger(__name__).info("OpenTelemetry successfully instrumented.")
+    except Exception as e:
         logging.getLogger(__name__).warning(
-            "OpenTelemetry setup skipped — missing dependency: %s", e
+            "OpenTelemetry setup failed: %s", e
         )
