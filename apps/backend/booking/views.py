@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import (
     Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock, PortfolioItem
@@ -85,6 +84,7 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
                 {"detail": "Not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
+
     @action(detail=True, methods=['get'], url_path='available-slots')
     def available_slots(self, request, user_id=None):
         """
@@ -106,58 +106,48 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
             service = Service.objects.get(id=service_id, professional=profile)
         except (ValueError, Service.DoesNotExist):
             return Response(
-                {"detail": "Data inválida ou serviço não encontrado para este profissional."},
+                {"detail": "Data inválida ou serviço não encontrado."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # 1. Get Opening Hours
         weekday = target_date.weekday()
-        # Django weekday is 0=Mon, 6=Sun. OpeningHour.day_of_week matches this.
         opening_hour = OpeningHour.objects.filter(
-            professional=profile, 
-            day_of_week=weekday, 
-            is_open=True
+            professional=profile, day_of_week=weekday, is_open=True
         ).first()
-        
+
         if not opening_hour:
             return Response([])
 
-        # 2. Get existing bookings and blocks for the target date
+        # Check for full day block
+        blocks = ProfessionalBlock.objects.filter(
+            professional=profile, date=target_date
+        )
+        if blocks.filter(start_time__isnull=True, end_time__isnull=True).exists():
+            return Response([])
+
+        return Response(self._calculate_slots(target_date, service, opening_hour, profile, blocks))
+
+    def _calculate_slots(self, target_date, service, opening_hour, profile, blocks):
         appointments = Appointment.objects.filter(
             professional=profile,
             date_time__date=target_date,
             status__in=['pending', 'confirmed']
         ).select_related('service')
 
-        blocks = ProfessionalBlock.objects.filter(
-            professional=profile,
-            date=target_date
-        )
+        def to_min(t):
+            return t.hour * 60 + t.minute
 
-        # Check for full day block
-        if blocks.filter(start_time__isnull=True, end_time__isnull=True).exists():
-            return Response([])
-
-        # 3. Generate slots (30 min interval)
-        slots = []
-        current_dt = datetime.combine(target_date, opening_hour.work_start)
-        end_limit_dt = datetime.combine(target_date, opening_hour.work_end)
-        # Helper to convert time to minutes for easy comparison
-        def to_min(t): return t.hour * 60 + t.minute
-
-        # Prepare adjacency anchors for "Smart" logic
-        anchors = set()
-        anchors.add(to_min(opening_hour.work_start))
-        anchors.add(to_min(opening_hour.work_end))
-        anchors.add(to_min(opening_hour.lunch_start))
-        anchors.add(to_min(opening_hour.lunch_end))
+        anchors = {
+            to_min(opening_hour.work_start),
+            to_min(opening_hour.work_end),
+            to_min(opening_hour.lunch_start),
+            to_min(opening_hour.lunch_end)
+        }
 
         booked_intervals = []
         for appt in appointments:
-            # Shift to local time for comparison if needed
             start_t = appt.date_time.time()
             duration = appt.service.duration_minutes
-            # Use datetime for math to handle end_time cross-day
             appt_end_dt = appt.date_time + timedelta(minutes=duration)
             end_t = appt_end_dt.time()
 
@@ -172,41 +162,39 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
                 anchors.add(to_min(block.start_time))
                 anchors.add(to_min(block.end_time))
 
-        service_duration = service.duration_minutes
-        lunch_start_min = to_min(opening_hour.lunch_start)
-        lunch_end_min = to_min(opening_hour.lunch_end)
+        return self._generate_slot_list(
+            target_date, service.duration_minutes, opening_hour, booked_intervals, anchors
+        )
 
-        while current_dt + timedelta(minutes=service_duration) <= end_limit_dt:
-            slot_start_min = to_min(current_dt.time())
-            slot_end_min = slot_start_min + service_duration
+    def _generate_slot_list(self, target_date, duration, opening_hour, booked, anchors):
+        def to_min(t):
+            return t.hour * 60 + t.minute
 
-            # Check availability
+        slots = []
+        current_dt = datetime.combine(target_date, opening_hour.work_start)
+        end_limit_dt = datetime.combine(target_date, opening_hour.work_end)
+        lunch_start, lunch_end = to_min(opening_hour.lunch_start), to_min(opening_hour.lunch_end)
+
+        while current_dt + timedelta(minutes=duration) <= end_limit_dt:
+            s_start = to_min(current_dt.time())
+            s_end = s_start + duration
+
             is_available = True
-
-            # Lunch break check
-            if not (slot_end_min <= lunch_start_min or
-                    slot_start_min >= lunch_end_min):
+            if not (s_end <= lunch_start or s_start >= lunch_end):
                 is_available = False
 
-            # Bookings check
             if is_available:
-                for b_start, b_end in booked_intervals:
-                    if slot_start_min < b_end and b_start < slot_end_min:
+                for b_start, b_end in booked:
+                    if s_start < b_end and b_start < s_end:
                         is_available = False
                         break
 
             if is_available:
-                is_recommended = (slot_start_min in anchors or
-                                  slot_end_min in anchors)
-
-                slots.append({
-                    "time": current_dt.strftime('%H:%M'),
-                    "is_recommended": is_recommended
-                })
+                is_rec = s_start in anchors or s_end in anchors
+                slots.append({"time": current_dt.strftime('%H:%M'), "is_recommended": is_rec})
 
             current_dt += timedelta(minutes=30)
-
-        return Response(slots)
+        return slots
 
 
 class OpeningHourViewSet(viewsets.ModelViewSet):
