@@ -7,5 +7,6 @@ exclude =
     venv,
     .venv,
     */migrations/*,
-    manage.py
+    manage.py,
+    scratch
 max-complexity = 10
