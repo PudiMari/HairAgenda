@@ -22,7 +22,9 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 
 - **Frontend Cliente:** JavaScript/TypeScript com React via Vite, priorizando tempos rápidos de build, acoplado com uma biblioteca CSS-in-JS leve ou Tailwind CSS (focada na responsividade fluida para qualquer tamanho de tela).
 - **Backend Core:** Python 3.x utilizando o framework Django. O Django Rest Framework (DRF) será aplicado para construção da API, aproveitando a robustez e o sistema administrativo nativo.
-- **Persistência de Dados (DB):** PostgreSQL. Altamente recomendado para evitar falhas de concorrência (*overbooking* no mesmo slot de hora) através de bloqueios transacionais (ACID).
+- **Persistência de Dados (DB):**
+  - **Relacional (PostgreSQL):** Utilizado para todos os objetos de negócio e transações críticas (ACID). Hospedado no Supabase.
+  - **NoSQL (Redis):** Utilizado para cache de alta performance, gerenciamento de sessões e como broker de mensagens para tarefas assíncronas. Executado via Docker em ambiente local.
 - **ORM:** Django ORM padrão.
 - **Integrações (V2):** Planejado o consumo de Webhooks ou APIs de disparo de WhatsApp (ex: Z-API ou API Oficial Meta) / SMS (Twilio).
 - **Filas e Agendadores (V2):** Planejado o uso de Redis e Celery para gerir tarefas em background (ex: "Enviar lembrete 12 horas antes").

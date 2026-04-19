@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from .models import (
     Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock, PortfolioItem
 )
@@ -17,6 +19,10 @@ from .serializers import (
 class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
+
+    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -58,6 +64,7 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfessionalProfileSerializer
     lookup_field = 'user_id'
 
+    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
     @action(detail=False, methods=['get'])
     def me(self, request):
         user_id = request.query_params.get('user_id')
