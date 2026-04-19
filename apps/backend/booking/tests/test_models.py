@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
 
+
 @pytest.mark.django_db
 class TestBookingModels:
     def test_professional_profile_creation(self):
@@ -19,7 +20,7 @@ class TestBookingModels:
     def test_appointment_no_overlap(self):
         professional = ProfessionalProfileFactory()
         service = ServiceFactory(professional=professional, duration_minutes=30)
-        
+
         # Primeiro agendamento: Amanhã às 10:00
         start_time = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=1)
         AppointmentFactory(
@@ -36,16 +37,16 @@ class TestBookingModels:
             service=service,
             date_time=overlap_time
         )
-        
+
         with pytest.raises(ValidationError) as exc:
             new_appointment.clean()
-        
+
         assert "Conflito de horário" in str(exc.value)
 
     def test_appointment_valid_scheduling(self):
         professional = ProfessionalProfileFactory()
         service = ServiceFactory(professional=professional, duration_minutes=30)
-        
+
         # Amanhã às 10:00
         start_time = timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=1)
         appt1 = AppointmentFactory(
@@ -54,7 +55,7 @@ class TestBookingModels:
             date_time=start_time,
             status='confirmed'
         )
-        appt1.clean() # Não deve levantar erro
+        appt1.clean()  # Não deve levantar erro
 
         # Amanhã às 10:30 (Logo após o anterior)
         next_time = start_time + timedelta(minutes=30)
@@ -63,4 +64,4 @@ class TestBookingModels:
             service=service,
             date_time=next_time
         )
-        appt2.clean() # Não deve levantar erro
+        appt2.clean()  # Não deve levantar erro

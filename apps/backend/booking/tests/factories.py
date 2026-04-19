@@ -4,6 +4,7 @@ from booking.models import ProfessionalProfile, Service, Appointment
 from django.utils import timezone
 from datetime import timedelta
 
+
 class ProfessionalProfileFactory(DjangoModelFactory):
     class Meta:
         model = ProfessionalProfile
@@ -12,6 +13,7 @@ class ProfessionalProfileFactory(DjangoModelFactory):
     name = factory.Faker('name')
     description = factory.Faker('text')
     is_setup_completed = True
+
 
 class ServiceFactory(DjangoModelFactory):
     class Meta:
@@ -22,6 +24,7 @@ class ServiceFactory(DjangoModelFactory):
     description = 'Corte de cabelo tesoura e máquina'
     price = 50.00
     duration_minutes = 30
+
 
 class AppointmentFactory(DjangoModelFactory):
     class Meta:
