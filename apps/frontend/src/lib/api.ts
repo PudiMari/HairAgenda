@@ -270,10 +270,30 @@ export const createPortfolioItem = async (data: {
   return response.json();
 };
 
+
 export const deletePortfolioItem = async (id: number): Promise<void> => {
   const response = await fetch(`${API_URL}/api/portfolio-items/${id}/`, {
     method: 'DELETE',
   });
   if (!response.ok) throw new Error('Erro ao remover item do portfólio.');
+};
+
+// ─── Scheduling Logic ────────────────────────────────────────────────────────
+
+export interface Slot {
+  time: string;
+  is_recommended: boolean;
+}
+
+export const fetchAvailableSlots = async (
+  userId: string,
+  date: string,
+  serviceId: number | string
+): Promise<Slot[]> => {
+  const response = await fetch(
+    `${API_URL}/api/professional-profile/${userId}/available-slots/?date=${date}&service_id=${serviceId}&t=${Date.now()}`
+  );
+  if (!response.ok) throw new Error('Erro ao buscar horários disponíveis.');
+  return response.json();
 };
 

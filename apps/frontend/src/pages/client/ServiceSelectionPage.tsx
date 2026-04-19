@@ -8,10 +8,12 @@ import {
   fetchProfessionalProfile, 
   fetchOpeningHours,
   fetchProfessionalBlocks,
+  fetchAvailableSlots,
   Service,
   OpeningHour,
   ProfessionalProfile,
-  ProfessionalBlock
+  ProfessionalBlock,
+  Slot
 } from "../../lib/api";
 
 export function ServiceSelectionPage() {
@@ -36,6 +38,8 @@ export function ServiceSelectionPage() {
   const [selectedService, setSelectedService] = useState<{id: string, name: string} | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [backendSlots, setBackendSlots] = useState<Slot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [dateStartIndex, setDateStartIndex] = useState(0);
   const datesToShow = 5;
 
@@ -161,6 +165,34 @@ export function ServiceSelectionPage() {
        if (firstAvailable) setSelectedDate(firstAvailable.fullDate);
     }
   }, [dates, selectedDate]);
+  
+  // NEW: Fetch available slots from backend (Smart Gap Filler)
+  useEffect(() => {
+    async function loadBackendSlots() {
+      if (!profile || !selectedDate || !selectedService) {
+        setBackendSlots([]);
+        return;
+      }
+      
+      setLoadingSlots(true);
+      try {
+        const dateObjRec = dates.find(d => d.fullDate === selectedDate);
+        if (dateObjRec) {
+          const month = String(monthNames.indexOf(dateObjRec.month) + 1).padStart(2, '0');
+          const dateStr = `${dateObjRec.year}-${month}-${dateObjRec.day.padStart(2, '0')}`;
+          
+          const slots = await fetchAvailableSlots(profile.user_id, dateStr, selectedService.id);
+          setBackendSlots(slots);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar slots inteligentes:", err);
+        setBackendSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    }
+    loadBackendSlots();
+  }, [selectedDate, selectedService, profile, dates]);
 
   // Generate 30-minute time slots dynamically based on opening hours
   const timeSlots = useMemo(() => {
@@ -464,19 +496,28 @@ export function ServiceSelectionPage() {
         {/* Time Slots Grid */}
         <div>
           <p className="text-sm font-bold mb-3 text-slate-500">Horários disponíveis</p>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 relative">
+            {loadingSlots && (
+               <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-xl">
+                 <div className="w-6 h-6 border-2 border-brand-gold border-t-transparent rounded-full animate-spin"></div>
+               </div>
+            )}
             {timeSlots.map((time, idx) => {
               const isSelected = selectedTime === time;
-              const status = getTimeSlotStatus(time);
+              const backendSlot = backendSlots.find(s => s.time === (time.length === 5 ? `${time}:00` : time));
+              const isAvailable = !!backendSlot;
+              const isRecommended = backendSlot?.is_recommended;
               
-              if (status !== 'available') {
-                const label = status === 'closed' ? 'Fechado' : 'Ocupado';
+              if (!isAvailable) {
+                // If not in backend available slots, check if it's occupied or just closed
+                const status = getTimeSlotStatus(time);
+                const label = status === 'occupied' ? 'Ocupado' : 'Fechado';
                 return (
                   <button 
                     key={idx} 
                     disabled 
                     className={`py-3 rounded-lg border border-slate-200 font-bold text-xs opacity-50 cursor-not-allowed flex flex-col items-center justify-center transition-all ${
-                      status === 'closed' ? "bg-closed" : "bg-slate-50 text-slate-400"
+                      status === 'closed' ? "bg-slate-50" : "bg-slate-50 text-slate-400"
                     }`}
                   >
                     <span>{time}</span>
@@ -487,15 +528,27 @@ export function ServiceSelectionPage() {
 
               return (
                 <button 
-                  key={idx}
-                  onClick={() => setSelectedTime(time)}
-                  className={`py-3 rounded-lg border font-bold text-sm transition-all ${
-                    isSelected 
-                      ? "border-brand-gold bg-brand-gold text-white" 
-                      : "border-slate-200 bg-white text-brand-dark hover:border-brand-gold/50 hover:bg-brand-gold/5"
-                  }`}
+                   key={idx}
+                   onClick={() => setSelectedTime(time)}
+                   className={`py-3 rounded-lg border font-bold text-sm transition-all relative overflow-hidden group ${
+                     isSelected 
+                       ? "border-brand-gold bg-brand-gold text-white shadow-md shadow-brand-gold/20" 
+                       : isRecommended
+                         ? "border-brand-gold/40 bg-brand-gold/10 text-brand-dark hover:border-brand-gold hover:bg-brand-gold/15"
+                         : "border-slate-200 bg-white text-brand-dark hover:border-brand-gold/50 hover:bg-brand-gold/5"
+                   }`}
                 >
-                  {time}
+                  <div className="flex flex-col items-center">
+                    <span>{time}</span>
+                    {isRecommended && (
+                      <span className={`text-[8px] uppercase tracking-tighter mt-0.5 font-black ${isSelected ? "text-white/80" : "text-brand-gold"}`}>
+                        Recomendado
+                      </span>
+                    )}
+                  </div>
+                  {isRecommended && !isSelected && (
+                    <div className="absolute top-0 right-0 w-2 h-2 bg-brand-gold rounded-bl-md"></div>
+                  )}
                 </button>
               );
             })}
