@@ -1,20 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, MapPin, FileText, Camera, Check } from "lucide-react";
+import { User, MapPin, FileText, Camera, Check, Loader2 } from "lucide-react";
 import { 
   createProfessionalProfile, 
   updateProfessionalProfile,
   fetchProfessionalProfile
 } from "../../lib/api";
 import { useUser } from "@clerk/react";
+import { supabase } from "../../lib/supabase";
+import { useRef } from "react";
 
 export function SetupProfilePage() {
   const { user } = useUser();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: user?.fullName || "",
@@ -62,6 +66,47 @@ export function SetupProfilePage() {
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({...formData, whatsapp: formatPhone(e.target.value)});
+  };
+
+  const handleFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError("A imagem deve ter no máximo 2MB.");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const filePath = `profile-pics/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, photo_url: publicUrl }));
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      setError("Erro ao fazer upload da imagem. Verifique sua conexão.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,19 +195,36 @@ export function SetupProfilePage() {
           <div className="flex flex-col md:flex-row gap-8">
             {/* Photo Section */}
             <div className="flex flex-col items-center gap-4">
-              <div className="relative group">
-                <div className="w-32 h-32 rounded-full border-4 border-brand-gold/20 p-1 overflow-hidden">
-                  <img 
-                    src={formData.photo_url || "https://via.placeholder.com/150"} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover rounded-full"
-                  />
+              <div 
+                className="relative group cursor-pointer" 
+                onClick={handleFileClick}
+              >
+                <div className={`w-32 h-32 rounded-full border-4 ${uploading ? 'border-brand-gold animate-pulse' : 'border-brand-gold/20'} p-1 overflow-hidden transition-all shadow-lg`}>
+                  {uploading ? (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center rounded-full">
+                      <Loader2 size={24} className="text-brand-gold animate-spin" />
+                    </div>
+                  ) : (
+                    <img 
+                      src={formData.photo_url || "https://via.placeholder.com/150"} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  )}
                 </div>
-                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <Camera className="text-white" size={24} />
                 </div>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
               </div>
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Foto do Perfil</p>
+              {uploading && <p className="text-[10px] text-brand-gold font-bold animate-pulse">Enviando...</p>}
             </div>
 
             {/* Fields Section */}
