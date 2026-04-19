@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from datetime import datetime, timedelta
+from django.utils import timezone
 from .models import (
     Service, Appointment, ProfessionalProfile, OpeningHour, ProfessionalBlock, PortfolioItem
 )
@@ -146,9 +147,11 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
 
         booked_intervals = []
         for appt in appointments:
-            start_t = appt.date_time.time()
+            # Localize before extracting time to handle timezone differences
+            local_dt = timezone.localtime(appt.date_time)
+            start_t = local_dt.time()
             duration_min = appt.service.duration_minutes
-            appt_end_dt = appt.date_time + timedelta(minutes=duration_min)
+            appt_end_dt = local_dt + timedelta(minutes=duration_min)
             end_t = appt_end_dt.time()
 
             booked_intervals.append((to_min(start_t), to_min(end_t)))
