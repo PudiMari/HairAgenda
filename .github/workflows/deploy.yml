@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+
 jobs:
   quality-check:
     name: Quality (Lint & Test)
@@ -33,7 +37,7 @@ jobs:
         working-directory: apps/frontend
 
       - name: Frontend Test
-        run: npm test
+        run: npm test -- --run
         working-directory: apps/frontend
 
       # Backend Setup
@@ -54,7 +58,7 @@ jobs:
         working-directory: apps/backend
 
       - name: Backend Test
-        run: python manage.py test
+        run: pytest
         working-directory: apps/backend
         env:
           DATABASE_URL: sqlite:///db.sqlite3
@@ -123,9 +127,6 @@ jobs:
       - name: Run Backend Migrations
         run: python manage.py migrate
         working-directory: apps/backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
 
       - name: Notify Success
         if: success()
