@@ -135,20 +135,20 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
         ).select_related('service')
 
         def to_min(t):
-            return t.hour * 60 + t.minute
+            return (t.hour * 60 + t.minute) if t else None
 
-        anchors = {
-            to_min(opening_hour.work_start),
-            to_min(opening_hour.work_end),
-            to_min(opening_hour.lunch_start),
-            to_min(opening_hour.lunch_end)
-        }
+        # Build anchors set safely
+        potential_anchors = [
+            opening_hour.work_start, opening_hour.work_end,
+            opening_hour.lunch_start, opening_hour.lunch_end
+        ]
+        anchors = {to_min(a) for a in potential_anchors if a is not None}
 
         booked_intervals = []
         for appt in appointments:
             start_t = appt.date_time.time()
-            duration = appt.service.duration_minutes
-            appt_end_dt = appt.date_time + timedelta(minutes=duration)
+            duration_min = appt.service.duration_minutes
+            appt_end_dt = appt.date_time + timedelta(minutes=duration_min)
             end_t = appt_end_dt.time()
 
             booked_intervals.append((to_min(start_t), to_min(end_t)))
@@ -156,7 +156,7 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
             anchors.add(to_min(end_t))
 
         for block in blocks:
-            if block.start_time and block.end_time:
+            if block.start_time is not None and block.end_time is not None:
                 interval = (to_min(block.start_time), to_min(block.end_time))
                 booked_intervals.append(interval)
                 anchors.add(to_min(block.start_time))
@@ -168,20 +168,24 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
 
     def _generate_slot_list(self, target_date, duration, opening_hour, booked, anchors):
         def to_min(t):
-            return t.hour * 60 + t.minute
+            return (t.hour * 60 + t.minute) if t else None
 
         slots = []
         current_dt = datetime.combine(target_date, opening_hour.work_start)
         end_limit_dt = datetime.combine(target_date, opening_hour.work_end)
-        lunch_start, lunch_end = to_min(opening_hour.lunch_start), to_min(opening_hour.lunch_end)
+
+        lunch_start = to_min(opening_hour.lunch_start)
+        lunch_end = to_min(opening_hour.lunch_end)
 
         while current_dt + timedelta(minutes=duration) <= end_limit_dt:
             s_start = to_min(current_dt.time())
             s_end = s_start + duration
 
             is_available = True
-            if not (s_end <= lunch_start or s_start >= lunch_end):
-                is_available = False
+            # Professional might not have a lunch break
+            if lunch_start is not None and lunch_end is not None:
+                if not (s_end <= lunch_start or s_start >= lunch_end):
+                    is_available = False
 
             if is_available:
                 for b_start, b_end in booked:
@@ -191,7 +195,11 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
 
             if is_available:
                 is_rec = s_start in anchors or s_end in anchors
-                slots.append({"time": current_dt.strftime('%H:%M'), "is_recommended": is_rec})
+                # Frontend expects HH:mm:00 format
+                slots.append({
+                    "time": current_dt.strftime('%H:%M:00'),
+                    "is_recommended": is_rec
+                })
 
             current_dt += timedelta(minutes=30)
         return slots
