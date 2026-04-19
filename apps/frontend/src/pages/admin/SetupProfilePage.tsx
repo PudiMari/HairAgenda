@@ -86,6 +86,9 @@ export function SetupProfilePage() {
     setError(null);
 
     try {
+      if (!supabase) {
+        throw new Error("Supabase não configurado. Adicione as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Vercel.");
+      }
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       const filePath = `profile-pics/${fileName}`;
