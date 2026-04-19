@@ -124,13 +124,16 @@ export function ServicesPage() {
               </p>
 
               {isOwner ? (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center gap-2">
-                  <p className="text-slate-500 font-bold text-sm">Visualização de Administrador</p>
+                <div className="bg-slate-50 border border-brand-gold/20 rounded-xl p-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></div>
+                    <p className="text-slate-500 font-bold text-[10px] uppercase tracking-wider text-left">Visualização do seu catálogo</p>
+                  </div>
                   <button
                     onClick={() => navigate('/admin/setup')}
-                    className="w-full h-10 bg-white border border-slate-300 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm"
+                    className="h-8 px-4 bg-white border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-xs shadow-sm"
                   >
-                    Editar este serviço
+                    Editar
                   </button>
                 </div>
               ) : (
