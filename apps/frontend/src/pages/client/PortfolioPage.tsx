@@ -9,6 +9,7 @@ export function PortfolioPage() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<PortfolioItem | null>(null);
+  const [brokenImageIds, setBrokenImageIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!requestedUserId) {
@@ -74,7 +75,9 @@ export function PortfolioPage() {
       {/* Grid */}
       {!loading && items.length > 0 && (
         <div className="p-4 grid grid-cols-2 gap-4">
-          {items.map((item) => (
+          {items
+            .filter(item => !brokenImageIds.has(item.id))
+            .map((item) => (
             <div
               key={item.id}
               className="group relative flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 transition-all hover:shadow-md hover:-translate-y-1"
@@ -84,9 +87,8 @@ export function PortfolioPage() {
                   src={item.image_url}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "https://placehold.co/400x500/f1f5f9/94a3b8?text=Foto";
+                  onError={() => {
+                    setBrokenImageIds(prev => new Set(prev).add(item.id));
                   }}
                 />
               </div>

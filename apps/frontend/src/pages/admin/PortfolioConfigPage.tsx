@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink, HelpCircle, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProfessionalProfile } from "../../components/auth/AdminGuard";
 import {
@@ -9,6 +9,8 @@ import {
   PortfolioItem,
   PORTFOLIO_CATEGORIES,
 } from "../../lib/api";
+import { uploadImage } from "../../lib/storage";
+import { Upload } from "lucide-react";
 
 export function PortfolioConfigPage() {
   const { profile } = useProfessionalProfile();
@@ -17,13 +19,14 @@ export function PortfolioConfigPage() {
   const [saving, setSaving] = useState(false);
   const [previewItem, setPreviewItem] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
   const [form, setForm] = useState({
     image_url: "",
     title: "",
     category: "outro",
   });
   const [urlError, setUrlError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [brokenImageIds, setBrokenImageIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!profile) return;
@@ -58,6 +61,29 @@ export function PortfolioConfigPage() {
       alert(err.message || "Erro ao salvar.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("A imagem deve ter no máximo 5MB.");
+      return;
+    }
+
+    setUploading(true);
+    setUrlError("");
+    try {
+      const url = await uploadImage(file);
+      setForm(prev => ({ ...prev, image_url: url }));
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Erro ao fazer upload. Verifique se o bucket 'portfolio' existe no Supabase e está público.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -144,12 +170,18 @@ export function PortfolioConfigPage() {
                     <img
                       src={item.image_url}
                       alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "https://placehold.co/400x500/f1f5f9/94a3b8?text=Foto";
+                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${brokenImageIds.has(item.id) ? 'opacity-30 grayscale' : ''}`}
+                      onError={() => {
+                        setBrokenImageIds(prev => new Set(prev).add(item.id));
                       }}
                     />
+                    {brokenImageIds.has(item.id) && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-red-50/50">
+                        <AlertCircle className="text-red-500 mb-2" size={24} />
+                        <p className="text-[10px] font-bold text-red-600 uppercase leading-tight">Link expirado ou inválido</p>
+                        <p className="text-[8px] text-red-500 mt-1">Recomendamos remover e adicionar novamente com o link direto.</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}
@@ -228,62 +260,43 @@ export function PortfolioConfigPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    URL da Imagem
+                    URL ou Arquivo de Imagem
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowHelp(!showHelp)}
-                    className="flex items-center gap-1 text-[10px] font-bold text-brand-gold hover:text-brand-dark transition-colors uppercase tracking-tight"
-                  >
-                    <HelpCircle size={12} />
-                    Como conseguir o link?
-                  </button>
+                  <label className="cursor-pointer flex items-center gap-1.5 text-[10px] font-bold text-brand-gold hover:text-brand-dark transition-colors uppercase tracking-tight">
+                    <Upload size={12} />
+                    {uploading ? "Subindo..." : "Fazer Upload"}
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleFileChange}
+                      disabled={uploading}
+                    />
+                  </label>
                 </div>
 
-                {showHelp && (
-                  <div className="mb-4 p-4 bg-brand-gold/5 border border-brand-gold/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
-                    <h4 className="text-xs font-bold text-brand-dark mb-2 flex items-center gap-2">
-                      <AlertCircle size={14} className="text-brand-gold" />
-                      Instruções para o link correto:
-                    </h4>
-                    <ul className="text-[11px] text-slate-600 space-y-2">
-                      <li className="flex gap-2">
-                        <span className="font-bold text-brand-gold">1.</span>
-                        Abra a foto original no seu navegador.
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="font-bold text-brand-gold">2.</span>
-                        Clique com o <strong>botão direito</strong> em cima da
-                        foto.
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="font-bold text-brand-gold">3.</span>
-                        Selecione <strong>"Copiar endereço da imagem"</strong>.
-                      </li>
-                    </ul>
-                    <div className="mt-3 pt-3 border-t border-brand-gold/10">
-                      <p className="text-[10px] text-slate-400 italic">
-                        Nota: Links de páginas (Instagram, Facebook, Drive) não
-                        funcionam. O link deve terminar em .jpg, .png ou .webp.
-                      </p>
+                <div className="relative">
+                  <input
+                    type="url"
+                    value={form.image_url}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, image_url: e.target.value }));
+                      setUrlError("");
+                    }}
+                    placeholder="https://exemplo.com/foto.jpg ou use o botão para carregar"
+                    className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/30 transition-all ${
+                      urlError
+                        ? "border-red-300 bg-red-50"
+                        : "border-slate-200 bg-white"
+                    } ${uploading ? "opacity-50" : ""}`}
+                    disabled={uploading}
+                  />
+                  {uploading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 size={16} className="animate-spin text-brand-gold" />
                     </div>
-                  </div>
-                )}
-
-                <input
-                  type="url"
-                  value={form.image_url}
-                  onChange={(e) => {
-                    setForm((f) => ({ ...f, image_url: e.target.value }));
-                    setUrlError("");
-                  }}
-                  placeholder="https://exemplo.com/foto.jpg"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/30 transition-all ${
-                    urlError
-                      ? "border-red-300 bg-red-50"
-                      : "border-slate-200 bg-white"
-                  }`}
-                />
+                  )}
+                </div>
                 {urlError && (
                   <div className="flex items-start gap-1.5 mt-2 text-red-500">
                     <AlertCircle size={14} className="mt-0.5 shrink-0" />

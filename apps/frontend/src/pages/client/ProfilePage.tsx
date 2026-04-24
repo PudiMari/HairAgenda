@@ -83,6 +83,7 @@ export function ProfilePage() {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [showCopiedFeedback, setShowCopiedFeedback] = useState(false);
   const [selectedImage, setSelectedImage] = useState<PortfolioItem | null>(null);
+  const [brokenImageIds, setBrokenImageIds] = useState<Set<number>>(new Set());
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user is the owner of this profile
@@ -496,15 +497,22 @@ export function ProfilePage() {
             <Link to={`/portfolio${requestedUserId ? `?u=${requestedUserId}` : ''}`} className="text-brand-gold text-sm font-bold hover:underline">Ver todos</Link>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {portfolioItems.slice(0, 3).map((item) => (
+            {portfolioItems
+              .filter(item => !brokenImageIds.has(item.id))
+              .slice(0, 3)
+              .map((item) => (
               <button
                 key={item.id}
                 onClick={() => setSelectedImage(item)}
                 className="aspect-square rounded-lg bg-slate-100 overflow-hidden group relative"
               >
-                <div
-                  className="w-full h-full bg-cover bg-center transition-transform group-hover:scale-110 duration-500"
-                  style={{ backgroundImage: `url("${item.image_url}")` }}
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+                  onError={() => {
+                    setBrokenImageIds(prev => new Set(prev).add(item.id));
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <Info size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -530,6 +538,9 @@ export function ProfilePage() {
               src={selectedImage.image_url}
               alt={selectedImage.title}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "https://placehold.co/400x400/f1f5f9/94a3b8?text=Indispon%C3%ADvel";
+              }}
             />
             <div className="mt-6 text-center">
               <h4 className="text-white text-xl font-bold">{selectedImage.title}</h4>
