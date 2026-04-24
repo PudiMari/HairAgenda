@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink, HelpCircle, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProfessionalProfile } from "../../components/auth/AdminGuard";
 import {
@@ -19,6 +19,7 @@ export function PortfolioConfigPage() {
   const [saving, setSaving] = useState(false);
   const [previewItem, setPreviewItem] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [form, setForm] = useState({
     image_url: "",
     title: "",
@@ -259,9 +260,19 @@ export function PortfolioConfigPage() {
               {/* URL */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    URL ou Arquivo de Imagem
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      URL ou Arquivo de Imagem
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowHelp(!showHelp)}
+                      className="text-brand-gold hover:text-brand-dark transition-colors"
+                      title="Ajuda com links"
+                    >
+                      <HelpCircle size={14} />
+                    </button>
+                  </div>
                   <label className="cursor-pointer flex items-center gap-1.5 text-[10px] font-bold text-brand-gold hover:text-brand-dark transition-colors uppercase tracking-tight">
                     <Upload size={12} />
                     {uploading ? "Subindo..." : "Fazer Upload"}
@@ -297,6 +308,30 @@ export function PortfolioConfigPage() {
                     </div>
                   )}
                 </div>
+
+                {showHelp && (
+                  <div className="mt-3 p-4 bg-brand-gold/5 border border-brand-gold/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                    <h4 className="text-xs font-bold text-brand-dark mb-2 flex items-center gap-2">
+                      <AlertCircle size={14} className="text-brand-gold" />
+                      Como conseguir o link correto:
+                    </h4>
+                    <ul className="text-[11px] text-slate-600 space-y-2">
+                      <li className="flex gap-2">
+                        <span className="font-bold text-brand-gold text-[10px]">1.</span>
+                        Clique com o <strong>botão direito</strong> na foto original.
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-bold text-brand-gold text-[10px]">2.</span>
+                        Selecione <strong>"Copiar endereço da imagem"</strong>.
+                      </li>
+                    </ul>
+                    <div className="mt-3 pt-3 border-t border-brand-gold/10">
+                      <p className="text-[10px] text-slate-400 italic">
+                        Links de páginas (Instagram, Drive) não funcionam. O link deve terminar em .jpg, .png ou .webp.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {urlError && (
                   <div className="flex items-start gap-1.5 mt-2 text-red-500">
                     <AlertCircle size={14} className="mt-0.5 shrink-0" />
