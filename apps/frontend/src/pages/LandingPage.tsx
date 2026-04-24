@@ -26,6 +26,7 @@ export function LandingPage() {
   }, [isLoaded, user, navigate]);
 
   const handleLogin = () => {
+    if (!isLoaded) return;
     if (user) {
       navigate('/profile');
       return;

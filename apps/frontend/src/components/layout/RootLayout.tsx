@@ -23,6 +23,7 @@ export function RootLayout() {
   }, [isLoaded, user, navigate]);
 
   const handleLogin = () => {
+    if (!isLoaded || user) return;
     openSignIn({
       forceRedirectUrl: window.location.origin + '/profile'
     });
