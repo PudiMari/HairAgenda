@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink, HelpCircle, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Image, Loader2, ArrowLeft, X, ExternalLink, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProfessionalProfile } from "../../components/auth/AdminGuard";
 import {
@@ -19,7 +19,6 @@ export function PortfolioConfigPage() {
   const [saving, setSaving] = useState(false);
   const [previewItem, setPreviewItem] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
   const [form, setForm] = useState({
     image_url: "",
     title: "",
@@ -257,25 +256,29 @@ export function PortfolioConfigPage() {
                 </div>
               )}
 
-              {/* URL */}
+              {/* Upload Area */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      URL ou Arquivo de Imagem
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowHelp(!showHelp)}
-                      className="text-brand-gold hover:text-brand-dark transition-colors"
-                      title="Ajuda com links"
-                    >
-                      <HelpCircle size={14} />
-                    </button>
-                  </div>
-                  <label className="cursor-pointer flex items-center gap-1.5 text-[10px] font-bold text-brand-gold hover:text-brand-dark transition-colors uppercase tracking-tight">
-                    <Upload size={12} />
-                    {uploading ? "Subindo..." : "Fazer Upload"}
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Imagem do Trabalho
+                </label>
+                
+                {!form.image_url ? (
+                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50 hover:bg-slate-100/50 hover:border-brand-gold/30 transition-all cursor-pointer group">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      {uploading ? (
+                        <Loader2 className="w-10 h-10 text-brand-gold animate-spin mb-3" />
+                      ) : (
+                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                          <Upload className="w-6 h-6 text-brand-gold" />
+                        </div>
+                      )}
+                      <p className="mb-1 text-sm text-slate-700 font-bold">
+                        {uploading ? "Enviando arquivo..." : "Clique para selecionar"}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        PNG, JPG ou WEBP (Max. 5MB)
+                      </p>
+                    </div>
                     <input 
                       type="file" 
                       className="hidden" 
@@ -284,73 +287,31 @@ export function PortfolioConfigPage() {
                       disabled={uploading}
                     />
                   </label>
-                </div>
-
-                <div className="relative">
-                  <input
-                    type="url"
-                    value={form.image_url}
-                    onChange={(e) => {
-                      setForm((f) => ({ ...f, image_url: e.target.value }));
-                      setUrlError("");
-                    }}
-                    placeholder="https://exemplo.com/foto.jpg ou use o botão para carregar"
-                    className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/30 transition-all ${
-                      urlError
-                        ? "border-red-300 bg-red-50"
-                        : "border-slate-200 bg-white"
-                    } ${uploading ? "opacity-50" : ""}`}
-                    disabled={uploading}
-                  />
-                  {uploading && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2 size={16} className="animate-spin text-brand-gold" />
-                    </div>
-                  )}
-                </div>
-
-                {showHelp && (
-                  <div className="mt-3 p-4 bg-brand-gold/5 border border-brand-gold/20 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
-                    <h4 className="text-xs font-bold text-brand-dark mb-2 flex items-center gap-2">
-                      <AlertCircle size={14} className="text-brand-gold" />
-                      Como conseguir o link correto:
-                    </h4>
-                    <ul className="text-[11px] text-slate-600 space-y-2">
-                      <li className="flex gap-2">
-                        <span className="font-bold text-brand-gold text-[10px]">1.</span>
-                        Clique com o <strong>botão direito</strong> na foto original.
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="font-bold text-brand-gold text-[10px]">2.</span>
-                        Selecione <strong>"Copiar endereço da imagem"</strong>.
-                      </li>
-                    </ul>
-                    <div className="mt-3 pt-3 border-t border-brand-gold/10">
-                      <p className="text-[10px] text-slate-400 italic">
-                        Links de páginas (Instagram, Drive) não funcionam. O link deve terminar em .jpg, .png ou .webp.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {urlError && (
-                  <div className="flex items-start gap-1.5 mt-2 text-red-500">
-                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                    <p className="text-xs font-medium">
-                      {urlError}.{" "}
+                ) : (
+                  <div className="relative rounded-3xl overflow-hidden group shadow-lg border border-slate-100">
+                    <img
+                      src={form.image_url}
+                      alt="Preview"
+                      className="w-full h-52 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <label className="bg-white text-brand-dark px-4 py-2 rounded-xl text-xs font-bold cursor-pointer hover:bg-brand-gold hover:text-white transition-colors">
+                        Trocar Foto
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*" 
+                          onChange={handleFileChange}
+                        />
+                      </label>
                       <button
-                        type="button"
-                        onClick={() => setShowHelp(true)}
-                        className="underline font-bold"
+                        onClick={() => setForm(f => ({ ...f, image_url: "" }))}
+                        className="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition-colors"
                       >
-                        Veja como resolver
+                        <Trash2 size={16} />
                       </button>
-                    </p>
+                    </div>
                   </div>
-                )}
-                {!urlError && (
-                  <p className="text-slate-400 text-[10px] mt-1.5">
-                    O link deve começar com https:// e terminar com a extensão da imagem.
-                  </p>
                 )}
               </div>
 
