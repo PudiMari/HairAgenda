@@ -229,7 +229,6 @@ export function PortfolioConfigPage() {
               <button
                 onClick={() => {
                   setShowForm(false);
-                  setShowHelp(false);
                   setUrlError("");
                 }}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
