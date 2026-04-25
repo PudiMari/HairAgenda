@@ -34,7 +34,6 @@ export function ServiceSelectionPage() {
 
   const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
   const isProfessional = userRole === 'admin';
-  const isOwner = !!(user?.id && (requestedUserId === user.id || profile?.user_id === user.id));
 
   // State for selections
   const [selectedService, setSelectedService] = useState<{id: string, name: string} | null>(null);

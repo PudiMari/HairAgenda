@@ -25,7 +25,6 @@ export function BookingConfirmationPage() {
 
   const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
   const isProfessional = userRole === 'admin';
-  const isOwner = user?.id === requestedUserId;
 
   // Pre-fill user data
   useEffect(() => {
