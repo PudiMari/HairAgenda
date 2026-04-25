@@ -363,6 +363,7 @@ class PortfolioItemViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(professional_id=professional_id)
         return queryset
 
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
