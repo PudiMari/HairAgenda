@@ -313,7 +313,6 @@ export function AdminDashboardPage() {
   const getConflictType = (appt: any) => {
     const apptDate = new Date(appt.date_time);
     const apptDateStr = getLocalDateString(apptDate);
-    const hourStr = appt.start;
 
     // 1. Check Blocks
     const block = blocks.find(b => {

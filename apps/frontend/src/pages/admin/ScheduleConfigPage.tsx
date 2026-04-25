@@ -18,8 +18,7 @@ import {
   deleteProfessionalBlock,
   checkConflicts,
   ProfessionalBlock,
-  OpeningHour,
-  Appointment
+  OpeningHour
 } from "../../lib/api";
 import { AlertTriangle, X as CloseIcon } from "lucide-react";
 import { useProfessionalProfile } from "../../components/auth/AdminGuard";
@@ -440,7 +439,7 @@ export function ScheduleConfigPage() {
 
           <div className="sticky bottom-8 flex justify-end">
             <button 
-              onClick={handleSave}
+              onClick={() => handleSave()}
               disabled={isSaving}
               className={`px-8 py-3 rounded-xl font-bold text-base shadow-xl transition-all active:scale-95 ${
                 isSaving ? "opacity-50 cursor-not-allowed" : ""

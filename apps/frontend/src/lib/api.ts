@@ -14,6 +14,17 @@ export interface AppointmentPayload {
   date_time: string; // ISO 8601 string
 }
 
+export interface Appointment {
+  id: string | number;
+  professional: number;
+  client_name: string;
+  client_whatsapp: string;
+  service: number;
+  service_name?: string;
+  date_time: string;
+  status: string;
+}
+
 export interface Service {
   id: number;
   professional: number;
