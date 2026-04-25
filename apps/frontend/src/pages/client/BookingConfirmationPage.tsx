@@ -23,6 +23,8 @@ export function BookingConfirmationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+  const isProfessional = userRole === 'admin';
   const isOwner = user?.id === requestedUserId;
 
   // Pre-fill user data
@@ -132,8 +134,8 @@ export function BookingConfirmationPage() {
         throw new Error("Não foi possível identificar o profissional para este agendamento. Volte e tente novamente.");
       }
 
-      if (isOwner) {
-        throw new Error("Você não pode agendar para si mesmo. Utilize o Painel Admin para gerenciar seus horários.");
+      if (isProfessional) {
+        throw new Error("Agendamentos não permitidos para contas de profissional. Por favor, utilize uma conta de cliente.");
       }
 
       await createAppointment({
@@ -230,17 +232,17 @@ export function BookingConfirmationPage() {
           </div>
         )}
 
-        {isOwner && (
+        {isProfessional && (
           <div className="flex flex-col gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
             <div className="flex gap-3">
               <div className="shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
                 <Lock size={20} />
               </div>
               <div>
-                <h3 className="text-amber-900 font-bold text-sm">Visualização de Proprietário</h3>
+                <h3 className="text-amber-900 font-bold text-sm">Conta de Profissional Detectada</h3>
                 <p className="text-amber-800 text-xs mt-0.5 leading-relaxed">
-                  Você está visualizando sua própria página de confirmação. 
-                  O agendamento de serviços próprios é <strong>desativado</strong> para garantir a integridade dos dados.
+                  Contas cadastradas como <strong>profissional</strong> não podem realizar agendamentos via fluxo de cliente. 
+                  Para agendar um serviço, você deve utilizar uma conta de cliente.
                 </p>
               </div>
             </div>
@@ -248,7 +250,7 @@ export function BookingConfirmationPage() {
               onClick={() => navigate('/admin')}
               className="text-[11px] font-bold text-amber-700 uppercase tracking-wider hover:underline text-left mt-1"
             >
-              Ir para o Painel de Controle →
+              Ir para o meu Painel Admin →
             </button>
           </div>
         )}
@@ -290,7 +292,7 @@ export function BookingConfirmationPage() {
 
       {/* Final CTA */}
       <div className="mt-10 pb-10">
-        {isOwner ? (
+        {isProfessional ? (
           <button 
             onClick={() => navigate('/admin')}
             className="w-full font-bold h-14 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] bg-slate-800 text-white hover:bg-slate-900"

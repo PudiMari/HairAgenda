@@ -17,10 +17,8 @@ export function RootLayout() {
         return;
       }
 
-      // Strict Redirection: If an admin tries to access client area, push them back to admin area.
-      if (userRole === 'admin') {
-        navigate('/admin', { replace: true });
-      }
+      // Professionals (admins) are allowed to browse the storefront, but 
+      // booking logic will prevent them from scheduling.
     }
   }, [isLoaded, user, navigate]);
 

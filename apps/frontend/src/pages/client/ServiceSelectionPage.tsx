@@ -32,6 +32,8 @@ export function ServiceSelectionPage() {
   const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+  const isProfessional = userRole === 'admin';
   const isOwner = !!(user?.id && (requestedUserId === user.id || profile?.user_id === user.id));
 
   // State for selections
@@ -325,8 +327,8 @@ export function ServiceSelectionPage() {
       return;
     }
 
-    if (isOwner) {
-       alert("Como profissional, você não pode agendar para si mesmo através deste fluxo. Utilize o painel de administração.");
+    if (isProfessional) {
+       alert("Como profissional, você não possui permissão para realizar agendamentos. Esta função é exclusiva para clientes.");
        navigate('/admin');
        return;
     }
@@ -376,12 +378,12 @@ export function ServiceSelectionPage() {
         <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Passo 1 de 2</span>
       </div>
 
-      {isOwner && (
+      {isProfessional && (
         <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 text-amber-800">
            <AlertCircle size={24} className="shrink-0" />
            <div>
-             <p className="font-bold text-sm">Visualização de Profissional</p>
-             <p className="text-xs">Você está vendo sua própria agenda. Clientes verão as opções de agendamento aqui.</p>
+             <p className="font-bold text-sm">Modo de Visualização (Profissional)</p>
+             <p className="text-xs">Você está navegando como profissional. Você pode revisar os serviços e horários, mas a função de agendamento está desativada para o seu perfil.</p>
            </div>
         </div>
       )}
@@ -568,10 +570,10 @@ export function ServiceSelectionPage() {
           </Link>
           <button 
             onClick={handleNext}
-            disabled={!selectedService || !selectedDate || !selectedTime || isOwner}
+            disabled={!selectedService || !selectedDate || !selectedTime || isProfessional}
             className="flex-[2_2_0px] flex items-center justify-center gap-2 h-14 rounded-xl bg-brand-gold text-white font-bold shadow-lg shadow-brand-gold/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isOwner ? "Indisponível para você" : "Avançar"}
+            {isProfessional ? "Apenas para Clientes" : "Avançar"}
             <ArrowRight size={20} />
           </button>
         </div>
