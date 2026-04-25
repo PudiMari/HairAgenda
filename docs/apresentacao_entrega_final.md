@@ -26,13 +26,16 @@ Os documentos detalhados gerados ao longo do projeto incluem:
 
 ### Arquitetura e Engenharia
 - **[Especificação Técnica](file:///c:/Users/maria/Documents/HairAgenda/docs/spec_tech.md)**: Definição do stack (Django/React), segurança e infraestrutura.
-- **[C4 Model](file:///c:/Users/maria/Documents/HairAgenda/docs/c4_model.md)**: Diagramas de arquitetura de contexto e contêineres utilizando Mermaid.
+- **[C4 Model (L1 a L4)](file:///c:/Users/maria/Documents/HairAgenda/docs/c4_model.md)**: Diagramas de arquitetura detalhados, indo da visão de contexto até o mapeamento de classes e banco de dados.
+- **[Diagramas de Sequência](file:///c:/Users/maria/Documents/HairAgenda/docs/sequence_diagrams.md)**: Visualização dos fluxos críticos de agendamento e validação de conflitos.
+- **[Story Mapping](file:///c:/Users/maria/Documents/HairAgenda/docs/story_mapping.md)**: Organização funcional por persona e prioridade de release.
 - **[ADRs (Architecture Decision Records)](file:///c:/Users/maria/Documents/HairAgenda/docs/adr.md)**: Registro histórico de decisões críticas (Auth com Clerk, Monorepo, DB Supabase).
 
 ### Acesso ao Ambiente Produtivo (Deploy)
 A plataforma gerada encontra-se publicamente avaliável através da infraestrutura:
-- **Frontend / Dashboard Web (Vercel):** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
-- **Backend / API GET Test (Render):** [https://hair-agenda-api.onrender.com/api/v1/services/](https://hair-agenda-api.onrender.com/api/v1/services/)
+- **Frontend / Dashboard Web (Vercel):** [https://hair-agenda-frontend.vercel.app](https://hair-agenda-frontend.vercel.app)
+- **Backend / API (Vercel):** [https://hair-agenda-backend.vercel.app/api/health/](https://hair-agenda-backend.vercel.app/api/health/)
+- **Dashboard de Observabilidade (Grafana Cloud):** [Clique aqui para acessar o monitoramento](https://marianadiasesps.grafana.net/a/grafana-kowalski-app/apps/1085/overview?from=now-24h&to=now&var-lab_filter=0&var-Filters=)
 > *(Nota: O bloqueio administrativo padrão foi desativado na Vercel para permitir avaliação das telas de gerência sem cadastro prévio no banco).*
 
 ---

@@ -95,3 +95,11 @@ A Especificação Técnica descreve as diretrizes arquiteturais e decisões de t
 
 - Transição gradual para uma arquitetura onde ele suporta o Tenancy Hierárquico (Um "Dono de Salão" visualizando as agendas autônomas dos Profissionais contratados).
 - Criação de algoritmos inteligentes de otimização de agenda (ex: reagrupar horários para evitar "buracos").
+
+---
+
+## 11. Observabilidade e Monitoramento
+
+- **Framework:** Implementação de **OpenTelemetry** nativo para coleta de métricas e rastreamento distribuído.
+- **Plataforma:** Uso do **Grafana Cloud** (Faro SDK no frontend e OpenTelemetry SDK no backend) para visualização em tempo real de logs, erros e performance.
+- **Dashboard de Produção:** [Monitoramento HairAgenda (Grafana Cloud)](https://marianadiasesps.grafana.net/a/grafana-kowalski-app/apps/1085/overview?from=now-24h&to=now&var-lab_filter=0&var-Filters=)
