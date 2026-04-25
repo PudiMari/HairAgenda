@@ -1,4 +1,5 @@
-# HairAgenda
+# HairAgenda 🚀
+<!-- Production deployed at: https://hair-agenda.vercel.app -->
 
 Plataforma inteligente de autoagendamento 24/7 focada em profissionais autônomos de beleza. O HairAgenda automatiza a gestão da agenda, otimiza o tempo do profissional e reduz significativamente as taxas de *no-shows* através de lembretes integrados via WhatsApp.
 
