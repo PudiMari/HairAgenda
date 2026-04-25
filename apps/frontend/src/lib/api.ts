@@ -95,8 +95,21 @@ export const updateAppointmentStatus = async (id: number, status: string) => {
     body: JSON.stringify({ status }),
   });
   if (!response.ok) {
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     throw new Error(data.detail || 'Erro ao atualizar status');
+  }
+  return response.json();
+};
+
+export const updateAppointment = async (id: number | string, data: Partial<AppointmentPayload>) => {
+  const response = await fetch(`${API_URL}/api/appointments/${id}/`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Erro ao atualizar agendamento');
   }
   return response.json();
 };

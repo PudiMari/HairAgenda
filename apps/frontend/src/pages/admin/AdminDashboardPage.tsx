@@ -24,6 +24,7 @@ import {
   deleteProfessionalBlock,
   fetchOpeningHours,
   updateAppointmentStatus,
+  updateAppointment,
   Service as APIService,
   ProfessionalBlock,
   OpeningHour
@@ -61,6 +62,8 @@ export function AdminDashboardPage() {
     id: string; date: string; start: string; duration: number;
     service: string; client: string; whatsapp: string; price: number; status: string;
   } | null>(null);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
   
   // Data State
   const [blocks, setBlocks] = useState<ProfessionalBlock[]>([]);
@@ -248,6 +251,20 @@ export function AdminDashboardPage() {
       loadDashboardData();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleUpdateAppointment = async () => {
+    if (!selectedAppointmentDetail) return;
+    try {
+      const dateTime = `${rescheduleData.date}T${rescheduleData.time}:00`;
+      await updateAppointment(selectedAppointmentDetail.id, { date_time: dateTime } as any);
+      setIsRescheduling(false);
+      setSelectedAppointmentDetail(null);
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao reagendar.");
     }
   };
 
@@ -655,7 +672,10 @@ export function AdminDashboardPage() {
       {selectedAppointmentDetail && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-brand-dark/70 backdrop-blur-sm p-4"
-          onClick={() => setSelectedAppointmentDetail(null)}
+          onClick={() => {
+            setSelectedAppointmentDetail(null);
+            setIsRescheduling(false);
+          }}
         >
           <div 
             className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100"
@@ -668,7 +688,10 @@ export function AdminDashboardPage() {
                 <h2 className="text-white text-lg font-bold leading-tight">{selectedAppointmentDetail.service}</h2>
               </div>
               <button 
-                onClick={() => setSelectedAppointmentDetail(null)}
+                onClick={() => {
+                  setSelectedAppointmentDetail(null);
+                  setIsRescheduling(false);
+                }}
                 className="text-white/50 hover:text-white transition-colors mt-0.5"
               >
                 <X size={20} />
@@ -731,13 +754,30 @@ export function AdminDashboardPage() {
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Horário</p>
-                    <p className="text-sm font-bold text-brand-dark">
-                      {selectedAppointmentDetail.start} &mdash; {(() => {
-                        const [h, m] = selectedAppointmentDetail.start.split(':').map(Number);
-                        const endMin = h * 60 + m + selectedAppointmentDetail.duration;
-                        return `${String(Math.floor(endMin / 60)).padStart(2,'0')}:${String(endMin % 60).padStart(2,'0')}`;
-                      })()} <span className="text-slate-400 font-normal">({selectedAppointmentDetail.duration}min)</span>
-                    </p>
+                    {isRescheduling ? (
+                      <div className="flex flex-col gap-2 mt-1">
+                        <input 
+                          type="date"
+                          value={rescheduleData.date}
+                          onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})}
+                          className="text-xs border border-slate-200 rounded-lg p-1.5 focus:border-brand-gold outline-none"
+                        />
+                        <input 
+                          type="time"
+                          value={rescheduleData.time}
+                          onChange={(e) => setRescheduleData({...rescheduleData, time: e.target.value})}
+                          className="text-xs border border-slate-200 rounded-lg p-1.5 focus:border-brand-gold outline-none font-mono"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-sm font-bold text-brand-dark">
+                        {selectedAppointmentDetail.start} &mdash; {(() => {
+                          const [h, m] = selectedAppointmentDetail.start.split(':').map(Number);
+                          const endMin = h * 60 + m + selectedAppointmentDetail.duration;
+                          return `${String(Math.floor(endMin / 60)).padStart(2,'0')}:${String(endMin % 60).padStart(2,'0')}`;
+                        })()} <span className="text-slate-400 font-normal">({selectedAppointmentDetail.duration}min)</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -767,17 +807,49 @@ export function AdminDashboardPage() {
 
             {/* Footer actions */}
             {selectedAppointmentDetail.status !== 'cancelled' && (
-              <div className="px-6 pb-6">
-                <button
-                  onClick={() => {
-                    handleCancelAppointment(parseInt(selectedAppointmentDetail.id));
-                    setSelectedAppointmentDetail(null);
-                  }}
-                  className="w-full py-3 rounded-2xl border-2 border-red-200 text-red-500 font-bold text-sm hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
-                >
-                  <X size={16} />
-                  Cancelar Agendamento
-                </button>
+              <div className="px-6 pb-6 space-y-3">
+                {isRescheduling ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setIsRescheduling(false)}
+                      className="flex-1 py-3 rounded-2xl border-2 border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-colors"
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      onClick={handleUpdateAppointment}
+                      className="flex-1 py-3 rounded-2xl bg-brand-dark text-white font-bold text-sm hover:opacity-90 shadow-lg shadow-brand-dark/20 transition-all active:scale-95"
+                    >
+                      Salvar Alteração
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setRescheduleData({
+                          date: selectedAppointmentDetail.date,
+                          time: selectedAppointmentDetail.start
+                        });
+                        setIsRescheduling(true);
+                      }}
+                      className="w-full py-3 rounded-2xl bg-white border-2 border-slate-100 text-brand-dark font-bold text-sm hover:border-brand-gold/30 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Clock size={16} className="text-brand-gold" />
+                      Reagendar Horário
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleCancelAppointment(parseInt(selectedAppointmentDetail.id));
+                        setSelectedAppointmentDetail(null);
+                      }}
+                      className="w-full py-3 rounded-2xl border-2 border-red-100 text-red-500 font-bold text-sm hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <X size={16} />
+                      Cancelar Agendamento
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
