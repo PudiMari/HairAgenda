@@ -28,6 +28,11 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        # Allow detail actions to proceed normally
+        if self.detail:
+            return queryset
+
         professional_id = self.request.query_params.get('professional_id')
         if professional_id:
             if str(professional_id).startswith('user_'):
@@ -35,7 +40,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
             else:
                 queryset = queryset.filter(professional_id=professional_id)
         else:
-            # Prevent returning all services if no ID is specified
+            # Prevent returning all services if no ID is specified during list
             queryset = queryset.none()
         return queryset
 
@@ -46,6 +51,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        # Allow detail actions to proceed
+        if self.detail:
+            return queryset
+
         professional_id = self.request.query_params.get('professional_id')
         client_id = self.request.query_params.get('client_id')
 
@@ -214,6 +224,10 @@ class OpeningHourViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        if self.detail:
+            return queryset
+
         professional_id = self.request.query_params.get('professional_id')
         if professional_id:
             if str(professional_id).startswith('user_'):
@@ -231,6 +245,10 @@ class ProfessionalBlockViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        if self.detail:
+            return queryset
+
         professional_id = self.request.query_params.get('professional_id')
         if professional_id:
             if str(professional_id).startswith('user_'):
@@ -248,6 +266,10 @@ class PortfolioItemViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        if self.detail:
+            return queryset
+
         professional_id = self.request.query_params.get('professional_id')
         if professional_id:
             if str(professional_id).startswith('user_'):
