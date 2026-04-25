@@ -152,7 +152,7 @@ export function ScheduleConfigPage() {
           start_time: isFullDay ? null : blockStart + ":00",
           end_time: isFullDay ? null : blockEnd + ":00",
         };
-        const conflictsFound = await checkConflicts(profile.id, { type: 'block', data });
+        const conflictsFound = await checkConflicts(profile.user_id as any, { type: 'block', data });
         if (conflictsFound.length > 0) {
           setConflicts(conflictsFound);
           setPendingAction({ type: 'block' });
@@ -217,7 +217,7 @@ export function ScheduleConfigPage() {
               lunch_start: day.lunchStart + ":00",
               lunch_end: day.lunchEnd + ":00",
             };
-            const found = await checkConflicts(profile.id, { type: 'opening_hour', data });
+            const found = await checkConflicts(profile.user_id as any, { type: 'opening_hour', data });
             allConflicts = [...allConflicts, ...found];
           }
 
