@@ -279,6 +279,17 @@ export function AdminDashboardPage() {
     }
   };
 
+  const handleConfirmStatus = async (id: number) => {
+    try {
+      await updateAppointmentStatus(id, 'confirmed');
+      setSelectedAppointmentDetail(null);
+      loadDashboardData();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao confirmar agendamento.");
+    }
+  };
+
   const handleConfirmAppt = () => {
     // Note: Manual appointments should eventually hit the API too
     // For now we just close as the focus is on client bookings
@@ -825,6 +836,15 @@ export function AdminDashboardPage() {
                   </div>
                 ) : (
                   <>
+                    {selectedAppointmentDetail.status === 'pending' && (
+                      <button
+                        onClick={() => handleConfirmStatus(parseInt(selectedAppointmentDetail.id))}
+                        className="w-full py-4 rounded-2xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 mb-2"
+                      >
+                        <CheckCircle2 size={18} />
+                        Confirmar Agendamento
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setRescheduleData({
