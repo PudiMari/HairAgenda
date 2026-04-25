@@ -58,20 +58,20 @@ Utilizar **PostgreSQL** hospedado no Supabase, aproveitando a confiabilidade do 
 ### Consequências
 - Garantia de ACID para evitar conflitos de horário.
 - Escalabilidade para múltiplas instâncias da API.
-+
-+## ADR 05: Persistência Mista (PostgreSQL + Redis)
-+**Data:** 2026-04-19
-+**Status:** Aceito
-+
-+### Contexto
-+Necessidade de atender ao requisito de persistência em banco de dados relacional e NoSQL, além de melhorar a performance da API.
-+
-+### Decisão
-+Adotar uma arquitetura de persistência mista:
-+1. **PostgreSQL** (Relacional): Fonte da verdade para dados transacionais e entidades de negócio.
-+2. **Redis** (NoSQL/Key-Value): Camada de cache para caminhos de leitura frequentes e armazenamento de sessões.
-+
-+### Consequências
-+- Redução da latência em endpoints de leitura (ex: lista de serviços).
-+- Preparação para processamento em background (Celery) planejado para a V2.
-+- Conformidade explícita com requisitos de diversidade de persistência.
+
+## ADR 05: Persistência Mista (PostgreSQL + Redis)
+**Data:** 2026-04-19
+**Status:** Aceito
+
+### Contexto
+Necessidade de atender ao requisito de persistência em banco de dados relacional e NoSQL, além de melhorar a performance da API.
+
+### Decisão
+Adotar uma arquitetura de persistência mista:
+1. **PostgreSQL** (Relacional): Fonte da verdade para dados transacionais e entidades de negócio.
+2. **Redis** (NoSQL/Key-Value): Camada de cache para caminhos de leitura frequentes e armazenamento de sessões.
+
+### Consequências
+- Redução da latência em endpoints de leitura (ex: lista de serviços).
+- Preparação para processamento em background (Celery) planejado para a V2.
+- Conformidade explícita com requisitos de diversidade de persistência.
