@@ -49,6 +49,105 @@ graph TD
     BackendAPI -- Token Verification --> ClerkSaaS
 ```
 
+## Nível 3: Diagrama de Componentes (Backend API)
+
+Este diagrama detalha como o contêiner do Backend é estruturado internamente.
+
+```mermaid
+graph TD
+    subgraph "Backend API (Django/DRF)"
+        AuthMiddleware[Clerk Auth Middleware]
+        APIViews[API Views / Viewsets]
+        Serializers[DRF Serializers]
+        Logic[Business Logic / Validators]
+        Models[Django Models / ORM]
+    end
+
+    FrontendApp -- Request + JWT --> AuthMiddleware
+    AuthMiddleware -- Validated User --> APIViews
+    APIViews -- Data Mapping --> Serializers
+    APIViews -- Complex Rules --> Logic
+    Logic -- DB Access --> Models
+    Serializers -- DB Access --> Models
+    Models -- SQL --> Database
+```
+
+## Nível 4: Diagrama de Classes (Modelos de Dados)
+
+Focado nas relações entre as principais entidades do domínio de agendamento.
+
+```mermaid
+classDiagram
+    class ProfessionalProfile {
+        +String user_id
+        +String name
+        +String description
+        +Boolean is_setup_completed
+    }
+    class Service {
+        +String name
+        +Decimal price
+        +Integer duration_minutes
+    }
+    class Appointment {
+        +String client_name
+        +String client_whatsapp
+        +DateTime date_time
+        +String status
+    }
+    class OpeningHour {
+        +Integer day_of_week
+        +Time work_start
+        +Time work_end
+    }
+    class ProfessionalBlock {
+        +Date date
+        +Time start_time
+        +Time end_time
+    }
+
+    ProfessionalProfile "1" -- "*" Service : oferece
+    ProfessionalProfile "1" -- "*" Appointment : recebe
+    ProfessionalProfile "1" -- "*" OpeningHour : define expediente
+    ProfessionalProfile "1" -- "*" ProfessionalBlock : bloqueia agenda
+    Appointment "*" -- "1" Service : solicita
+```
+
+## Diagrama de Implantação (Deployment)
+
+Visualização da infraestrutura física/cloud e distribuição dos artefatos.
+
+```mermaid
+graph TD
+    subgraph "Client's Device"
+        subgraph "Web Browser"
+            ReactApp[Frontend Artifacts]
+        end
+    end
+
+    subgraph "Cloud Provider - Vercel"
+        subgraph "Edge Network"
+            StaticFiles[HTML/JS/CSS Assets]
+        end
+        subgraph "Serverless Functions"
+            DjangoApp[Django/WSGI Instance]
+        end
+    end
+
+    subgraph "Cloud Provider - Supabase"
+        ManagedDB[(PostgreSQL Instance)]
+    end
+
+    subgraph "External SaaS"
+        ClerkAuth[Clerk Identity Provider]
+    end
+
+    ReactApp -- Fetches --> StaticFiles
+    DjangoApp -- Queries --> ManagedDB
+    ReactApp -- Authenticates --> ClerkAuth
+    DjangoApp -- Verifies --> ClerkAuth
+```
+
 ## Considerações sobre a Arquitetura
 
 1.  **Segurança:** A autenticação é delegada ao Clerk, garantindo que o sistema não armazene senhas sensíveis diretamente.
