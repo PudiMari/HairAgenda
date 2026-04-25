@@ -16,9 +16,12 @@ import {
   fetchProfessionalBlocks,
   createProfessionalBlock,
   deleteProfessionalBlock,
+  checkConflicts,
   ProfessionalBlock,
-  OpeningHour
+  OpeningHour,
+  Appointment
 } from "../../lib/api";
+import { AlertTriangle, X as CloseIcon } from "lucide-react";
 import { useProfessionalProfile } from "../../components/auth/AdminGuard";
 
 const ALL_HOURS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
@@ -63,6 +66,12 @@ export function ScheduleConfigPage() {
   const [isFullDay, setIsFullDay] = useState(true);
   const [blockStart, setBlockStart] = useState("08:00");
   const [blockEnd, setBlockEnd] = useState("18:00");
+  
+  // Conflict states
+  const [conflicts, setConflicts] = useState<any[]>([]);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{type: 'schedule' | 'block', data?: any} | null>(null);
+  const [initialSchedule, setInitialSchedule] = useState<ScheduleDay[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -97,8 +106,10 @@ export function ScheduleConfigPage() {
             return day;
           });
           setSchedule(mapped as ScheduleDay[]);
+          setInitialSchedule(JSON.parse(JSON.stringify(mapped)));
         } else {
           setSchedule(DEFAULT_SCHEDULE as ScheduleDay[]);
+          setInitialSchedule(JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)));
         }
       } catch (error) {
         console.error("Error loading schedule:", error);
@@ -131,11 +142,31 @@ export function ScheduleConfigPage() {
     }
   };
 
-  const handleCreateBlock = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateBlock = async (e?: React.FormEvent, force = false) => {
+    if (e) e.preventDefault();
     if (!profile || !blockDate) return;
 
+    if (!force) {
+      try {
+        const data = {
+          date: blockDate,
+          start_time: isFullDay ? null : blockStart + ":00",
+          end_time: isFullDay ? null : blockEnd + ":00",
+        };
+        const conflictsFound = await checkConflicts(profile.id, { type: 'block', data });
+        if (conflictsFound.length > 0) {
+          setConflicts(conflictsFound);
+          setPendingAction({ type: 'block' });
+          setShowConflictModal(true);
+          return;
+        }
+      } catch (err) {
+        console.error("Erro ao checar conflitos:", err);
+      }
+    }
+
     try {
+      setIsSaving(true);
       const newBlock = await createProfessionalBlock({
         professional: profile.id,
         date: blockDate,
@@ -147,14 +178,67 @@ export function ScheduleConfigPage() {
       setBlockDate("");
       setBlockReason("");
       setIsFullDay(true);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
     } catch (error) {
       console.error("Erro ao criar bloqueio:", error);
       alert("Este dia já está bloqueado ou ocorreu um erro.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (force = false) => {
     if (!profile) return;
+
+    if (!force) {
+      // Find changed days
+      const changedDays = schedule.filter(day => {
+        const initial = initialSchedule.find(i => i.dayOfWeek === day.dayOfWeek);
+        if (!initial) return true;
+        return (
+          day.isOpen !== initial.isOpen ||
+          day.workStart !== initial.workStart ||
+          day.workEnd !== initial.workEnd ||
+          day.lunchStart !== initial.lunchStart ||
+          day.lunchEnd !== initial.lunchEnd
+        );
+      });
+
+      if (changedDays.length > 0) {
+        setIsSaving(true);
+        try {
+          let allConflicts: any[] = [];
+          for (const day of changedDays) {
+            const data = {
+              day_of_week: day.dayOfWeek,
+              is_open: day.isOpen,
+              work_start: day.workStart + ":00",
+              work_end: day.workEnd + ":00",
+              lunch_start: day.lunchStart + ":00",
+              lunch_end: day.lunchEnd + ":00",
+            };
+            const found = await checkConflicts(profile.id, { type: 'opening_hour', data });
+            allConflicts = [...allConflicts, ...found];
+          }
+
+          if (allConflicts.length > 0) {
+            // Remove duplicates (unique by ID)
+            const uniqueConflicts = Array.from(new Map(allConflicts.map(item => [item.id, item])).values());
+            setConflicts(uniqueConflicts);
+            setPendingAction({ type: 'schedule' });
+            setShowConflictModal(true);
+            setIsSaving(false);
+            return;
+          }
+        } catch (err) {
+          console.error("Erro ao checar conflitos:", err);
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    }
+
     setIsSaving(true);
     try {
       const promises = schedule.map(day => {
@@ -177,10 +261,12 @@ export function ScheduleConfigPage() {
 
       const results = await Promise.all(promises);
       
-      setSchedule(schedule.map((day, index) => ({
+      const mapped = schedule.map((day, index) => ({
         ...day,
         dbId: results[index].id
-      })));
+      }));
+      setSchedule(mapped);
+      setInitialSchedule(JSON.parse(JSON.stringify(mapped)));
 
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 3000);
@@ -514,6 +600,89 @@ export function ScheduleConfigPage() {
           Dica: Datas bloqueadas impedem que qualquer cliente reserve horários naquele dia específico, independente da sua escala semanal.
         </span>
       </div>
+
+      {/* Conflict Modal */}
+      {showConflictModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-dark/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="bg-amber-500 px-8 py-6 flex justify-between items-start">
+              <div className="flex gap-4">
+                <div className="bg-white/20 p-2 rounded-xl text-white">
+                  <AlertTriangle size={28} />
+                </div>
+                <div>
+                  <h2 className="text-white text-xl font-black">Conflitos Detectados</h2>
+                  <p className="text-white/80 text-sm font-medium mt-1">
+                    Existem {conflicts.length} agendamentos afetados por esta mudança.
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowConflictModal(false)}
+                className="text-white/50 hover:text-white transition-colors"
+              >
+                <CloseIcon size={24} />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="p-8 overflow-y-auto flex-1 space-y-4">
+              <p className="text-slate-500 font-medium text-sm leading-relaxed">
+                As seguintes pessoas agendaram horários que agora estão fora do seu expediente ou em uma data bloqueada:
+              </p>
+              
+              <div className="space-y-2">
+                {conflicts.map((appt: any) => (
+                  <div key={appt.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div>
+                      <p className="text-brand-dark font-bold text-sm">{appt.client_name}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        {new Date(appt.date_time).toLocaleDateString('pt-BR')} &bull; {new Date(appt.date_time).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-[10px] bg-amber-100 text-amber-700 font-black px-2 py-0.5 rounded-full uppercase">
+                         {appt.service_name || 'Serviço'}
+                       </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-4 border border-dashed border-slate-300">
+                <p className="text-xs text-slate-500 text-center font-medium italic">
+                  Recomendamos avisar os clientes via WhatsApp após salvar as mudanças.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-8 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => setShowConflictModal(false)}
+                className="flex-1 px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-white transition-colors"
+              >
+                Revisar Horários
+              </button>
+              <button
+                onClick={() => {
+                  setShowConflictModal(false);
+                  if (pendingAction?.type === 'schedule') {
+                    handleSave(true);
+                  } else {
+                    handleCreateBlock(undefined, true);
+                  }
+                }}
+                className="flex-1 px-6 py-3 rounded-xl bg-brand-dark text-white font-bold text-sm hover:opacity-90 shadow-lg shadow-brand-dark/20 transition-all active:scale-95"
+              >
+                Confirmar Mesmo Assim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

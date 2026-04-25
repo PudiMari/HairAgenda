@@ -297,3 +297,12 @@ export const fetchAvailableSlots = async (
   return response.json();
 };
 
+export const checkConflicts = async (professionalId: number, params: { type: 'opening_hour' | 'block', data: any }) => {
+  const response = await fetch(`${API_URL}/api/professional-profile/${professionalId}/check-conflicts/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!response.ok) throw new Error('Erro ao checar conflitos.');
+  return response.json();
+};

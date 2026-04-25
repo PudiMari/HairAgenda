@@ -13,7 +13,8 @@ import {
   Phone,
   Scissors,
   User,
-  DollarSign
+  DollarSign,
+  AlertTriangle
 } from "lucide-react";
 import { 
   fetchServices, 
@@ -90,7 +91,8 @@ export function AdminDashboardPage() {
         client: appt.client_name,
         whatsapp: appt.client_whatsapp || '',
         price: serviceObj ? parseFloat(serviceObj.price) : 0,
-        status: appt.status
+        status: appt.status,
+        date_time: appt.date_time // keeping original for conflict check
       };
     });
   }, [apiAppointments, apiServices]);
@@ -306,6 +308,60 @@ export function AdminDashboardPage() {
     if (timeVal >= lunchStartVal && timeVal < lunchEndVal) return true;
 
     return false;
+  };
+
+  const getConflictType = (appt: any) => {
+    const apptDate = new Date(appt.date_time);
+    const apptDateStr = getLocalDateString(apptDate);
+    const hourStr = appt.start;
+
+    // 1. Check Blocks
+    const block = blocks.find(b => {
+      if (b.date !== apptDateStr) return false;
+      if (!b.start_time || !b.end_time) return true;
+      
+      const apptStartVal = appt.startTimeValue;
+      const apptEndVal = apptStartVal + appt.duration;
+      
+      const [bsH, bsM] = b.start_time.split(':').map(Number);
+      const bStartVal = bsH * 60 + bsM;
+      const [beH, beM] = b.end_time.split(':').map(Number);
+      const bEndVal = beH * 60 + beM;
+
+      return (apptStartVal < bEndVal) && (bStartVal < apptEndVal);
+    });
+
+    if (block) return { type: 'block', message: 'Data Bloqueada' };
+
+    // 2. Check Opening Hours
+    const jsDay = apptDate.getDay();
+    const apiDay = jsDay === 0 ? 6 : jsDay - 1;
+    const daySchedule = schedule[apiDay];
+
+    if (!daySchedule || !daySchedule.isOpen) return { type: 'closed', message: 'Dia Fechado' };
+
+    const apptStartVal = appt.startTimeValue;
+    const apptEndVal = apptStartVal + appt.duration;
+
+    const [startH, startM] = daySchedule.workStart.split(':').map(Number);
+    const workStartVal = startH * 60 + (startM || 0);
+    const [endH, endM] = daySchedule.workEnd.split(':').map(Number);
+    const workEndVal = endH * 60 + (endM || 0);
+
+    const [lunchSH, lunchSM] = daySchedule.lunchStart.split(':').map(Number);
+    const lunchStartVal = lunchSH * 60 + (lunchSM || 0);
+    const [lunchEH, lunchEM] = daySchedule.lunchEnd.split(':').map(Number);
+    const lunchEndVal = lunchEH * 60 + (lunchEM || 0);
+
+    if (apptStartVal < workStartVal || apptEndVal > workEndVal) {
+      return { type: 'outside', message: 'Fora do Horário' };
+    }
+
+    if ((apptStartVal < lunchEndVal) && (lunchStartVal < apptEndVal)) {
+      return { type: 'lunch', message: 'Conflito com Almoço' };
+    }
+
+    return null;
   };
 
   // Generate dynamic hours based on schedule with 30-minute intervals
@@ -536,6 +592,20 @@ export function AdminDashboardPage() {
                             <p className="text-[9px] sm:text-[10px] opacity-80 mt-0.5 uppercase font-medium truncate">{appt.client}</p>
                             <p className="text-[8px] opacity-60 mt-0.5 font-mono">{appt.start} ({appt.duration}min)</p>
                             
+                            {/* Conflict indicator */}
+                            {(() => {
+                              const conflict = getConflictType(appt);
+                              if (conflict) {
+                                return (
+                                  <div className="mt-1.5 flex items-center gap-1 bg-white/20 px-1.5 py-0.5 rounded-md border border-white/30 backdrop-blur-sm animate-pulse">
+                                    <AlertTriangle size={10} className="text-brand-gold fill-brand-gold/20" />
+                                    <span className="text-[8px] font-black uppercase tracking-tighter whitespace-nowrap">{conflict.message}</span>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
+
                             {/* Cancel Button */}
                             <button 
                               onClick={(e) => {
