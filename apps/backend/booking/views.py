@@ -231,7 +231,6 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
         change_type = request.data.get('type')
         change_data = request.data.get('data')
 
-        affected_appointments = []
         future_appointments = Appointment.objects.filter(
             professional=profile,
             date_time__gte=timezone.now(),
@@ -239,59 +238,66 @@ class ProfessionalProfileViewSet(viewsets.ModelViewSet):
         ).select_related('service')
 
         if change_type == 'block':
-            block_date = datetime.strptime(change_data.get('date'), '%Y-%m-%d').date()
-            start_t_str = change_data.get('start_time')
-            end_t_str = change_data.get('end_time')
-
-            start_t = datetime.strptime(start_t_str, '%H:%M:%S').time() if start_t_str else None
-            end_t = datetime.strptime(end_t_str, '%H:%M:%S').time() if end_t_str else None
-
-            for appt in future_appointments:
-                local_dt = timezone.localtime(appt.date_time)
-                if local_dt.date() == block_date:
-                    if not start_t or not end_t:
-                        # Full day block
-                        affected_appointments.append(appt)
-                    else:
-                        # Partial block check
-                        duration = appt.service.duration_minutes
-                        appt_start = local_dt.time()
-                        appt_end = (local_dt + timedelta(minutes=duration)).time()
-
-                        if (appt_start < end_t) and (start_t < appt_end):
-                            affected_appointments.append(appt)
-
+            affected_appointments = self._check_block_conflicts(future_appointments, change_data)
         elif change_type == 'opening_hour':
-            day_of_week = change_data.get('day_of_week')
-            is_open = change_data.get('is_open')
-            work_start = datetime.strptime(change_data.get('work_start'), '%H:%M:%S').time()
-            work_end = datetime.strptime(change_data.get('work_end'), '%H:%M:%S').time()
-            lunch_start = change_data.get('lunch_start')
-            lunch_end = change_data.get('lunch_end')
-
-            l_start = datetime.strptime(lunch_start, '%H:%M:%S').time() if lunch_start else None
-            l_end = datetime.strptime(lunch_end, '%H:%M:%S').time() if lunch_end else None
-
-            for appt in future_appointments:
-                local_dt = timezone.localtime(appt.date_time)
-                if local_dt.weekday() == day_of_week:
-                    if not is_open:
-                        affected_appointments.append(appt)
-                    else:
-                        duration = appt.service.duration_minutes
-                        appt_start = local_dt.time()
-                        appt_end = (local_dt + timedelta(minutes=duration)).time()
-
-                        # Outside work hours
-                        if appt_start < work_start or appt_end > work_end:
-                            affected_appointments.append(appt)
-                        # Inside lunch
-                        elif l_start and l_end:
-                            if (appt_start < l_end) and (l_start < appt_end):
-                                affected_appointments.append(appt)
+            affected_appointments = self._check_opening_hour_conflicts(future_appointments, change_data)
 
         serializer = AppointmentSerializer(affected_appointments, many=True)
         return Response(serializer.data)
+
+    def _check_block_conflicts(self, appointments, data):
+        affected = []
+        block_date = datetime.strptime(data.get('date'), '%Y-%m-%d').date()
+        start_t_str = data.get('start_time')
+        end_t_str = data.get('end_time')
+
+        start_t = datetime.strptime(start_t_str, '%H:%M:%S').time() if start_t_str else None
+        end_t = datetime.strptime(end_t_str, '%H:%M:%S').time() if end_t_str else None
+
+        for appt in appointments:
+            local_dt = timezone.localtime(appt.date_time)
+            if local_dt.date() == block_date:
+                if not start_t or not end_t:
+                    affected.append(appt)
+                else:
+                    duration = appt.service.duration_minutes
+                    appt_start = local_dt.time()
+                    appt_end = (local_dt + timedelta(minutes=duration)).time()
+                    if (appt_start < end_t) and (start_t < appt_end):
+                        affected.append(appt)
+        return affected
+
+    def _check_opening_hour_conflicts(self, appointments, data):
+        affected = []
+        day_of_week = data.get('day_of_week')
+        is_open = data.get('is_open')
+        work_start = datetime.strptime(data.get('work_start'), '%H:%M:%S').time()
+        work_end = datetime.strptime(data.get('work_end'), '%H:%M:%S').time()
+        lunch_start = data.get('lunch_start')
+        lunch_end = data.get('lunch_end')
+
+        l_start = datetime.strptime(lunch_start, '%H:%M:%S').time() if lunch_start else None
+        l_end = datetime.strptime(lunch_end, '%H:%M:%S').time() if lunch_end else None
+
+        for appt in appointments:
+            local_dt = timezone.localtime(appt.date_time)
+            if local_dt.weekday() == day_of_week:
+                if not is_open:
+                    affected.append(appt)
+                    continue
+
+                duration = appt.service.duration_minutes
+                appt_start = local_dt.time()
+                appt_end = (local_dt + timedelta(minutes=duration)).time()
+
+                outside_work = appt_start < work_start or appt_end > work_end
+                lunch_conflict = False
+                if l_start and l_end:
+                    lunch_conflict = (appt_start < l_end) and (l_start < appt_end)
+
+                if outside_work or lunch_conflict:
+                    affected.append(appt)
+        return affected
 
 
 class OpeningHourViewSet(viewsets.ModelViewSet):
