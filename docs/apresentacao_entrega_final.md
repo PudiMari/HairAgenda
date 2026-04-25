@@ -33,7 +33,7 @@ Os documentos detalhados gerados ao longo do projeto incluem:
 
 ### Acesso ao Ambiente Produtivo (Deploy)
 A plataforma gerada encontra-se publicamente avaliável através da infraestrutura:
-- **Frontend / Dashboard Web (Vercel):** [https://hair-agenda-frontend.vercel.app](https://hair-agenda-frontend.vercel.app)
+- **Frontend / Dashboard Web (Vercel):** [https://hair-agenda.vercel.app](https://hair-agenda.vercel.app)
 - **Backend / API (Vercel):** [https://hair-agenda-backend.vercel.app/api/health/](https://hair-agenda-backend.vercel.app/api/health/)
 - **Dashboard de Observabilidade (Grafana Cloud):** [Clique aqui para acessar o monitoramento](https://marianadiasesps.grafana.net/a/grafana-kowalski-app/apps/1085/overview?from=now-24h&to=now&var-lab_filter=0&var-Filters=)
 
@@ -47,6 +47,8 @@ Durante o processo de desenvolvimento assistido e implementação, destacaram-se
 1.  **Tailwind CSS 4**: A adoção da nova engine permitiu uma velocidade de estilização ~30% superior, possibilitando um visual premium "out-of-the-box" com CSS moderno e minimalista.
 2.  **Auth-as-a-Service (Clerk)**: A delegação da autenticação para o Clerk reduziu drasticamente a complexidade de segurança no backend, provendo uma experiência de login social (Google) fluida e robusta.
 3.  **Supabase & PostgreSQL**: A escolha por um banco relacional transacional foi crucial para implementar o motor de agendamento, garantindo a prevenção de conflitos de horário (*overbooking*) via constraints nativas.
+4.  **Disponibilidade Inteligente (Gap Filler)**: O algoritmo de busca de horários foi otimizado para evitar lacunas ineficientes na agenda do profissional, agrupando atendimentos e maximizando a produtividade.
+5.  **Observabilidade Nativa**: Implementação de coleta de logs e métricas via Grafana Cloud e OpenTelemetry, permitindo monitorar o tempo de resposta das requisições e a saúde do sistema em tempo real.
 
 ### Desafios e Soluções
 1.  **Sincronização Monorepo**: O desafio de manter frontend (Vite) e backend (Django) em um único repositório foi superado com configurações finas de CORS e scripts de deploy unificados na Vercel.
