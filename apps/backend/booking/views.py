@@ -28,7 +28,7 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
+
         # Allow detail actions to proceed normally
         if self.detail:
             return queryset
@@ -51,7 +51,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
+
         # Allow detail actions to proceed
         if self.detail:
             return queryset
@@ -224,7 +224,7 @@ class OpeningHourViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
+
         if self.detail:
             return queryset
 
@@ -245,7 +245,7 @@ class ProfessionalBlockViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
+
         if self.detail:
             return queryset
 
@@ -266,7 +266,7 @@ class PortfolioItemViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        
+
         if self.detail:
             return queryset
 
