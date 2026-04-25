@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from datetime import datetime, timedelta
@@ -361,3 +362,12 @@ class PortfolioItemViewSet(viewsets.ModelViewSet):
             else:
                 queryset = queryset.filter(professional_id=professional_id)
         return queryset
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    return Response({
+        "status": "online",
+        "message": "HairAgenda API is running smoothly",
+        "timestamp": timezone.now()
+    })

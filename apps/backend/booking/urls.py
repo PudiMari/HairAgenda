@@ -7,6 +7,7 @@ from .views import (
     OpeningHourViewSet,
     ProfessionalBlockViewSet,
     PortfolioItemViewSet,
+    health_check,
 )
 
 router = DefaultRouter()
@@ -18,5 +19,6 @@ router.register(r'professional-blocks', ProfessionalBlockViewSet)
 router.register(r'portfolio-items', PortfolioItemViewSet)
 
 urlpatterns = [
+    path('health/', health_check, name='health-check'),
     path('', include(router.urls)),
-]
+]
