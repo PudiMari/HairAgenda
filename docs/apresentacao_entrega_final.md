@@ -36,7 +36,6 @@ A plataforma gerada encontra-se publicamente avaliável através da infraestrutu
 - **Frontend / Dashboard Web (Vercel):** [https://hair-agenda-frontend.vercel.app](https://hair-agenda-frontend.vercel.app)
 - **Backend / API (Vercel):** [https://hair-agenda-backend.vercel.app/api/health/](https://hair-agenda-backend.vercel.app/api/health/)
 - **Dashboard de Observabilidade (Grafana Cloud):** [Clique aqui para acessar o monitoramento](https://marianadiasesps.grafana.net/a/grafana-kowalski-app/apps/1085/overview?from=now-24h&to=now&var-lab_filter=0&var-Filters=)
-> *(Nota: O bloqueio administrativo padrão foi desativado na Vercel para permitir avaliação das telas de gerência sem cadastro prévio no banco).*
 
 ---
 

@@ -10,14 +10,16 @@ export function RootLayout() {
 
   useEffect(() => {
     if (isLoaded && user) {
-      const hasRole = 
-        user?.publicMetadata?.role === 'admin' || 
-        user?.publicMetadata?.role === 'client' ||
-        user?.unsafeMetadata?.role === 'admin' || 
-        user?.unsafeMetadata?.role === 'client';
-
-      if (!hasRole) {
+      const userRole = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+      
+      if (!userRole) {
         navigate('/role-selection');
+        return;
+      }
+
+      // Strict Redirection: If an admin tries to access client area, push them back to admin area.
+      if (userRole === 'admin') {
+        navigate('/admin', { replace: true });
       }
     }
   }, [isLoaded, user, navigate]);
